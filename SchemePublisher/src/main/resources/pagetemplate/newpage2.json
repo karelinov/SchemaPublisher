@@ -1,0 +1,23 @@
+{
+	"status": "current",
+	"title": "new test page ",
+	"space": {
+		"key": "TEST"
+	},
+	"body": {
+		"editor": {
+			"value": "<p>tp2 content</p>",
+			"representation": "editor"
+		}
+	},
+	"type": "page",
+	"version": {
+		"number": 1
+	},
+	"ancestors": [
+		{
+			"id": "1966083",
+			"type": "page"
+		}
+	]
+}

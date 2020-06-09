@@ -1,0 +1,29 @@
+{
+	"status": "current",
+	"title": "new test page 2",
+	"space": {
+		"key": "TEST"
+	},
+	"body": {
+		"editor": {
+			"value": "<p>tp2 content</p>",
+			"representation": "editor",
+			"content": {
+				"id": "1966085"
+			}
+		}
+	},
+	"id": "1966085",
+	"type": "page",
+	"version": {
+		"number": 1,
+		"minorEdit": true,
+		"syncRev": "0.kBrGZvj4vgWbHErzzeOaMbU.21"
+	},
+	"ancestors": [
+		{
+			"id": "1966083",
+			"type": "page"
+		}
+	]
+}

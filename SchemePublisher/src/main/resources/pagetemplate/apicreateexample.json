@@ -1,0 +1,13 @@
+{
+	"type": "page",
+	"title": "new page9",
+	"space": {
+		"key": "TEST"
+	},
+	"body": {
+		"storage": {
+			"value": "<p>This is a new page</p> <br/>",
+			"representation": "storage"
+		}
+	}
+}
