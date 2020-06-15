@@ -14,7 +14,8 @@ import java.util.regex.Pattern;
  *
  */
 public class PageBodyHelper {
-	public static final String AC_IMAGE_PATTERN = "<ac:image[\\s\\S]*alt=\"SPARXIMAGE-([A-Z0-9-]+)\"[\\s\\S]*>[\\s\\S]*<\\/ac:image>";
+	// <ac:image[\s\S]*?alt=\"SPARXIMAGE-([A-Za-z0-9-]+)\"[\s\S]*?>[\s\S]*?<\/ac:image>
+	public static final String AC_IMAGE_PATTERN = "<ac:image[\\s\\S]*?alt=\\\"SPARXIMAGE-([A-Za-z0-9-]+)\\\"[\\s\\S]*?>[\\s\\S]*?<\\/ac:image>";
 	// <ac:image([\s\S]*?ac:alt=\"SPARXIMAGE-[A-Z0-9-]+\"[\s\S]*?)>[\s\S]*?<\/ac:image>
 	public static final String AC_FULLIMAGE_PATTERN = "<ac:image([\\s\\S]*?ac:alt=\\\"SPARXIMAGE-[A-Z0-9-]+\\\"[\\s\\S]*?)>[\\s\\S]*?<\\/ac:image>";	
 	// <ac:image[\s\S]*ac:width="([0-9]+)"[\s\S]*>[\s\S]*<\/ac:image>

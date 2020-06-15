@@ -25,7 +25,12 @@ public class ExecResult<T> {
 	
 	
 	public void setException(Exception ex) {
-		this.message = ex.toString();
+
+		String st = "";
+		for (StackTraceElement ste: ex.getStackTrace()) {
+			st = st+ste.toString()+"\r\n";
+		}
+		this.message = ex.toString() + st;
 	}
 
 }

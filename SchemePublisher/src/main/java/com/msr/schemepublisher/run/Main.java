@@ -1,8 +1,12 @@
 package com.msr.schemepublisher.run;
 
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -17,6 +21,7 @@ import javax.imageio.ImageIO;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.impl.SimpleLogger;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,26 +33,43 @@ import com.msr.schemepublisher.RestAPI;
 import com.msr.schemepublisher.TemplateHelper;
 
 public class Main {
-	private static final Logger logger = LoggerFactory.getLogger(Main.class);
+	private static Logger logger;// = LoggerFactory.getLogger(Main.class);
 
 	public static void main(String[] args) {
-		logger.info("main started");
+		//logger.info("main started");
 
 		String propFileName;
 		if (args == null || args.length == 0) {
 			propFileName = "F:\\DEV\\ERL\\SchemePublisher\\SchemePublisher\\src\\test\\resources\\in\\test.properties";
+			//propFileName = "F:\\DEV\\ERL\\SchemePublisher\\EAPublisher\\Exchange\\expoer.properties";
 		} else {
 			if (!(new File(args[0]).exists())) {
-				throw new RuntimeException("Файл не найден");
+				throw new RuntimeException("Файл не найден "+args[0]);
 			} else {
 				propFileName = args[0];
 			}
 		}
-
-		ExecResult<Boolean> result = PublishContent(propFileName);
-		if(result.code != 0)
-			throw new RuntimeException(result.message);
-
+		
+        System.setProperty(org.slf4j.impl.SimpleLogger.LOG_FILE_KEY, Paths.get(propFileName).getParent().toString()+"\\SchemePublisher.log");
+        logger = LoggerFactory.getLogger(Main.class);
+        logger.info("main logger set");
+        System.out.println("main logger set");
+        
+//        String str = "World";
+//        BufferedWriter writer;
+//		try {
+//			writer = new BufferedWriter(new FileWriter(Paths.get(propFileName).getParent().toString()+"\\SchemePublisher1.log", true));
+//	        writer.append(' ');
+//	        writer.append(str);
+//	        writer.close();        
+//		} catch (IOException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+     
+        
+        PublishContent(propFileName);
+        
 		/*
 		 * String newContent = TemplateHelper.getTemplate("apicreateexample");
 		 * newContent =TemplateHelper.setTitle(newContent, "test "+
@@ -127,6 +149,7 @@ public class Main {
 			String pageContent;
 			Integer pageID;
 			// Получаем id страницы, которую надо обновить
+			logger.info("pageName=" + pageName);			
 			ExecResult<Integer> pageIDResult = RestAPI.getPageIdByTitle(pageName);
 			logger.info("getPageIdByTitle returned page pageID=" + pageIDResult.value);
 			
@@ -173,8 +196,15 @@ public class Main {
 			
 			pageBody = PageBodyHelper.setImage(pageBody, objID, imageFileName, pictureWidth);
 			// заливаем в разметку текст
-			String pageText = new String(Files.readAllBytes(Paths.get(Paths.get(propertiesFilePath, textFileName).toString())));
-			pageBody = PageBodyHelper.setText(pageBody, objID, pageText);
+			BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(Paths.get(propertiesFilePath, textFileName).toString()), "UTF-8"));
+			StringBuilder pageText = new StringBuilder();
+			String curString;
+			while( (curString = br.readLine()) != null) {
+				pageText.append(curString);
+			}			
+			br.close();
+			
+			pageBody = PageBodyHelper.setText(pageBody, objID, pageText.toString());
 
 			// Обновляем разметку в контенте
 			pageContent = TemplateHelper.setBody(pageContent, pageBody);

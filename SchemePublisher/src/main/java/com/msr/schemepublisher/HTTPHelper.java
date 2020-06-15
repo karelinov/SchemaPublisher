@@ -11,6 +11,9 @@ import java.net.Proxy;
 import java.net.SocketAddress;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 import org.slf4j.Logger;
@@ -35,7 +38,7 @@ public class HTTPHelper {
 			} else
 				inputStream = connection.getInputStream();
 	
-			BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+			BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream,"UTF-8"));
 			StringBuilder stringBuilder = new StringBuilder();
 	
 			String line = null;
@@ -73,7 +76,7 @@ public class HTTPHelper {
 				proxy = new Proxy(Proxy.Type.HTTP, addr);
 			}
 			
-			url = uri.toURL();
+			url = new URL(uri.toASCIIString());
 			// logger.info("constructed url = " + url);
 			String userCredentials = "okarelin:12345";
 			String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userCredentials.getBytes()));
@@ -85,6 +88,7 @@ public class HTTPHelper {
 				connection = (HttpURLConnection) url.openConnection();
 			}
 			connection.setRequestProperty("Authorization", basicAuth);
+			connection.setRequestProperty("Accept", "application/json, text/javascript, */*; q=0.01");
 			connection.setRequestMethod(requestMethod);
 	
 			result.value = connection;
@@ -130,17 +134,18 @@ public class HTTPHelper {
 			if (query == null)
 				query = "";
 			if (!query.isEmpty()) {
+				//query = URLDecoder.decode(query,"UTF-8");
 				query = query + "&";
 			}
 			query = query + parName + "=" + parValue;
-	
+			//query = query + parName + "=" + URLEncoder.encode(parValue, "UTF-8");
 			return new URI(baseUri.getScheme(), baseUri.getAuthority(), baseUri.getPath(), query.toString(), null);
 	
 		} catch (Exception ex) { // все методы работы с URI раизят какие то ошибки
 			throw new RuntimeException(ex);
 		}
 	}
-
+	
 	/**
 	 * Функция записи body в request
 	 */

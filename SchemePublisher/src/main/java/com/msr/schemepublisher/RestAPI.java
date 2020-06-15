@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.file.Paths;
+import java.util.Iterator;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -155,8 +156,11 @@ public class RestAPI {
 			connectionResult.value.connect();
 
 			ExecResult<String> responseResult = HTTPHelper.getConnectionResponse(connectionResult.value);
+			//logger.info("responseResult.code =" + responseResult.code);			
 			if (responseResult.code != 200)
 				throw new Exception(responseResult.message + responseResult.value);
+			//logger.info("responseResult.value="+responseResult.value);
+			
 
 			// разбираем json ответ
 			ObjectMapper mapper = new ObjectMapper();
@@ -166,6 +170,7 @@ public class RestAPI {
 
 			for (int i = 0; i < resultsNode.size(); i++) {
 				JsonNode pageNode = resultsNode.get(i);
+
 				if (pageNode.get("title").asText().equals(title)) {
 					result.code = 0;
 					result.value = pageNode.get("id").asInt();
@@ -178,7 +183,7 @@ public class RestAPI {
 			result.code = -1;
 			result.setException(ex);
 		}
-
+		
 		return result;
 	}
 
