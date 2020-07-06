@@ -208,7 +208,7 @@ namespace EADiagramPublisher
             try
             {
 
-                EAHelper.Out("element.Name");
+                EAHelper.Out(element.Name);
                 EAHelper.Out("размещаем элемент ", new EA.Element[] { element });
 
                 var diagramObjects = CurrentDiagram.DiagramObjects;
@@ -236,45 +236,9 @@ namespace EADiagramPublisher
                 List<EA.Element> childDeployments = EAHelper.GetDeployChildrenDA(element);
                 EAHelper.Out(element.Name + ":получен список присутсвующих на диагр. дочерних ", childDeployments.ToArray());
 
-                int maxChildZorder = 1;
-                foreach (EA.Element childDeployment in childDeployments)
-                {
-                    EA.DiagramObject childDA = EAHelper.GetDiagramObject(childDeployment);
-                    FitElementInElement(childDA, elementDA);
-                    maxChildZorder = (childDA.Sequence > maxChildZorder ? childDA.Sequence : maxChildZorder);
-                }
-                // Подгоняем Z-Order элемента под дочерних
-                elementDA.Sequence = maxChildZorder + 1;
-                elementDA.Update();
 
-
-                // Проверяем наличие на диаграмме элемента родительской иерархии
-                EA.DiagramObject parentElementDA = null;
-                List<EA.Element> deployments = EAHelper.GetParentHierarchy(element);
-                EAHelper.Out("получен список родительской иерархии ", deployments.ToArray());
-
-
-                bool putInparent = false;
-                bool needIncreaseZorder = false;
-                for (int i = 0; i < deployments.Count - 1; i++) // проходимся по родительской иерархии
-                {
-                    parentElementDA = EAHelper.GetDiagramObject(deployments[i]);
-                    if (parentElementDA != null && !putInparent) // Если на диаграмме есть контейнер из родительской иерархии - вписываем элемент в данный контейнер
-                    {
-                        FitElementInElement(elementDA, parentElementDA);
-
-                        // Для всех присутствующих на диаграмме родителей "приопускаем" (если надо) Z-Order по сравнению с добавленным элементом
-                        if (!putInparent && parentElementDA.Sequence <= elementDA.Sequence) needIncreaseZorder = true;
-                        if (needIncreaseZorder)
-                        {
-                            parentElementDA.Sequence = elementDA.Sequence + i;
-                            parentElementDA.Update();
-                        }
-
-                        putInparent = true;
-                    }
-
-                }
+                // Подгоняем ZOrder
+                SetElementZorder(elementDA);
 
             }
             finally
@@ -431,6 +395,12 @@ namespace EADiagramPublisher
                 }
 
             }
+
+            foreach (EA.DiagramObject curDA in CurrentDiagram.DiagramObjects)
+            {
+                EAHelper.Out("Zorder=" + curDA.Sequence, new EA.DiagramObject[] { curDA });
+            }
+
 
         }
 
