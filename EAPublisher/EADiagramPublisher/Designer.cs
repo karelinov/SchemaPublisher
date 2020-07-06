@@ -240,6 +240,22 @@ namespace EADiagramPublisher
                 // Подгоняем ZOrder
                 SetElementZorder(elementDA);
 
+                // Проверяем наличие на диаграмме элемента родительской иерархии
+                EA.DiagramObject parentElementDA = null;
+                List<EA.Element> deployments = EAHelper.GetParentHierarchy(element);
+                EAHelper.Out("получен список родительской иерархии ", deployments.ToArray());
+
+ 
+                bool putInparent = false;
+                for (int i = 0; i < deployments.Count - 1; i++) // проходимся по родительской иерархии
+                {
+                    parentElementDA = EAHelper.GetDiagramObject(deployments[i]);
+                    if (parentElementDA != null && !putInparent) // Если на диаграмме есть контейнер из родительской иерархии - вписываем элемент в данный контейнер
+                    {
+                        FitElementInElement(elementDA, parentElementDA);
+                        putInparent = true;
+                    }
+                }
             }
             finally
             {
