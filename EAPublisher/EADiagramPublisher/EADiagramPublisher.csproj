@@ -50,10 +50,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DesignerHelper.cs" />
+    <Compile Include="Enums\CLHelper.cs" />
+    <Compile Include="Enums\ComponentLevel.cs" />
+    <Compile Include="Enums\ConnectorType.cs" />
+    <Compile Include="Designer.cs" />
     <Compile Include="DiagramExporter.cs" />
     <Compile Include="DPAddin.cs" />
     <Compile Include="DPConfig.cs" />
+    <Compile Include="EAHelper.cs" />
     <Compile Include="ExecResult.cs" />
+    <Compile Include="Forms\FSelectHierarcyLevels.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FSelectHierarcyLevels.Designer.cs">
+      <DependentUpon>FSelectHierarcyLevels.cs</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -62,6 +74,11 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="register.reg" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Forms\FSelectHierarcyLevels.resx">
+      <DependentUpon>FSelectHierarcyLevels.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

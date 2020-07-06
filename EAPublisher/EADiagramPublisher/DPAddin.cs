@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Reflection;
 using System.Windows.Forms;
 
 namespace EADiagramPublisher
@@ -6,15 +8,26 @@ namespace EADiagramPublisher
     public class DPAddin
     {
         public static EA.Repository EARepository { get; set; }
+        public static Designer Designer { get; set; }
+        public static String logpath = null;
 
         // define menu constants
-        const string menuHeader = "-&DPAddin";
-        const string menuHello = "&Say Hello";
-        const string menuGoodbye = "&Say Goodbye";
+        const string menuDPAddin = "-&DPAddin";
+
         const string menuExportDiagram = "&ExportDiagram";
 
-        // remember if we have to say hello or goodbye
-        private bool shouldWeSayHello = true;
+        const string menuDesign = "-&Design";
+        const string menuSetCurrentLibrary = "&SetCurrentLibrary";
+        const string menuSetCurrentDiagram = "&SetCurrentDiagram";
+        const string menuPutLibElementOnDiagram = "&PutLibElementOnDiagram";
+        const string menuPutDeploymentHierarchyOnDiagram = "&PutDeploymentHierarchyOnDiagram";
+        const string menuUtils = "-&Utils";
+        const string menuSetDefaultSize = "&SetDefaultSize";
+
+        const string menuTest = "-&Test";
+        const string menuTest1 = "&Test1";
+        const string menuTest2 = "&Test2";
+        const string menuTest3 = "&Test3";
 
         ///
         /// Called Before EA starts to check Add-In Exists
@@ -26,6 +39,10 @@ namespace EADiagramPublisher
         public String EA_Connect(EA.Repository repository)
         {
             EARepository = repository;
+            Designer = new Designer(repository);
+            logpath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "EADiagramPublisher.log");
+
+
             return "";
         }
 
@@ -40,14 +57,24 @@ namespace EADiagramPublisher
         ///
         public object EA_GetMenuItems(EA.Repository repository, string location, string menuName)
         {
+            string[] subMenus = null;
+
             switch (menuName)
             {
                 // defines the top level menu option
                 case "":
-                    return menuHeader;
-                // defines the submenu options
-                case menuHeader:
-                    string[] subMenus = { menuHello, menuGoodbye, menuExportDiagram };
+                    return menuDPAddin;
+                case menuDPAddin:
+                    subMenus = new string[] { menuExportDiagram, menuDesign, menuUtils, menuTest };
+                    return subMenus;
+                case menuDesign:
+                    subMenus = new string[] { menuSetCurrentLibrary, menuSetCurrentDiagram, menuPutLibElementOnDiagram, menuPutDeploymentHierarchyOnDiagram };
+                    return subMenus;
+                case menuUtils:
+                    subMenus = new string[] { menuSetDefaultSize };
+                    return subMenus;
+                case menuTest:
+                    subMenus = new string[] { menuTest1 , menuTest2, menuTest3 };
                     return subMenus;
             }
 
@@ -90,6 +117,26 @@ namespace EADiagramPublisher
                     case menuExportDiagram:
                         isEnabled = true;
                         break;
+                    case menuDesign:
+                    case menuSetCurrentLibrary:
+                    case menuSetCurrentDiagram:
+                    case menuPutLibElementOnDiagram:
+                    case menuPutDeploymentHierarchyOnDiagram:
+                        isEnabled = true;
+                        break;
+
+                    case menuUtils:
+                    case menuSetDefaultSize:
+                        isEnabled = true;
+                        break;
+
+                    case menuTest:
+                    case menuTest1:
+                    case menuTest2:
+                    case menuTest3:
+                        isEnabled = true;
+                        break;
+
                     // there shouldn't be any other, but just in case disable it.
                     default:
                         isEnabled = false;
@@ -119,6 +166,43 @@ namespace EADiagramPublisher
                 case menuExportDiagram:
                     var exportResult = DiagramExporter.Export(location);
                     break;
+                /*
+                case menuSetCurrentLibrary:
+                    var setCurrentLibraryResult = Designer.SetCurrentLibrary();
+                    OutExecResult(setCurrentLibraryResult);
+                    break;
+                    */
+                case menuSetCurrentDiagram:
+                    Designer.CurrentDiagram = EARepository.GetCurrentDiagram();
+                    EAHelper.Out("Установлена текущая диаграмма = " + Designer.CurrentDiagram.Name);
+                    break;
+                case menuPutLibElementOnDiagram:
+                    var putLibElementResult = Designer.PutElementOnDiagram();
+                    OutExecResult(putLibElementResult);
+                    break;
+                case menuPutDeploymentHierarchyOnDiagram:
+                    var putDeploymentHierarchyResult = Designer.PutParentHierarchyOnDiagram();
+                    OutExecResult(putDeploymentHierarchyResult);
+                    break;
+
+                case menuSetDefaultSize:
+                    var SetElementDefaultSizeResult = EAHelper.SetElementDefaultSize();
+                    OutExecResult(SetElementDefaultSizeResult);
+                    break;
+                case menuTest1:
+                    var test1Result = Test1();
+                    OutExecResult(test1Result);
+                    break;
+                case menuTest2:
+                    var test2Result = Test2();
+                    OutExecResult(test2Result);
+                    break;
+                case menuTest3:
+                    var test3Result = Test3();
+                    OutExecResult(test3Result);
+                    break;
+
+
 
             }
         }
@@ -128,9 +212,165 @@ namespace EADiagramPublisher
         ///
         public void EA_Disconnect()
         {
+            Designer = null;
+            EARepository = null;
+
             GC.Collect();
             GC.WaitForPendingFinalizers();
         }
+
+
+
+        private void OutExecResult<T>(ExecResult<T> result)
+        {
+            EARepository.WriteOutput("System", "result code=" + result.code + " " + result.message, 0);
+
+        }
+
+
+        private static int test1Flag = 0;
+        private ExecResult<Boolean> Test1()
+        {
+            ExecResult<Boolean> result = new ExecResult<bool>();
+            try
+            {
+                // Открываем и чистим тестовую диаграмму 
+                EA.Diagram testDiagram = EARepository.GetDiagramByGuid("{0093407F-0187-42a8-93DC-B97E8FA79EED}");
+                if (test1Flag == 0)
+                {
+
+                    while (testDiagram.DiagramObjects.Count > 0)
+                    {
+                        testDiagram.DiagramObjects.DeleteAt(0, true);
+                    }
+                    testDiagram.Update();
+                    testDiagram.DiagramObjects.Refresh();
+                    EARepository.ReloadDiagram(testDiagram.DiagramID);
+                }
+
+                EARepository.OpenDiagram(testDiagram.DiagramID);
+                EARepository.ActivateDiagram(testDiagram.DiagramID);
+                Designer.CurrentDiagram = testDiagram;
+
+                // Выделяем элемент
+                EA.Element element = EARepository.GetElementByGuid("{83142BDB-7EE4-48e7-B788-0011E0E2E343}");
+                EARepository.ShowInProjectView(element);
+
+                // Запускаем формирование иерархии элементов диаграммы
+                var putDeploymentHierarchyResult = Designer.PutParentHierarchyOnDiagram();
+                OutExecResult(putDeploymentHierarchyResult);
+
+
+                test1Flag = 1;
+            }
+            catch (Exception ex)
+            {
+                result.setException(ex);
+            }
+
+            return result;
+
+        }
+
+        private ExecResult<Boolean> Test2()
+        {
+            ExecResult<Boolean> result = new ExecResult<bool>();
+            try
+            {
+                // Открываем и чистим тестовую диаграмму 
+                EA.Diagram testDiagram = EARepository.GetDiagramByGuid("{0093407F-0187-42a8-93DC-B97E8FA79EED}");
+                if (test1Flag == 0)
+                {
+
+                    while (testDiagram.DiagramObjects.Count > 0)
+                    {
+                        testDiagram.DiagramObjects.DeleteAt(0, true);
+                    }
+                    testDiagram.Update();
+                    testDiagram.DiagramObjects.Refresh();
+                    EARepository.ReloadDiagram(testDiagram.DiagramID);
+                }
+
+                EARepository.OpenDiagram(testDiagram.DiagramID);
+                EARepository.ActivateDiagram(testDiagram.DiagramID);
+                Designer.CurrentDiagram = testDiagram;
+
+                // Выделяем элемент
+                EA.Element element = EARepository.GetElementByGuid("{83142BDB-7EE4-48e7-B788-0011E0E2E343}");
+                EARepository.ShowInProjectView(element);
+            }
+            catch (Exception ex)
+            {
+                result.setException(ex);
+            }
+
+            return result;
+
+        }
+
+        private ExecResult<Boolean> Test3()
+        {
+            ExecResult<Boolean> result = new ExecResult<bool>();
+            try
+            {
+                // Открываем и чистим тестовую диаграмму 
+                EA.Diagram testDiagram = EARepository.GetDiagramByGuid("{0093407F-0187-42a8-93DC-B97E8FA79EED}");
+                if (test1Flag == 0)
+                {
+
+                    while (testDiagram.DiagramObjects.Count > 0)
+                    {
+                        testDiagram.DiagramObjects.DeleteAt(0, true);
+                    }
+                    testDiagram.Update();
+                    testDiagram.DiagramObjects.Refresh();
+                    EARepository.ReloadDiagram(testDiagram.DiagramID);
+                }
+
+                EARepository.OpenDiagram(testDiagram.DiagramID);
+                EARepository.ActivateDiagram(testDiagram.DiagramID);
+                Designer.CurrentDiagram = testDiagram;
+
+                // Выделяем элемент Сервер1
+                EA.Element element = EARepository.GetElementByGuid("{A4A9C875-BF19-4fde-848D-4329FF477A02}");
+                EARepository.ShowInProjectView(element);
+
+                EA.DiagramObject elementDA = testDiagram.DiagramObjects.AddNew("", "");
+                elementDA.ElementID = element.ElementID;
+                elementDA.Update();
+                testDiagram.Update();
+                testDiagram.DiagramObjects.Refresh();
+                int elementID = elementDA.ElementID;
+                EAHelper.Out("создан элемент ", new EA.DiagramObject[] { elementDA });
+
+                testDiagram.DiagramObjects.Refresh();
+                EAHelper.Out("after  DiagramObjects.Refresh ", new EA.DiagramObject[] { elementDA });
+
+
+                testDiagram.DiagramObjects.Refresh();
+                EARepository.ReloadDiagram(testDiagram.DiagramID);
+                testDiagram.DiagramObjects.Refresh();
+                EAHelper.Out("after RRR", new EA.DiagramObject[] { elementDA });
+
+                elementDA.bottom = elementDA.bottom - 1;
+                elementDA.Update();
+                testDiagram.DiagramObjects.Refresh();
+                EARepository.ReloadDiagram(testDiagram.DiagramID);
+                testDiagram.DiagramObjects.Refresh();
+                EAHelper.Out("after MRRR", new EA.DiagramObject[] { elementDA });
+
+
+
+            }
+            catch (Exception ex)
+            {
+                result.setException(ex);
+            }
+
+            return result;
+
+        }
+
 
     }
 }
