@@ -4,6 +4,8 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 
+using EADiagramPublisher.Enums;
+
 namespace EADiagramPublisher
 {
     /// <summary>
@@ -13,38 +15,54 @@ namespace EADiagramPublisher
 
     class DesignerHelper
     {
-        public static EA.Repository EARepository
+        public static int CallLevel { get; set; }
+
+        /// <summary>
+        /// Shortcut для глобальной переменной EA.Repository
+        /// </summary>
+        private static EA.Repository EARepository
         {
             get
             {
-                return EAHelper.EARepository;
+                return Context.EARepository;
             }
         }
+        /// <summary>
+        /// Вспомогательная функция, определяет, помещаютcя ли координаты innerDA внутри outerDA
+        /// </summary>
+        /// <param name="outerDA"></param>
+        /// <param name="innerDA"></param>
+        /// <returns></returns>
+        public static bool DAFitInside(EA.DiagramObject innerDA, EA.DiagramObject outerDA)
+        {
+            bool result = false;
 
+            if (outerDA.top > innerDA.top && outerDA.bottom < innerDA.bottom && outerDA.left < innerDA.left && outerDA.right > innerDA.right)
+                result = true;
 
-        public static int CallLevel { get; set; }
-
+            return result;
+        }
 
         /// <summary>
-        /// Функция устанавливает размеры элемента по умолчанию, если они нулевые
+        /// Функция вычисляет размеры элемента по умолчанию, если они нулевые
         /// Если есть настройки размера в элементе - используются настройки в элементе
         /// Если нет - используются общие дефолтные константы
         /// </summary>
         /// <param name="da"></param>
         /// <returns>размер объекта</returns>
-        public static Size SetDefaultDASize(EA.DiagramObject diagramObject)
+        public static Size GetDefaultDASize(EA.DiagramObject diagramObject)
         {
             Size result = new Size(diagramObject.right - diagramObject.left, diagramObject.top - diagramObject.bottom);
             EA.Element element = EARepository.GetElementByID(diagramObject.ElementID);
 
             // Для начала пытаемся установить размер из тэгов
-            if (result.Width == 0 && EAHelper.GetTaggedValues(element).GetByName(Designer.defaultWidthTag) != null)
+            if (result.Width == 0 && EAHelper.GetTaggedValues(element).GetByName(DAConst.defaultWidthTag) != null)
             {
-                result.Width = int.Parse(EAHelper.GetTaggedValues(element).GetByName(Designer.defaultWidthTag).Value);
+                result.Width = int.Parse(EAHelper.GetTaggedValues(element).GetByName(DAConst.defaultWidthTag).Value);
             }
-            if (result.Height == 0 && EAHelper.GetTaggedValues(element).GetByName(Designer.defaultHeightTag) != null)
+            if (result.Height == 0 && EAHelper.GetTaggedValues(element).GetByName(DAConst.defaultHeightTag) != null)
             {
-                result.Height = int.Parse(EAHelper.GetTaggedValues(element).GetByName(Designer.defaultHeightTag).Value);
+                result.Height = int.Parse(EAHelper.GetTaggedValues(element).GetByName(DAConst.defaultHeightTag).Value);
             }
 
             // Если из тэгов не установили, пытаемся вычислить на лету по библиотечной диаграмме
@@ -59,38 +77,91 @@ namespace EADiagramPublisher
 
             // Ну если совсем ничего, то просто ставим цифры по умолчанию
             if (result.Height == 0)
-                result.Height = Designer.defaultHeight;
+                result.Height = DAConst.defaultHeight;
             if (result.Width == 0)
-                result.Width = Designer.defaultWidth;
-
-
-            ApplySizeToDA(diagramObject, result); // устанавливаем размер объекта 
+                result.Width = DAConst.defaultWidth;
 
             return result;
         }
 
         /// <summary>
-        /// Функция применяет указанный размер к объекту DiagramObject
+        /// Функция вычисляет требуемое расширение родительского элемента для вписывания в него childDA
         /// </summary>
-        /// <param name="diagramObject"></param>
-        /// <param name="size"></param>
-        /// <param name="doUpdate"></param>
-        public static void ApplySizeToDA(EA.DiagramObject diagramObject, Size size, bool doUpdate = true)
+        /// <param name="parentDA"></param>
+        /// <param name="childDA"></param>
+        /// <returns>Новый размер parentDA, позиция для child-а внутри parentDA</returns>
+        public static Tuple<Size, Point> GetExpandedDASizeForChild(EA.DiagramObject parentDA, EA.DiagramObject childDA, List<EA.DiagramObject> childDAList)
         {
-            diagramObject.right = diagramObject.left + size.Width;
-            diagramObject.bottom = diagramObject.top - size.Height;
-            if (doUpdate) diagramObject.Update();
+            Point resultPoint = new Point();
+
+
+            Size parentSize = GetSize(parentDA);
+            Size childSize = GetSize(childDA);
+
+            // получаем точку, от которой в элементе начинается свободное место
+            var childDAList1 = childDAList.Where(da => da.ElementID != childDA.ElementID); // убираем из списка "внтури родительского" дочерний
+            Point parentDAFreeBorders = GetDAFreeBorders(parentDA, childDAList); // получаем точку начала свободного места
+
+
+            // далее упрощённо - если ширина больше высоты - увеличиваем высоту
+            // иначе - увеличиваем ширину
+            if (parentSize.Width > parentSize.Height)
+            {
+                // Увеличиваем parentDA вниз
+                parentSize.Height = parentSize.Height + childSize.Height + 3 * DAConst.border - (parentSize.Height - Math.Abs(parentDAFreeBorders.Y));
+                if (parentSize.Width < (childSize.Width + 2 * DAConst.border)) parentSize.Width = childSize.Width + 2 * DAConst.border;
+
+                // размещение childDA = у левой и нижней границы
+                resultPoint.X = DAConst.border;
+                resultPoint.Y = -parentSize.Height + DAConst.border + childSize.Height;
+            }
+            else
+            {
+                // Увеличиваем parentDA вправо
+                parentSize.Width = parentSize.Width + childSize.Width + 2 * DAConst.border - (parentSize.Width - parentDAFreeBorders.X);
+                if (parentSize.Height < (childSize.Height + 3 * DAConst.border)) parentSize.Height = childSize.Height + 3 * DAConst.border;
+
+                // размещение childDA = у правой верхней границы
+                resultPoint.X = parentSize.Width - DAConst.border - childSize.Width;
+                resultPoint.Y = -2*DAConst.border;
+            }
+
+            return new Tuple<Size, Point>(parentSize, resultPoint);
         }
 
-        public static void ApplyPointToDA(EA.DiagramObject diagramObject, Point newStart, bool doUpdate = true)
+        /// <summary>
+        /// Функция возвращает свободное место на диаграмме для размещения DA
+        /// Точку в левом / правом верхнем углу
+        /// </summary>
+        /// <returns></returns>
+        public static Point GetFirstFreePoinForDA(EA.DiagramObject diagramObject)
         {
-            Size diagramObjectSize = EAHelper.GetSize(diagramObject);
+            Size daSize = GetSize(diagramObject);
 
-            diagramObject.left = newStart.X;
-            diagramObject.right = diagramObject.left + diagramObjectSize.Width;
-            diagramObject.top = newStart.Y;
-            diagramObject.bottom = diagramObject.top - diagramObjectSize.Height;
-            if (doUpdate) diagramObject.Update();
+            Point result = new Point(DAConst.border, -DAConst.border); // начальная точка - возле левого верхнего угла
+            Point result1 = new Point(DAConst.border, -DAConst.border);
+
+
+            // Проходимся по элементам, одновременно решая, пересекается ли элемент с другими 
+            // и вычисляя минимальную правую незанятую точку на тот случай если пересекается
+            bool intersects = false;
+
+            foreach (EA.DiagramObject curDA in Context.CurrentDiagram.DiagramObjects)
+            {
+                if (curDA.ElementID == diagramObject.ElementID) continue; // вообще то он ещё не проапдейчен и его нет, но на всякий случай....
+
+                if (!intersects && Intersects(diagramObject, curDA))
+                    intersects = true;
+
+                if ((curDA.right + DAConst.border) >= result1.X)
+                    result1.X = curDA.right + DAConst.border;
+            }
+
+
+            if (!intersects)
+                return result;
+            else
+                return result1;
         }
 
         /// <summary>
@@ -105,7 +176,7 @@ namespace EADiagramPublisher
             ExecResult<Point> result = new ExecResult<Point>() { code = -1 };
 
             // Сначала просто пытаемся поместить childDA возле левого верхнего угла
-            Rectangle requiredRectangle = new Rectangle(parentDA.left + Designer.border, parentDA.top - 2 * Designer.border, childDA.right - childDA.left, childDA.top - childDA.bottom);
+            Rectangle requiredRectangle = new Rectangle(parentDA.left + DAConst.border, parentDA.top - 2 * DAConst.border, childDA.right - childDA.left, childDA.top - childDA.bottom);
             bool intersectsWithOther = false;
             if (Contain(parentDA, requiredRectangle))
             {
@@ -144,247 +215,34 @@ namespace EADiagramPublisher
         }
 
         /// <summary>
-        /// Функция вычисляет требуемое расширение родительского элемента для вписывания в него childDA
-        /// </summary>
-        /// <param name="parentDA"></param>
-        /// <param name="childDA"></param>
-        /// <returns>Новый размер parentDA, позиция для child-а внутри parentDA</returns>
-        public static Tuple<Size, Point> ExpandedDASizeForChild(EA.DiagramObject parentDA, EA.DiagramObject childDA, List<EA.DiagramObject> childDAList)
-        {
-            Point resultPoint = new Point();
-
-
-            // упрощённо - если ширина больше высоты - увеличиваем высоту
-            // иначе - увеличиваем ширину
-            Size parentSize = EAHelper.GetSize(parentDA);
-            Size childSize = EAHelper.GetSize(childDA);
-
-            Point parentDAFreeBorders = GetDAFreeBorders(parentDA, childDAList);
-
-
-            if (parentSize.Width > parentSize.Height)
-            {
-                // Увеличиваем parentDA вниз
-                parentSize.Height = parentSize.Height + childSize.Height + 3 * Designer.border - (parentSize.Height - Math.Abs(parentDAFreeBorders.Y));
-                if (parentSize.Width < (childSize.Width + 2 * Designer.border)) parentSize.Width = childSize.Width + 2 * Designer.border;
-
-                // размещение childDA = у левой и нижней границы
-                resultPoint.X = Designer.border;
-                resultPoint.Y = -parentSize.Height + Designer.border + childSize.Height;
-            }
-            else
-            {
-                // Увеличиваем parentDA вправо
-                parentSize.Width = parentSize.Width + childSize.Width + 2 * Designer.border - (parentSize.Width - parentDAFreeBorders.X);
-                if (parentSize.Height < (childSize.Height + 3 * Designer.border)) parentSize.Height = childSize.Height + 3 * Designer.border;
-
-                // размещение childDA = у правой верхней границы
-                resultPoint.X = parentSize.Width - Designer.border - childSize.Width;
-                resultPoint.Y = -Designer.border;
-            }
-
-            return new Tuple<Size, Point>(parentSize, resultPoint);
-        }
-
-        private static Point FindSpaceAround(EA.DiagramObject firstDA, EA.DiagramObject secondDA, EA.DiagramObject parentDA, List<EA.DiagramObject> childDAList)
-        {
-            Point result = new Point();
-
-            Size parentDASize = EAHelper.GetSize(parentDA);
-            Size firstDASize = EAHelper.GetSize(firstDA);
-            Size secondDASize = EAHelper.GetSize(secondDA);
-
-            // Конструируем прямоугольник, очерчивающий внутреннюю область родителя, в которую разрешено вписываться
-            // т.е урезаем границы
-            Rectangle requiredParentRectangle = new Rectangle();
-            requiredParentRectangle.X = parentDA.left + Designer.border;
-            requiredParentRectangle.Y = parentDA.top - 2 * Designer.border;
-            requiredParentRectangle.Width = parentDASize.Width - 2 * Designer.border;
-            requiredParentRectangle.Height = parentDASize.Height - 3 * Designer.border;
-
-            // Конструируем прямоугольник, очерчивающий первый+второй DA
-            Rectangle requiredRectangle = new Rectangle();
-
-            // Слева
-            requiredRectangle.X = firstDA.left - Designer.border - secondDASize.Width;
-            requiredRectangle.Y = firstDA.top;
-            requiredRectangle.Width = firstDASize.Width + Designer.border + secondDASize.Width;
-            requiredRectangle.Height = (firstDASize.Height > secondDASize.Height) ? firstDASize.Height : secondDASize.Height;
-
-            if (Contain(requiredParentRectangle, requiredRectangle)) // если вписываемся в парента
-            {
-                bool intersectsWithOthers = false;
-                foreach (var otherChildDA in childDAList)
-                {
-                    if (otherChildDA.ElementID == firstDA.ElementID || otherChildDA.ElementID == secondDA.ElementID)
-                    {
-                        if (Intersects(otherChildDA, requiredRectangle))
-                        {
-                            intersectsWithOthers = true;
-                            break;
-                        }
-                    }
-                }
-                if (!intersectsWithOthers) // если ни с кем другим не пересекаемся, то 
-                {
-                    result.X = requiredRectangle.X;
-                    result.Y = requiredRectangle.Y;
-                    return result;
-                }
-            }
-
-            // Вверху
-            requiredRectangle.X = firstDA.left;
-            requiredRectangle.Y = firstDA.top + Designer.border + secondDASize.Height;
-            requiredRectangle.Width = (firstDASize.Width > secondDASize.Width) ? firstDASize.Width : secondDASize.Width;
-            requiredRectangle.Height = firstDASize.Height + Designer.border + secondDASize.Height;
-
-            if (Contain(requiredParentRectangle, requiredRectangle)) // если вписываемся в парента
-            {
-                bool intersectsWithOthers = false;
-                foreach (var otherChildDA in childDAList)
-                {
-                    if (otherChildDA.ElementID == firstDA.ElementID || otherChildDA.ElementID == secondDA.ElementID)
-                    {
-                        if (Intersects(otherChildDA, requiredRectangle))
-                        {
-                            intersectsWithOthers = true;
-                            break;
-                        }
-                    }
-                }
-                if (!intersectsWithOthers) // если ни с кем другим не пересекаемся, то 
-                {
-                    result.X = requiredRectangle.X;
-                    result.Y = requiredRectangle.Y;
-                    return result;
-                }
-            }
-
-            // Справа
-            requiredRectangle.X = firstDA.left;
-            requiredRectangle.Y = firstDA.top;
-            requiredRectangle.Width = firstDASize.Width + Designer.border + secondDASize.Width;
-            requiredRectangle.Height = (firstDASize.Height > secondDASize.Height) ? firstDASize.Height : secondDASize.Height;
-
-            if (Contain(requiredParentRectangle, requiredRectangle)) // если вписываемся в парента
-            {
-                bool intersectsWithOthers = false;
-                foreach (var otherChildDA in childDAList)
-                {
-                    if (otherChildDA.ElementID == firstDA.ElementID || otherChildDA.ElementID == secondDA.ElementID)
-                    {
-                        if (Intersects(otherChildDA, requiredRectangle))
-                        {
-                            intersectsWithOthers = true;
-                            break;
-                        }
-                    }
-                }
-                if (!intersectsWithOthers) // если ни с кем другим не пересекаемся, то 
-                {
-                    result.X = requiredRectangle.X;
-                    result.Y = requiredRectangle.Y;
-                    return result;
-                }
-            }
-
-            // внизу
-            requiredRectangle.X = firstDA.left;
-            requiredRectangle.Y = firstDA.top - Designer.border - secondDASize.Height;
-            requiredRectangle.Width = (firstDASize.Width > secondDASize.Width) ? firstDASize.Width : secondDASize.Width;
-            requiredRectangle.Height = firstDASize.Height + Designer.border + secondDASize.Height;
-
-            if (Contain(requiredParentRectangle, requiredRectangle)) // если вписываемся в парента
-            {
-                bool intersectsWithOthers = false;
-                foreach (var otherChildDA in childDAList)
-                {
-                    if (otherChildDA.ElementID == firstDA.ElementID || otherChildDA.ElementID == secondDA.ElementID)
-                    {
-                        if (Intersects(otherChildDA, requiredRectangle))
-                        {
-                            intersectsWithOthers = true;
-                            break;
-                        }
-                    }
-                }
-                if (!intersectsWithOthers) // если ни с кем другим не пересекаемся, то 
-                {
-                    result.X = requiredRectangle.X;
-                    result.Y = requiredRectangle.Y;
-                    return result;
-                }
-            }
-
-
-
-            return result;
-
-        }
-
-        /// <summary>
-        /// Вспомогательная функция получения Rectangle DA
+        /// Вспомогательная функция получения Size DA
         /// </summary>
         /// <param name="diagramObject"></param>
         /// <returns></returns>
-        private static Rectangle GetRectangle(EA.DiagramObject diagramObject)
+        public static Size GetSize(EA.DiagramObject diagramObject)
         {
-            return new Rectangle()
+            return new Size()
             {
-                X = diagramObject.left,
-                Y = diagramObject.top,
                 Width = diagramObject.right - diagramObject.left,
                 Height = diagramObject.top - diagramObject.bottom
             };
         }
 
-
-
         /// <summary>
-        /// Функция возвращает точку внутри DA (координаты отсчитываются от DA), правее и ниже которой нет дочерних элементов
+        /// Вспомогательная функция вычисления смещения от одной точки к второй
         /// </summary>
-        /// <param name="DA"></param>
-        /// <param name="childDAList"></param>
+        /// <param name="fromPoint"></param>
+        /// <param name="toPoint"></param>
         /// <returns></returns>
-        private static Point GetDAFreeBorders(EA.DiagramObject diagramObject, List<EA.DiagramObject> childDAList)
+        public static Point GetVector(Point fromPoint, Point toPoint)
         {
-            Point result = new Point(diagramObject.left, diagramObject.top);
-
-            foreach (var childDA in childDAList)
+            return new Point()
             {
-                if (result.X < childDA.right) result.X = childDA.right;
-                if (result.Y > childDA.bottom) result.Y = childDA.bottom;
-            }
-
-            // Делаем координаты относительно diagramObject
-            result.X = result.X - diagramObject.left;
-            result.Y = result.Y - diagramObject.top;
-
-            return result;
+                X = toPoint.X - fromPoint.X,
+                Y = toPoint.Y - fromPoint.Y,
+            };
         }
 
-        /// <summary>
-        /// Функция определяет, пересекаются ли два прямоугольника (совпадение границ - не пересечение)
-        /// </summary>
-        /// <param name="firstRectangle"></param>
-        /// <param name="secondRectangle"></param>
-        /// <returns></returns>
-        private static bool Intersects(Rectangle firstRectangle, Rectangle secondRectangle)
-        {
-            return firstRectangle.IntersectsWith(secondRectangle);
-        }
-        private static bool Intersects(EA.DiagramObject firstDA, EA.DiagramObject secondDA)
-        {
-            Rectangle firstRectangle = GetRectangle(firstDA);
-            Rectangle secondRectangle = GetRectangle(secondDA);
-            return Intersects(firstRectangle, secondRectangle);
-        }
-        private static bool Intersects(EA.DiagramObject firstDA, Rectangle secondRectangle)
-        {
-            Rectangle firstRectangle = GetRectangle(firstDA);
-            return Intersects(firstRectangle, secondRectangle);
-        }
 
         /// <summary>
         /// Функция определяет, находится ли второй прямоугольник (полностью) внутри первого
@@ -415,34 +273,215 @@ namespace EADiagramPublisher
 
             return true;
         }
+
         private static bool Contain(EA.DiagramObject firstDA, EA.DiagramObject secondDA)
         {
             Rectangle firstRectangle = GetRectangle(firstDA);
             Rectangle secondRectangle = GetRectangle(secondDA);
             return Contain(firstRectangle, secondRectangle);
         }
+
         private static bool Contain(EA.DiagramObject firstDA, Rectangle secondRectangle)
         {
             Rectangle firstRectangle = GetRectangle(firstDA);
             return Contain(firstRectangle, secondRectangle);
         }
 
+        private static Point FindSpaceAround(EA.DiagramObject firstDA, EA.DiagramObject secondDA, EA.DiagramObject parentDA, List<EA.DiagramObject> childDAList)
+        {
+            Point result = new Point();
+
+            Size parentDASize = GetSize(parentDA);
+            Size firstDASize = GetSize(firstDA);
+            Size secondDASize = GetSize(secondDA);
+
+            // Конструируем прямоугольник, очерчивающий внутреннюю область родителя, в которую разрешено вписываться
+            // т.е урезаем границы
+            Rectangle requiredParentRectangle = new Rectangle();
+            requiredParentRectangle.X = parentDA.left + DAConst.border;
+            requiredParentRectangle.Y = parentDA.top - 2 * DAConst.border;
+            requiredParentRectangle.Width = parentDASize.Width - 2 * DAConst.border;
+            requiredParentRectangle.Height = parentDASize.Height - 3 * DAConst.border;
+
+            // Конструируем прямоугольник, очерчивающий первый+второй DA
+            Rectangle requiredRectangle = new Rectangle();
+
+            // Слева
+            requiredRectangle.X = firstDA.left - DAConst.border - secondDASize.Width;
+            requiredRectangle.Y = firstDA.top;
+            requiredRectangle.Width = firstDASize.Width + DAConst.border + secondDASize.Width;
+            requiredRectangle.Height = (firstDASize.Height > secondDASize.Height) ? firstDASize.Height : secondDASize.Height;
+
+            if (Contain(requiredParentRectangle, requiredRectangle)) // если вписываемся в парента
+            {
+                bool intersectsWithOthers = false;
+                foreach (var otherChildDA in childDAList)
+                {
+                    if (otherChildDA.ElementID == firstDA.ElementID || otherChildDA.ElementID == secondDA.ElementID)
+                    {
+                        if (Intersects(otherChildDA, requiredRectangle))
+                        {
+                            intersectsWithOthers = true;
+                            break;
+                        }
+                    }
+                }
+                if (!intersectsWithOthers) // если ни с кем другим не пересекаемся, то 
+                {
+                    result.X = requiredRectangle.X;
+                    result.Y = requiredRectangle.Y;
+                    return result;
+                }
+            }
+
+            // Вверху
+            requiredRectangle.X = firstDA.left;
+            requiredRectangle.Y = firstDA.top + DAConst.border + secondDASize.Height;
+            requiredRectangle.Width = (firstDASize.Width > secondDASize.Width) ? firstDASize.Width : secondDASize.Width;
+            requiredRectangle.Height = firstDASize.Height + DAConst.border + secondDASize.Height;
+
+            if (Contain(requiredParentRectangle, requiredRectangle)) // если вписываемся в парента
+            {
+                bool intersectsWithOthers = false;
+                foreach (var otherChildDA in childDAList)
+                {
+                    if (otherChildDA.ElementID == firstDA.ElementID || otherChildDA.ElementID == secondDA.ElementID)
+                    {
+                        if (Intersects(otherChildDA, requiredRectangle))
+                        {
+                            intersectsWithOthers = true;
+                            break;
+                        }
+                    }
+                }
+                if (!intersectsWithOthers) // если ни с кем другим не пересекаемся, то 
+                {
+                    result.X = requiredRectangle.X;
+                    result.Y = requiredRectangle.Y;
+                    return result;
+                }
+            }
+
+            // Справа
+            requiredRectangle.X = firstDA.left;
+            requiredRectangle.Y = firstDA.top;
+            requiredRectangle.Width = firstDASize.Width + DAConst.border + secondDASize.Width;
+            requiredRectangle.Height = (firstDASize.Height > secondDASize.Height) ? firstDASize.Height : secondDASize.Height;
+
+            if (Contain(requiredParentRectangle, requiredRectangle)) // если вписываемся в парента
+            {
+                bool intersectsWithOthers = false;
+                foreach (var otherChildDA in childDAList)
+                {
+                    if (otherChildDA.ElementID == firstDA.ElementID || otherChildDA.ElementID == secondDA.ElementID)
+                    {
+                        if (Intersects(otherChildDA, requiredRectangle))
+                        {
+                            intersectsWithOthers = true;
+                            break;
+                        }
+                    }
+                }
+                if (!intersectsWithOthers) // если ни с кем другим не пересекаемся, то 
+                {
+                    result.X = requiredRectangle.X;
+                    result.Y = requiredRectangle.Y;
+                    return result;
+                }
+            }
+
+            // внизу
+            requiredRectangle.X = firstDA.left;
+            requiredRectangle.Y = firstDA.top - DAConst.border - secondDASize.Height;
+            requiredRectangle.Width = (firstDASize.Width > secondDASize.Width) ? firstDASize.Width : secondDASize.Width;
+            requiredRectangle.Height = firstDASize.Height + DAConst.border + secondDASize.Height;
+
+            if (Contain(requiredParentRectangle, requiredRectangle)) // если вписываемся в парента
+            {
+                bool intersectsWithOthers = false;
+                foreach (var otherChildDA in childDAList)
+                {
+                    if (otherChildDA.ElementID == firstDA.ElementID || otherChildDA.ElementID == secondDA.ElementID)
+                    {
+                        if (Intersects(otherChildDA, requiredRectangle))
+                        {
+                            intersectsWithOthers = true;
+                            break;
+                        }
+                    }
+                }
+                if (!intersectsWithOthers) // если ни с кем другим не пересекаемся, то 
+                {
+                    result.X = requiredRectangle.X;
+                    result.Y = requiredRectangle.Y;
+                    return result;
+                }
+            }
+
+
+
+            return result;
+
+        }
 
         /// <summary>
-        /// Вспомогательная функция, определяет, помещаютля ли координаты innerDA внутри outerDA
+        /// Функция возвращает точку внутри DA (координаты отсчитываются от DA), правее и ниже которой нет дочерних элементов
         /// </summary>
-        /// <param name="outerDA"></param>
-        /// <param name="innerDA"></param>
+        /// <param name="DA">объект, куда вписываем</param>
+        /// <param name="childDAList">прочие объекты внутри DA</param>
         /// <returns></returns>
-        public static bool DAFitInside(EA.DiagramObject outerDA, EA.DiagramObject innerDA)
+        private static Point GetDAFreeBorders(EA.DiagramObject diagramObject, List<EA.DiagramObject> childDAList)
         {
-            bool result = false;
+            Point result = new Point(diagramObject.left, diagramObject.top);
 
-            if (outerDA.top > innerDA.top && outerDA.bottom < innerDA.bottom && outerDA.left < innerDA.left && outerDA.right > innerDA.right)
-                result = true;
+            foreach (var childDA in childDAList)
+            {
+                if (result.X < childDA.right) result.X = childDA.right;
+                if (result.Y > childDA.bottom) result.Y = childDA.bottom;
+            }
+
+            // Делаем координаты относительно diagramObject
+            result.X = result.X - diagramObject.left;
+            result.Y = result.Y - diagramObject.top;
 
             return result;
         }
 
+        /// <summary>
+        /// Вспомогательная функция получения Rectangle DA
+        /// </summary>
+        /// <param name="diagramObject"></param>
+        /// <returns></returns>
+        private static Rectangle GetRectangle(EA.DiagramObject diagramObject)
+        {
+            return new Rectangle()
+            {
+                X = diagramObject.left,
+                Y = diagramObject.top,
+                Width = diagramObject.right - diagramObject.left,
+                Height = diagramObject.top - diagramObject.bottom
+            };
+        }
+        /// <summary>
+        /// Функция определяет, пересекаются ли два прямоугольника (совпадение границ - не пересечение)
+        /// </summary>
+        /// <param name="firstRectangle"></param>
+        /// <param name="secondRectangle"></param>
+        /// <returns></returns>
+        private static bool Intersects(Rectangle firstRectangle, Rectangle secondRectangle)
+        {
+            return firstRectangle.IntersectsWith(secondRectangle);
+        }
+        private static bool Intersects(EA.DiagramObject firstDA, EA.DiagramObject secondDA)
+        {
+            Rectangle firstRectangle = GetRectangle(firstDA);
+            Rectangle secondRectangle = GetRectangle(secondDA);
+            return Intersects(firstRectangle, secondRectangle);
+        }
+        private static bool Intersects(EA.DiagramObject firstDA, Rectangle secondRectangle)
+        {
+            Rectangle firstRectangle = GetRectangle(firstDA);
+            return Intersects(firstRectangle, secondRectangle);
+        }
     }
 }

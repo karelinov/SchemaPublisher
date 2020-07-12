@@ -35,6 +35,7 @@
             // 
             // clbHierarchyLevels
             // 
+            this.clbHierarchyLevels.CheckOnClick = true;
             this.clbHierarchyLevels.FormattingEnabled = true;
             this.clbHierarchyLevels.Location = new System.Drawing.Point(25, 24);
             this.clbHierarchyLevels.Name = "clbHierarchyLevels";

@@ -21,11 +21,11 @@ namespace EADiagramPublisher
                 EA.Diagram curDiagram = null;
                 if (location == "Diagram" || location == "MainMenu")
                 {
-                    curDiagram = DPAddin.EARepository.GetCurrentDiagram();
+                    curDiagram = Context.EARepository.GetCurrentDiagram();
                 }
                 else if (location == "TreeView")
                 {
-                    curDiagram = DPAddin.EARepository.GetTreeSelectedObject();
+                    curDiagram = Context.EARepository.GetTreeSelectedObject();
                 }
 
                 // Экспортируем PNG
@@ -87,7 +87,7 @@ namespace EADiagramPublisher
             // Сохраняем на диск метафайл
             string savePath = Path.Combine(DPConfig.AppSettings["exchangePath"].Value, curDiagram.DiagramGUID.Replace("{", "").Replace("}", "") + ".emf");
             if (File.Exists(savePath)) File.Delete(savePath);
-            DPAddin.EARepository.GetProjectInterface().PutDiagramImageToFile(curDiagram.DiagramGUID, savePath, 0);
+            Context.EARepository.GetProjectInterface().PutDiagramImageToFile(curDiagram.DiagramGUID, savePath, 0);
 
             // Загружаем метафайл и пересохраняем в PNG в рассчитанном масштабе
             Metafile metafile = new Metafile(savePath);

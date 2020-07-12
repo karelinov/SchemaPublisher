@@ -7,7 +7,6 @@ namespace EADiagramPublisher
 {
     public class DPAddin
     {
-        public static EA.Repository EARepository { get; set; }
         public static Designer Designer { get; set; }
         public static String logpath = null;
 
@@ -17,10 +16,10 @@ namespace EADiagramPublisher
         const string menuExportDiagram = "&ExportDiagram";
 
         const string menuDesign = "-&Design";
-        const string menuSetCurrentLibrary = "&SetCurrentLibrary";
-        const string menuSetCurrentDiagram = "&SetCurrentDiagram";
+        //const string menuSetCurrentLibrary = "&SetCurrentLibrary";
+        //const string menuSetCurrentDiagram = "&SetCurrentDiagram";
         const string menuPutLibElementOnDiagram = "&PutLibElementOnDiagram";
-        const string menuPutDeploymentHierarchyOnDiagram = "&PutDeploymentHierarchyOnDiagram";
+        const string menuPutDeploymentHierarchyOnDiagram = "&PutParentHierarchyOnDiagram";
         const string menuUtils = "-&Utils";
         const string menuSetDefaultSize = "&SetDefaultSize";
 
@@ -38,8 +37,9 @@ namespace EADiagramPublisher
         /// a string
         public String EA_Connect(EA.Repository repository)
         {
-            EARepository = repository;
-            Designer = new Designer(repository);
+            Context.EARepository = repository;
+
+            Designer = new Designer();
             logpath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "EADiagramPublisher.log");
 
 
@@ -68,7 +68,7 @@ namespace EADiagramPublisher
                     subMenus = new string[] { menuExportDiagram, menuDesign, menuUtils, menuTest };
                     return subMenus;
                 case menuDesign:
-                    subMenus = new string[] { menuSetCurrentLibrary, menuSetCurrentDiagram, menuPutLibElementOnDiagram, menuPutDeploymentHierarchyOnDiagram };
+                    subMenus = new string[] { /*menuSetCurrentLibrary, menuSetCurrentDiagram,*/ menuPutLibElementOnDiagram, menuPutDeploymentHierarchyOnDiagram };
                     return subMenus;
                 case menuUtils:
                     subMenus = new string[] { menuSetDefaultSize };
@@ -118,8 +118,10 @@ namespace EADiagramPublisher
                         isEnabled = true;
                         break;
                     case menuDesign:
+                    /*
                     case menuSetCurrentLibrary:
                     case menuSetCurrentDiagram:
+                    */
                     case menuPutLibElementOnDiagram:
                     case menuPutDeploymentHierarchyOnDiagram:
                         isEnabled = true;
@@ -171,11 +173,11 @@ namespace EADiagramPublisher
                     var setCurrentLibraryResult = Designer.SetCurrentLibrary();
                     OutExecResult(setCurrentLibraryResult);
                     break;
-                    */
                 case menuSetCurrentDiagram:
                     Designer.CurrentDiagram = EARepository.GetCurrentDiagram();
-                    EAHelper.Out("Установлена текущая диаграмма = " + Designer.CurrentDiagram.Name);
+                    EAHelper.OutA("Установлена текущая диаграмма = " + Designer.CurrentDiagram.Name);
                     break;
+                */
                 case menuPutLibElementOnDiagram:
                     var putLibElementResult = Designer.PutElementOnDiagram();
                     OutExecResult(putLibElementResult);
@@ -213,7 +215,7 @@ namespace EADiagramPublisher
         public void EA_Disconnect()
         {
             Designer = null;
-            EARepository = null;
+            Context.EARepository = null;
 
             GC.Collect();
             GC.WaitForPendingFinalizers();
@@ -223,7 +225,7 @@ namespace EADiagramPublisher
 
         private void OutExecResult<T>(ExecResult<T> result)
         {
-            EARepository.WriteOutput("System", "result code=" + result.code + " " + result.message, 0);
+            Context.EARepository.WriteOutput("System", "result code=" + result.code + " " + result.message, 0);
 
         }
 
@@ -235,7 +237,7 @@ namespace EADiagramPublisher
             try
             {
                 // Открываем и чистим тестовую диаграмму 
-                EA.Diagram testDiagram = EARepository.GetDiagramByGuid("{0093407F-0187-42a8-93DC-B97E8FA79EED}");
+                EA.Diagram testDiagram = Context.EARepository.GetDiagramByGuid("{0093407F-0187-42a8-93DC-B97E8FA79EED}");
                 if (test1Flag == 0)
                 {
 
@@ -245,16 +247,16 @@ namespace EADiagramPublisher
                     }
                     testDiagram.Update();
                     testDiagram.DiagramObjects.Refresh();
-                    EARepository.ReloadDiagram(testDiagram.DiagramID);
+                    Context.EARepository.ReloadDiagram(testDiagram.DiagramID);
                 }
 
-                EARepository.OpenDiagram(testDiagram.DiagramID);
-                EARepository.ActivateDiagram(testDiagram.DiagramID);
-                Designer.CurrentDiagram = testDiagram;
+                Context.EARepository.OpenDiagram(testDiagram.DiagramID);
+                Context.EARepository.ActivateDiagram(testDiagram.DiagramID);
+                Context.CurrentDiagram = testDiagram;
 
                 // Выделяем элемент
-                EA.Element element = EARepository.GetElementByGuid("{83142BDB-7EE4-48e7-B788-0011E0E2E343}");
-                EARepository.ShowInProjectView(element);
+                EA.Element element = Context.EARepository.GetElementByGuid("{83142BDB-7EE4-48e7-B788-0011E0E2E343}");
+                Context.EARepository.ShowInProjectView(element);
 
                 // Запускаем формирование иерархии элементов диаграммы
                 var putDeploymentHierarchyResult = Designer.PutParentHierarchyOnDiagram();
@@ -278,7 +280,7 @@ namespace EADiagramPublisher
             try
             {
                 // Открываем и чистим тестовую диаграмму 
-                EA.Diagram testDiagram = EARepository.GetDiagramByGuid("{0093407F-0187-42a8-93DC-B97E8FA79EED}");
+                EA.Diagram testDiagram = Context.EARepository.GetDiagramByGuid("{0093407F-0187-42a8-93DC-B97E8FA79EED}");
                 if (test1Flag == 0)
                 {
 
@@ -288,16 +290,16 @@ namespace EADiagramPublisher
                     }
                     testDiagram.Update();
                     testDiagram.DiagramObjects.Refresh();
-                    EARepository.ReloadDiagram(testDiagram.DiagramID);
+                    Context.EARepository.ReloadDiagram(testDiagram.DiagramID);
                 }
 
-                EARepository.OpenDiagram(testDiagram.DiagramID);
-                EARepository.ActivateDiagram(testDiagram.DiagramID);
-                Designer.CurrentDiagram = testDiagram;
+                Context.EARepository.OpenDiagram(testDiagram.DiagramID);
+                Context.EARepository.ActivateDiagram(testDiagram.DiagramID);
+                Context.CurrentDiagram = testDiagram;
 
                 // Выделяем элемент
-                EA.Element element = EARepository.GetElementByGuid("{83142BDB-7EE4-48e7-B788-0011E0E2E343}");
-                EARepository.ShowInProjectView(element);
+                EA.Element element = Context.EARepository.GetElementByGuid("{83142BDB-7EE4-48e7-B788-0011E0E2E343}");
+                Context.EARepository.ShowInProjectView(element);
             }
             catch (Exception ex)
             {
@@ -314,7 +316,7 @@ namespace EADiagramPublisher
             try
             {
                 // Открываем и чистим тестовую диаграмму 
-                EA.Diagram testDiagram = EARepository.GetDiagramByGuid("{0093407F-0187-42a8-93DC-B97E8FA79EED}");
+                EA.Diagram testDiagram = Context.EARepository.GetDiagramByGuid("{0093407F-0187-42a8-93DC-B97E8FA79EED}");
                 if (test1Flag == 0)
                 {
 
@@ -324,16 +326,16 @@ namespace EADiagramPublisher
                     }
                     testDiagram.Update();
                     testDiagram.DiagramObjects.Refresh();
-                    EARepository.ReloadDiagram(testDiagram.DiagramID);
+                    Context.EARepository.ReloadDiagram(testDiagram.DiagramID);
                 }
 
-                EARepository.OpenDiagram(testDiagram.DiagramID);
-                EARepository.ActivateDiagram(testDiagram.DiagramID);
-                Designer.CurrentDiagram = testDiagram;
+                Context.EARepository.OpenDiagram(testDiagram.DiagramID);
+                Context.EARepository.ActivateDiagram(testDiagram.DiagramID);
+                Context.CurrentDiagram = testDiagram;
 
                 // Выделяем элемент Сервер1
-                EA.Element element = EARepository.GetElementByGuid("{A4A9C875-BF19-4fde-848D-4329FF477A02}");
-                EARepository.ShowInProjectView(element);
+                EA.Element element = Context.EARepository.GetElementByGuid("{A4A9C875-BF19-4fde-848D-4329FF477A02}");
+                Context.EARepository.ShowInProjectView(element);
 
                 EA.DiagramObject elementDA = testDiagram.DiagramObjects.AddNew("", "");
                 elementDA.ElementID = element.ElementID;
@@ -341,23 +343,23 @@ namespace EADiagramPublisher
                 testDiagram.Update();
                 testDiagram.DiagramObjects.Refresh();
                 int elementID = elementDA.ElementID;
-                EAHelper.Out("создан элемент ", new EA.DiagramObject[] { elementDA });
+                EAHelper.OutA("создан элемент ", new EA.DiagramObject[] { elementDA });
 
                 testDiagram.DiagramObjects.Refresh();
-                EAHelper.Out("after  DiagramObjects.Refresh ", new EA.DiagramObject[] { elementDA });
+                EAHelper.OutA("after  DiagramObjects.Refresh ", new EA.DiagramObject[] { elementDA });
 
 
                 testDiagram.DiagramObjects.Refresh();
-                EARepository.ReloadDiagram(testDiagram.DiagramID);
+                Context.EARepository.ReloadDiagram(testDiagram.DiagramID);
                 testDiagram.DiagramObjects.Refresh();
-                EAHelper.Out("after RRR", new EA.DiagramObject[] { elementDA });
+                EAHelper.OutA("after RRR", new EA.DiagramObject[] { elementDA });
 
                 elementDA.bottom = elementDA.bottom - 1;
                 elementDA.Update();
                 testDiagram.DiagramObjects.Refresh();
-                EARepository.ReloadDiagram(testDiagram.DiagramID);
+                Context.EARepository.ReloadDiagram(testDiagram.DiagramID);
                 testDiagram.DiagramObjects.Refresh();
-                EAHelper.Out("after MRRR", new EA.DiagramObject[] { elementDA });
+                EAHelper.OutA("after MRRR", new EA.DiagramObject[] { elementDA });
 
 
 

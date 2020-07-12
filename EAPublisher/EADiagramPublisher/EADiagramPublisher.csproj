@@ -50,6 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Context.cs" />
     <Compile Include="DesignerHelper.cs" />
     <Compile Include="Enums\CLHelper.cs" />
     <Compile Include="Enums\ComponentLevel.cs" />
@@ -59,6 +60,7 @@
     <Compile Include="DPAddin.cs" />
     <Compile Include="DPConfig.cs" />
     <Compile Include="EAHelper.cs" />
+    <Compile Include="Enums\DAConst.cs" />
     <Compile Include="ExecResult.cs" />
     <Compile Include="Forms\FSelectHierarcyLevels.cs">
       <SubType>Form</SubType>
