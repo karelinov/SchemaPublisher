@@ -64,7 +64,7 @@ namespace EADiagramPublisher.Enums
             }
             catch (Exception ex)
             {
-                EAHelper.Out(ex.ToString(), new EA.Element[] { eaElement });
+                EAHelper.OutA(ex.ToString(), new EA.Element[] { eaElement });
                 throw ex;
             }
 

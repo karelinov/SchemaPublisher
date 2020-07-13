@@ -19,7 +19,10 @@ namespace EADiagramPublisher
         //const string menuSetCurrentLibrary = "&SetCurrentLibrary";
         //const string menuSetCurrentDiagram = "&SetCurrentDiagram";
         const string menuPutLibElementOnDiagram = "&PutLibElementOnDiagram";
-        const string menuPutDeploymentHierarchyOnDiagram = "&PutParentHierarchyOnDiagram";
+        const string menuPutParentDHierarchyOnDiagram = "&PutParentDHierarchyOnDiagram";
+        const string menuPutChildrenDHierarchyOnDiagram = "&PutChildrenDHierarchyOnDiagram";
+
+
         const string menuUtils = "-&Utils";
         const string menuSetDefaultSize = "&SetDefaultSize";
 
@@ -68,7 +71,7 @@ namespace EADiagramPublisher
                     subMenus = new string[] { menuExportDiagram, menuDesign, menuUtils, menuTest };
                     return subMenus;
                 case menuDesign:
-                    subMenus = new string[] { /*menuSetCurrentLibrary, menuSetCurrentDiagram,*/ menuPutLibElementOnDiagram, menuPutDeploymentHierarchyOnDiagram };
+                    subMenus = new string[] { /*menuSetCurrentLibrary, menuSetCurrentDiagram,*/ menuPutLibElementOnDiagram, menuPutParentDHierarchyOnDiagram, menuPutChildrenDHierarchyOnDiagram };
                     return subMenus;
                 case menuUtils:
                     subMenus = new string[] { menuSetDefaultSize };
@@ -123,7 +126,8 @@ namespace EADiagramPublisher
                     case menuSetCurrentDiagram:
                     */
                     case menuPutLibElementOnDiagram:
-                    case menuPutDeploymentHierarchyOnDiagram:
+                    case menuPutParentDHierarchyOnDiagram:
+                    case menuPutChildrenDHierarchyOnDiagram:
                         isEnabled = true;
                         break;
 
@@ -182,10 +186,16 @@ namespace EADiagramPublisher
                     var putLibElementResult = Designer.PutElementOnDiagram();
                     OutExecResult(putLibElementResult);
                     break;
-                case menuPutDeploymentHierarchyOnDiagram:
+                case menuPutParentDHierarchyOnDiagram:
                     var putDeploymentHierarchyResult = Designer.PutParentHierarchyOnDiagram();
                     OutExecResult(putDeploymentHierarchyResult);
                     break;
+
+                case menuPutChildrenDHierarchyOnDiagram:
+                    var putPutCDHResult = Designer.PutChildrenDHierarchyOnDiagram();
+                    OutExecResult(putPutCDHResult);
+                    break;
+
 
                 case menuSetDefaultSize:
                     var SetElementDefaultSizeResult = EAHelper.SetElementDefaultSize();

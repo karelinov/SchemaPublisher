@@ -122,6 +122,62 @@ namespace EADiagramPublisher
         /// </summary>
         /// <param name="onlyParent"></param>
         /// <returns></returns>
+        public ExecResult<Boolean> PutChildrenDHierarchyOnDiagram()
+        {
+            ExecResult<Boolean> result = new ExecResult<bool>();
+            DesignerHelper.CallLevel = 0;
+
+            try
+            {
+                ExecResult<List<ComponentLevel>> displayLevelsResult = new FSelectHierarcyLevels().Execute();
+                if (displayLevelsResult.code != 0) return result;
+
+
+                // Получаем текущий (библиотечный) элемент дерева 
+                EA.Element curElement = EARepository.GetTreeSelectedObject();
+                EAHelper.Out("элемент:", new EA.Element[] { curElement });
+                if (curElement == null || !EAHelper.IsLibrary(curElement))
+                {
+                    throw new Exception("Не выделен библиотечный элемент");
+                }
+
+                // Получаем список дочерних элементов контейнеров
+                List<EA.Element> сhildrenDHierarchy = EAHelper.GetChildHierarchy(curElement);
+
+
+                // Размещаем на диаграмме элемент
+                PutElementOnDiagram(curElement);
+
+                // Проходимся по иерархии и размещаем элементы на диаграмме
+                for (int i = 0; i < сhildrenDHierarchy.Count; i++)
+                {
+                    // размещает только элементы выбранных уровней
+                    ComponentLevel componentLevel = CLHelper.GetComponentLevel(сhildrenDHierarchy[i]);
+                    if (!displayLevelsResult.value.Contains(componentLevel)) continue;
+                    // Размещаем элемент
+                    EA.DiagramObject diagramObject = PutElementOnDiagram(сhildrenDHierarchy[i]);
+                    diagramObject.Update();
+                }
+
+                CurrentDiagram.DiagramLinks.Refresh();
+                SetConnectorVisibility(ConnectorType.Deploy, false);
+                EARepository.ReloadDiagram(CurrentDiagram.DiagramID);
+
+            }
+            catch (Exception ex)
+            {
+                result.setException(ex);
+            }
+
+            return result;
+        }
+
+
+        /// <summary>
+        /// Размещает на диаграмме укзаанный элемент и иерархию его контейнеров
+        /// </summary>
+        /// <param name="onlyParent"></param>
+        /// <returns></returns>
         public ExecResult<Boolean> PutParentHierarchyOnDiagram(bool onlyParent = false)
         {
             ExecResult<Boolean> result = new ExecResult<bool>();
