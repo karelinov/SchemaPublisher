@@ -295,7 +295,13 @@ namespace EADiagramPublisher
                     if (grandparentDA != null)
                     {
                         EAHelper.Out("Изменились размер или положение родительского DA, всписываем его в grandparent... ", new EA.DiagramObject[] { childElementDA });
+                        Point newOriginalParentPoint = new Point(parentElementDA.left, parentElementDA.top);
                         FitElementInElement(parentElementDA, grandparentDA);
+                        
+                        // После вписывания parent-а следует скорректировать позицию вписываемого элемента
+                        Point moveParentVector = DesignerHelper.GetVector(newOriginalParentPoint, new Point(parentElementDA.left, parentElementDA.top));
+                        childStart = new Point(childStart.X + moveParentVector.X, childStart.Y + moveParentVector.Y);
+                        EAHelper.Out("Скорректирована позиция child ", new object[]  { childStart });
                     }
                 }
 
