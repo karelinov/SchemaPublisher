@@ -22,5 +22,7 @@ namespace EADiagramPublisher.Enums
         public static int border = 20;
 
 
+        // Константы LinkType
+        public static string DP_LinkTypeTag = "DP_LinkType";
     }
 }

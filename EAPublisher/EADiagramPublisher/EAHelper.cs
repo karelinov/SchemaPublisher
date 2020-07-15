@@ -53,6 +53,19 @@ namespace EADiagramPublisher
         }
 
         /// <summary>
+        /// Функция применяет указанный размер к объекту DiagramObject
+        /// </summary>
+        /// <param name="diagramObject"></param>
+        /// <param name="size"></param>
+        /// <param name="doUpdate"></param>
+        public static void ApplySizeToDA(EA.DiagramObject diagramObject, Size size, bool doUpdate = true)
+        {
+            diagramObject.right = diagramObject.left + size.Width;
+            diagramObject.bottom = diagramObject.top - size.Height;
+            if (doUpdate) diagramObject.Update();
+        }
+
+        /// <summary>
         /// Функция передвигает DA по указанному вектору (т.е. смещает на размеры точки)
         /// </summary>
         /// <param name="diagramObject"></param>
@@ -68,20 +81,6 @@ namespace EADiagramPublisher
             diagramObject.bottom += vector.Y;
             if (doUpdate) diagramObject.Update();
         }
-
-        /// <summary>
-        /// Функция применяет указанный размер к объекту DiagramObject
-        /// </summary>
-        /// <param name="diagramObject"></param>
-        /// <param name="size"></param>
-        /// <param name="doUpdate"></param>
-        public static void ApplySizeToDA(EA.DiagramObject diagramObject, Size size, bool doUpdate = true)
-        {
-            diagramObject.right = diagramObject.left + size.Width;
-            diagramObject.bottom = diagramObject.top - size.Height;
-            if (doUpdate) diagramObject.Update();
-        }
-
         /// <summary>
         /// Возвращает Дочернюю иерархию размещения объектов начиная от указанного
         /// </summary>
@@ -384,7 +383,7 @@ namespace EADiagramPublisher
                     List<EA.DiagramObject> grandchildrenDA = GetNearestChildrenDA(childElement);
                     result.AddRange(grandchildrenDA);
                 }
-                
+
             }
 
             return result;
@@ -470,7 +469,7 @@ namespace EADiagramPublisher
             }
             else
             {
-                if (element.ObjectType == EA.ObjectType.otElement)
+                if (element.ObjectType == EA.ObjectType.otElement && element.ClassifierID !=0)
                 {
                     EA.Element classifier = EARepository.GetElementByID(element.ClassifierID);
                     if (GetTaggedValues(classifier).GetByName(DAConst.DP_LibraryTag) != null)
@@ -479,6 +478,22 @@ namespace EADiagramPublisher
                     }
                 }
 
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Проверяет является ли коннектор библиотечным
+        /// </summary>
+        /// <param name="connector"></param>
+        /// <returns></returns>
+        public static bool IsLibrary(EA.Connector connector)
+        {
+            bool result = false;
+
+            if (connector.TaggedValues.GetByName(DAConst.DP_LibraryTag) != null)
+            {
+                result = true;
             }
             return result;
         }
@@ -493,7 +508,7 @@ namespace EADiagramPublisher
         {
             // Сначала получаем и подывигаем детей
             List<EA.DiagramObject> containedDAList = GetContainedForDA(diagramObject);
-            foreach(var curContainedDA in containedDAList)
+            foreach (var curContainedDA in containedDAList)
             {
                 MoveContainedHierarchy(curContainedDA, vector);
             }
@@ -605,6 +620,44 @@ namespace EADiagramPublisher
             return result;
         }
 
+        public static void SetTaggedValue(EA.Element element, string tagName, string tagValue)
+        {
+            EA.TaggedValue tag = element.TaggedValues.GetByName(tagName);
+            if (tag == null)
+            {
+                tag = element.TaggedValues.AddNew(tagName, tagValue);
+            }
+            else
+            {
+                tag.Value = tagValue;
+            }
+
+            tag.Update();
+            //element.Update(); // is it needed?
+
+        }
+
+        public static void SetTaggedValue(EA.Connector connector, string tagName, string tagValue)
+        {
+            EA.ConnectorTag tag = null;
+            try
+            {
+                tag = connector.TaggedValues.GetByName(tagName);
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message != "Index out of bounds") throw ex;
+            }
+
+            if (tag ==null)
+                tag = connector.TaggedValues.AddNew(tagName, tagValue);
+
+            tag.Value = tagValue;
+            bool res = tag.Update();
+            //connector.Update(); // is it needed?
+
+        }
+
         /// <summary>
         /// Преобразует объекты в строку. Для объектов EA визуализирует значения важных свойств
         /// </summary>        
@@ -699,22 +752,6 @@ namespace EADiagramPublisher
             }
 
             return result;
-        }
-        private static void SetTaggedValue(EA.Element element, string tagName, string tagValue)
-        {
-            EA.TaggedValue tag = element.TaggedValues.GetByName(tagName);
-            if (tag == null)
-            {
-                tag = element.TaggedValues.AddNew(tagName, tagValue);
-            }
-            else
-            {
-                tag.Value = tagValue;
-            }
-
-            tag.Update();
-            //element.Update(); // is it needed?
-
         }
     }
 }

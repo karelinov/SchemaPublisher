@@ -8,6 +8,7 @@ namespace EADiagramPublisher
     public class DPAddin
     {
         public static Designer Designer { get; set; }
+        public static LinkDesigner LinkDesigner { get; set; }
         public static String logpath = null;
 
         // define menu constants
@@ -17,10 +18,13 @@ namespace EADiagramPublisher
 
         const string menuDesign = "-&Design";
         //const string menuSetCurrentLibrary = "&SetCurrentLibrary";
-        //const string menuSetCurrentDiagram = "&SetCurrentDiagram";
+        const string menuSetCurrentDiagram = "&SetCurrentDiagram";
         const string menuPutLibElementOnDiagram = "&PutLibElementOnDiagram";
         const string menuPutParentDHierarchyOnDiagram = "&PutParentDHierarchyOnDiagram";
         const string menuPutChildrenDHierarchyOnDiagram = "&PutChildrenDHierarchyOnDiagram";
+
+        const string menuDesignLinks = "-&DesignLinks";
+        const string menuCreateLink = "&CreateLink";
 
 
         const string menuUtils = "-&Utils";
@@ -43,6 +47,7 @@ namespace EADiagramPublisher
             Context.EARepository = repository;
 
             Designer = new Designer();
+            LinkDesigner = new LinkDesigner();
             logpath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "EADiagramPublisher.log");
 
 
@@ -68,11 +73,15 @@ namespace EADiagramPublisher
                 case "":
                     return menuDPAddin;
                 case menuDPAddin:
-                    subMenus = new string[] { menuExportDiagram, menuDesign, menuUtils, menuTest };
+                    subMenus = new string[] { menuExportDiagram, menuDesign, menuDesignLinks, menuUtils, menuTest };
                     return subMenus;
                 case menuDesign:
-                    subMenus = new string[] { /*menuSetCurrentLibrary, menuSetCurrentDiagram,*/ menuPutLibElementOnDiagram, menuPutParentDHierarchyOnDiagram, menuPutChildrenDHierarchyOnDiagram };
+                    subMenus = new string[] { /*menuSetCurrentLibrary,*/ menuSetCurrentDiagram, menuPutLibElementOnDiagram, menuPutParentDHierarchyOnDiagram, menuPutChildrenDHierarchyOnDiagram };
                     return subMenus;
+                case menuDesignLinks:
+                    subMenus = new string[] { menuCreateLink };
+                    return subMenus;
+
                 case menuUtils:
                     subMenus = new string[] { menuSetDefaultSize };
                     return subMenus;
@@ -123,11 +132,17 @@ namespace EADiagramPublisher
                     case menuDesign:
                     /*
                     case menuSetCurrentLibrary:
-                    case menuSetCurrentDiagram:
                     */
+
+                    case menuSetCurrentDiagram:
                     case menuPutLibElementOnDiagram:
                     case menuPutParentDHierarchyOnDiagram:
                     case menuPutChildrenDHierarchyOnDiagram:
+                        isEnabled = true;
+                        break;
+                    
+                    case menuDesignLinks:
+                    case menuCreateLink:
                         isEnabled = true;
                         break;
 
@@ -169,19 +184,17 @@ namespace EADiagramPublisher
         {
             switch (itemName)
             {
-                case menuExportDiagram:
-                    var exportResult = DiagramExporter.Export(location);
-                    break;
+                // ------ DESIGN --------------------------------------------------------------
                 /*
                 case menuSetCurrentLibrary:
                     var setCurrentLibraryResult = Designer.SetCurrentLibrary();
                     OutExecResult(setCurrentLibraryResult);
                     break;
+                */
                 case menuSetCurrentDiagram:
-                    Designer.CurrentDiagram = EARepository.GetCurrentDiagram();
+                    Context.CurrentDiagram = Context.EARepository.GetCurrentDiagram();
                     EAHelper.OutA("Установлена текущая диаграмма = " + Designer.CurrentDiagram.Name);
                     break;
-                */
                 case menuPutLibElementOnDiagram:
                     var putLibElementResult = Designer.PutElementOnDiagram();
                     OutExecResult(putLibElementResult);
@@ -196,11 +209,26 @@ namespace EADiagramPublisher
                     OutExecResult(putPutCDHResult);
                     break;
 
+                // ------ DESIGN LINKS --------------------------------------------------------------
+                case menuCreateLink:
+                    var createCommunicationResult = LinkDesigner.CreateLink();
+                    OutExecResult(createCommunicationResult);
+                    break;
 
+
+                // ------ UTILS --------------------------------------------------------------
                 case menuSetDefaultSize:
                     var SetElementDefaultSizeResult = EAHelper.SetElementDefaultSize();
                     OutExecResult(SetElementDefaultSizeResult);
                     break;
+
+                // ------ EXPORT --------------------------------------------------------------
+                case menuExportDiagram:
+                    var exportResult = DiagramExporter.Export(location);
+                    break;
+
+
+                // ------ TEST --------------------------------------------------------------
                 case menuTest1:
                     var test1Result = Test1();
                     OutExecResult(test1Result);

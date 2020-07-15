@@ -21,6 +21,9 @@ namespace EADiagramPublisher
         {
             get
             {
+                return EARepository.GetCurrentDiagram();
+
+                /*
                 if (Context.CurrentDiagram == null)
                 {
                     var currentDiagram = EARepository.GetCurrentDiagram();
@@ -33,6 +36,7 @@ namespace EADiagramPublisher
 
 
                 return Context.CurrentDiagram;
+                */
             }
         }
 

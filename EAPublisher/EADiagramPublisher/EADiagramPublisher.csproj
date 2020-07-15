@@ -61,13 +61,21 @@
     <Compile Include="DPConfig.cs" />
     <Compile Include="EAHelper.cs" />
     <Compile Include="Enums\DAConst.cs" />
+    <Compile Include="Enums\LinkType.cs" />
     <Compile Include="ExecResult.cs" />
+    <Compile Include="Forms\FCreateNewLink.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FCreateNewLink.Designer.cs">
+      <DependentUpon>FCreateNewLink.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\FSelectHierarcyLevels.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\FSelectHierarcyLevels.Designer.cs">
       <DependentUpon>FSelectHierarcyLevels.cs</DependentUpon>
     </Compile>
+    <Compile Include="LinkDesigner.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -78,6 +86,9 @@
     <None Include="register.reg" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Forms\FCreateNewLink.resx">
+      <DependentUpon>FCreateNewLink.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\FSelectHierarcyLevels.resx">
       <DependentUpon>FSelectHierarcyLevels.cs</DependentUpon>
     </EmbeddedResource>
