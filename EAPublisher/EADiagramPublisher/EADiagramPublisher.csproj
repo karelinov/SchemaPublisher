@@ -35,6 +35,7 @@
   <ItemGroup>
     <Reference Include="Interop.EA">
       <HintPath>..\..\..\..\EA\Interop.EA.dll</HintPath>
+      <HintPath>Interop.EA.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="System" />
