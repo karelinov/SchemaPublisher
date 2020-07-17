@@ -47,7 +47,6 @@
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
@@ -63,6 +62,7 @@
     <Compile Include="EAHelper.cs" />
     <Compile Include="Enums\DAConst.cs" />
     <Compile Include="Enums\LinkType.cs" />
+    <Compile Include="Enums\LTHelper.cs" />
     <Compile Include="ExecResult.cs" />
     <Compile Include="Forms\FCreateNewLink.cs">
       <SubType>Form</SubType>
@@ -76,7 +76,14 @@
     <Compile Include="Forms\FSelectHierarcyLevels.Designer.cs">
       <DependentUpon>FSelectHierarcyLevels.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\FSetLinkVisibility.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FSetLinkVisibility.Designer.cs">
+      <DependentUpon>FSetLinkVisibility.cs</DependentUpon>
+    </Compile>
     <Compile Include="LinkDesigner.cs" />
+    <Compile Include="LinkDesignerHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -92,6 +99,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\FSelectHierarcyLevels.resx">
       <DependentUpon>FSelectHierarcyLevels.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\FSetLinkVisibility.resx">
+      <DependentUpon>FSetLinkVisibility.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

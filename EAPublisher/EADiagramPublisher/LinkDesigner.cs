@@ -20,18 +20,7 @@ namespace EADiagramPublisher
         {
             get
             {
-                return EARepository.GetCurrentDiagram();
-                /*
-                if (Context.CurrentDiagram == null)
-                {
-                    var currentDiagram = EARepository.GetCurrentDiagram();
-                    if (currentDiagram == null)
-                        throw new Exception("Нет активной диаграммы");
-                    else
-                        Context.CurrentDiagram = currentDiagram;
-                }
                 return Context.CurrentDiagram;
-                */
             }
 
         }
@@ -89,7 +78,10 @@ namespace EADiagramPublisher
 
 
                 // Создаём
-                EA.Connector newConnector = CreateLink(selectLinkTypeResult.value, firstDA, secondDA);
+                EA.Connector newConnector = LinkDesignerHelper.CreateConnector(selectLinkTypeResult.value, firstDA, secondDA, true);
+
+                CurrentDiagram.DiagramLinks.Refresh();
+                EARepository.ReloadDiagram(CurrentDiagram.DiagramID);
 
                 EAHelper.Out("Создан ", new EA.Connector[] { newConnector });
 
@@ -102,42 +94,102 @@ namespace EADiagramPublisher
             return result;
         }
 
-        private EA.Connector CreateLink(LinkType linkType, EA.DiagramObject firstDA, EA.DiagramObject secondDA, string flowID = null, string segmentID = null)
+
+        public ExecResult<Boolean> SetLinkVisibility()
         {
-            EA.Connector newConnector = null;
+            ExecResult<Boolean> result = new ExecResult<bool>();
 
-            EA.Element firstElement = EARepository.GetElementByID(firstDA.ElementID);
-            EA.Element secondElement = EARepository.GetElementByID(secondDA.ElementID);
+            EAHelper.Out("");
 
-            // Создаём
-            newConnector = firstElement.Connectors.AddNew("", "Dependency");
-            newConnector.Direction = "Unspecified";
-            newConnector.ClientID = firstElement.ElementID;
-            newConnector.SupplierID = secondElement.ElementID;
+            try
+            {
+                // Проверяем, что установлена текущая диаграмма
+                if (CurrentDiagram == null)
+                {
+                    if (EARepository.GetCurrentDiagram() != null)
+                    {
+                        Context.CurrentDiagram = EARepository.GetCurrentDiagram();
+                        EAHelper.Out("Установлена текущая диаграмма");
+                    }
+                    else
+                    {
+                        throw new Exception("Нет текущей диаграммы");
+                    }
 
-            newConnector.Name = linkType.ToString();
-            if (flowID == null)
-                newConnector.Name += " " + flowID + " " + ((segmentID == null) ? "" : segmentID);
+                }
 
-            newConnector.Update();
-
-            EAHelper.SetTaggedValue(newConnector, DAConst.DP_LibraryTag, "");
-            EAHelper.SetTaggedValue(newConnector, DAConst.DP_LinkTypeTag, Enum.GetName(typeof(LinkType), linkType));
-            newConnector.Update();
-            newConnector.TaggedValues.Refresh();
+                // запускаем форму
+                ExecResult<SelectedLinkVisibility> selectLVResult = new FSetLinkVisibility().Execute();
+                if (selectLVResult.code != 0) return result;
 
 
-            // Помещаем на диаграмму
-            EA.DiagramLink diagramLink = CurrentDiagram.DiagramLinks.AddNew("", "");
-            diagramLink.ConnectorID = newConnector.ConnectorID;
-            diagramLink.Update();
+                // проходимся по элементам диаграммы
+                foreach (EA.DiagramObject diagramObject in CurrentDiagram.DiagramObjects)
+                {
+                    // Получаем элемент
+                    EA.Element diagramElement = EARepository.GetElementByID(diagramObject.ElementID);
+
+                    // Получаем коннекторы элемента
+                    foreach(EA.Connector connector in diagramElement.Connectors)
+                    {
+                        // проверяем, что коннектор может быть потенциально показан на диаграмме, т.е, что оба его элемента на диаграмме
+                        EA.Element secondElement = EARepository.GetElementByID((connector.ClientID == diagramElement.ElementID) ? connector.SupplierID : connector.ClientID);
+                        EA.DiagramObject secondElementDA = CurrentDiagram.GetDiagramObjectByID(secondElement.ElementID, "");
+                        if (secondElementDA == null) continue;
+
+                        // Теперь смотрим на настройки видимости коннектора
+                        if (EAHelper.IsLibrary(connector)) {
+
+                            LinkType linkType = LTHelper.GetConnectorType(connector);
+
+                            // показ 
+                            if (selectLVResult.value.showLinkType.Contains(linkType)) { 
+                                EA.DiagramLink connectorLink = EAHelper.GetConnectorLink(connector);
+                                if (connectorLink == null)
+                                {
+                                    connectorLink = LinkDesignerHelper.CreateLink(connector);
+                                    connectorLink.Update();
+                                }
+                                if (connectorLink.IsHidden)
+                                {
+                                    connectorLink.IsHidden = false;
+                                    connectorLink.Update();
+                                }
+
+                            }
+
+                            // скрыть 
+                            if (selectLVResult.value.hideLinkType.Contains(linkType))
+                            {
+                                EA.DiagramLink connectorLink = EAHelper.GetConnectorLink(connector);
+                                if (connectorLink != null)
+                                {
+                                    connectorLink.IsHidden = true;
+                                    connectorLink.Update();
+                                }
+                            }
+                        }
+                        else // для небиблиотечных
+                        { 
+                            EA.DiagramLink connectorLink = EAHelper.GetConnectorLink(connector);
+                            if ((!connectorLink.IsHidden) != selectLVResult.value.showNotLibElements)
+                            {
+                                connectorLink.IsHidden = selectLVResult.value.showNotLibElements;
+                                connectorLink.Update();
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                result.setException(ex);
+            }
 
             CurrentDiagram.DiagramLinks.Refresh();
-            //SetConnectorVisibility(ConnectorType.Deploy, false);
             EARepository.ReloadDiagram(CurrentDiagram.DiagramID);
 
-
-            return newConnector;
+            return result;
         }
 
     }

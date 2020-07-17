@@ -25,6 +25,7 @@ namespace EADiagramPublisher
 
         const string menuDesignLinks = "-&DesignLinks";
         const string menuCreateLink = "&CreateLink";
+        const string menuSetLinkVisibility = "&SetLinkVisibility";
 
 
         const string menuUtils = "-&Utils";
@@ -79,7 +80,7 @@ namespace EADiagramPublisher
                     subMenus = new string[] { /*menuSetCurrentLibrary,*/ menuSetCurrentDiagram, menuPutLibElementOnDiagram, menuPutParentDHierarchyOnDiagram, menuPutChildrenDHierarchyOnDiagram };
                     return subMenus;
                 case menuDesignLinks:
-                    subMenus = new string[] { menuCreateLink };
+                    subMenus = new string[] { menuCreateLink, menuSetLinkVisibility };
                     return subMenus;
 
                 case menuUtils:
@@ -143,6 +144,7 @@ namespace EADiagramPublisher
                     
                     case menuDesignLinks:
                     case menuCreateLink:
+                    case menuSetLinkVisibility:
                         isEnabled = true;
                         break;
 
@@ -214,6 +216,12 @@ namespace EADiagramPublisher
                     var createCommunicationResult = LinkDesigner.CreateLink();
                     OutExecResult(createCommunicationResult);
                     break;
+
+                case menuSetLinkVisibility:
+                    var setLinkVisibilityResult = LinkDesigner.SetLinkVisibility();
+                    OutExecResult(setLinkVisibilityResult);
+                    break;
+
 
 
                 // ------ UTILS --------------------------------------------------------------
@@ -354,53 +362,28 @@ namespace EADiagramPublisher
             try
             {
                 // Открываем и чистим тестовую диаграмму 
-                EA.Diagram testDiagram = Context.EARepository.GetDiagramByGuid("{0093407F-0187-42a8-93DC-B97E8FA79EED}");
-                if (test1Flag == 0)
+                if (Context.EARepository.GetTreeSelectedItemType() != EA.ObjectType.otPackage)
+                    throw new Exception("не выделен package");
+
+                EA.Package curPackage = Context.EARepository.GetTreeSelectedObject();
+
+
+                foreach(EA.Element curElement in curPackage.Elements)
                 {
-
-                    while (testDiagram.DiagramObjects.Count > 0)
+                    foreach (EA.Connector curConnector in curElement.Connectors)
                     {
-                        testDiagram.DiagramObjects.DeleteAt(0, true);
+                        if(curConnector.Type == "Dependency" && curConnector.Stereotype == "deploy" && !EAHelper.IsDeploymentLink(curConnector))
+                        {
+                            EAHelper.SetTaggedValue(curConnector, Enums.DAConst.DP_LibraryTag, "");
+                            EAHelper.SetTaggedValue(curConnector, Enums.DAConst.DP_LinkTypeTag, Enums.LinkType.Deploy.ToString());
+                            if (curConnector.Name == null || curConnector.Name == "")
+                                curConnector.Name = Enums.LinkType.Deploy.ToString();
+                            curConnector.StereotypeEx = null;
+                            curConnector.Update();
+                        }
                     }
-                    testDiagram.Update();
-                    testDiagram.DiagramObjects.Refresh();
-                    Context.EARepository.ReloadDiagram(testDiagram.DiagramID);
+
                 }
-
-                Context.EARepository.OpenDiagram(testDiagram.DiagramID);
-                Context.EARepository.ActivateDiagram(testDiagram.DiagramID);
-                Context.CurrentDiagram = testDiagram;
-
-                // Выделяем элемент Сервер1
-                EA.Element element = Context.EARepository.GetElementByGuid("{A4A9C875-BF19-4fde-848D-4329FF477A02}");
-                Context.EARepository.ShowInProjectView(element);
-
-                EA.DiagramObject elementDA = testDiagram.DiagramObjects.AddNew("", "");
-                elementDA.ElementID = element.ElementID;
-                elementDA.Update();
-                testDiagram.Update();
-                testDiagram.DiagramObjects.Refresh();
-                int elementID = elementDA.ElementID;
-                EAHelper.OutA("создан элемент ", new EA.DiagramObject[] { elementDA });
-
-                testDiagram.DiagramObjects.Refresh();
-                EAHelper.OutA("after  DiagramObjects.Refresh ", new EA.DiagramObject[] { elementDA });
-
-
-                testDiagram.DiagramObjects.Refresh();
-                Context.EARepository.ReloadDiagram(testDiagram.DiagramID);
-                testDiagram.DiagramObjects.Refresh();
-                EAHelper.OutA("after RRR", new EA.DiagramObject[] { elementDA });
-
-                elementDA.bottom = elementDA.bottom - 1;
-                elementDA.Update();
-                testDiagram.DiagramObjects.Refresh();
-                Context.EARepository.ReloadDiagram(testDiagram.DiagramID);
-                testDiagram.DiagramObjects.Refresh();
-                EAHelper.OutA("after MRRR", new EA.DiagramObject[] { elementDA });
-
-
-
             }
             catch (Exception ex)
             {

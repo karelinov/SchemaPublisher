@@ -39,8 +39,9 @@
             this.clbLinkType.FormattingEnabled = true;
             this.clbLinkType.Location = new System.Drawing.Point(13, 13);
             this.clbLinkType.Name = "clbLinkType";
-            this.clbLinkType.Size = new System.Drawing.Size(441, 382);
+            this.clbLinkType.Size = new System.Drawing.Size(544, 382);
             this.clbLinkType.TabIndex = 0;
+            this.clbLinkType.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.clbLinkType_ItemCheck);
             // 
             // cbShowOnDiagram
             // 
@@ -57,7 +58,7 @@
             // btnOK
             // 
             this.btnOK.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.btnOK.Location = new System.Drawing.Point(654, 401);
+            this.btnOK.Location = new System.Drawing.Point(423, 407);
             this.btnOK.Name = "btnOK";
             this.btnOK.Size = new System.Drawing.Size(134, 37);
             this.btnOK.TabIndex = 2;
@@ -69,11 +70,12 @@
             this.AcceptButton = this.btnOK;
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(569, 459);
             this.Controls.Add(this.btnOK);
             this.Controls.Add(this.cbShowOnDiagram);
             this.Controls.Add(this.clbLinkType);
             this.Name = "FCreateNewLink";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Выберите типо создаваемой связи";
             this.ResumeLayout(false);
             this.PerformLayout();

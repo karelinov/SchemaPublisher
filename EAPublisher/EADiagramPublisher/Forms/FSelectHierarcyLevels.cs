@@ -57,9 +57,9 @@ namespace EADiagramPublisher.Forms
             return result;
         }
 
-    private void FSelectHierarcyLevels_FormClosing(object sender, FormClosingEventArgs e)
+        private void FSelectHierarcyLevels_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (! new DialogResult[]{ DialogResult.Cancel, DialogResult.OK}.Contains(this.DialogResult))
+            if (!new DialogResult[] { DialogResult.Cancel, DialogResult.OK }.Contains(this.DialogResult))
             {
                 this.DialogResult = DialogResult.Cancel;
             }

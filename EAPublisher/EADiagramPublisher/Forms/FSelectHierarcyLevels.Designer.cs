@@ -39,13 +39,13 @@
             this.clbHierarchyLevels.FormattingEnabled = true;
             this.clbHierarchyLevels.Location = new System.Drawing.Point(25, 24);
             this.clbHierarchyLevels.Name = "clbHierarchyLevels";
-            this.clbHierarchyLevels.Size = new System.Drawing.Size(740, 340);
+            this.clbHierarchyLevels.Size = new System.Drawing.Size(459, 340);
             this.clbHierarchyLevels.TabIndex = 0;
             // 
             // btnOk
             // 
             this.btnOk.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.btnOk.Location = new System.Drawing.Point(634, 393);
+            this.btnOk.Location = new System.Drawing.Point(353, 385);
             this.btnOk.Name = "btnOk";
             this.btnOk.Size = new System.Drawing.Size(131, 36);
             this.btnOk.TabIndex = 1;
@@ -57,10 +57,11 @@
             this.AcceptButton = this.btnOk;
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(521, 450);
             this.Controls.Add(this.btnOk);
             this.Controls.Add(this.clbHierarchyLevels);
             this.Name = "FSelectHierarcyLevels";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Выберите отображаемые уровни иерархии компонентов";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FSelectHierarcyLevels_FormClosing);
             this.ResumeLayout(false);

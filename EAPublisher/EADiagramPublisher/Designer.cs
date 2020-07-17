@@ -21,7 +21,7 @@ namespace EADiagramPublisher
         {
             get
             {
-                return EARepository.GetCurrentDiagram();
+                return Context.CurrentDiagram;
 
                 /*
                 if (Context.CurrentDiagram == null)

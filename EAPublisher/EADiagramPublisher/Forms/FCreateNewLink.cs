@@ -19,7 +19,8 @@ namespace EADiagramPublisher.Forms
 
 
             this.clbLinkType.Items.Clear();
-            this.clbLinkType.Items.Add(LinkType.Communication, true);
+            this.clbLinkType.Items.Add(LinkType.Deploy, false);
+            this.clbLinkType.Items.Add(LinkType.Communication, false);
         }
 
 
@@ -54,6 +55,23 @@ namespace EADiagramPublisher.Forms
             return result;
         }
 
+        private void clbLinkType_ItemCheck(object sender, ItemCheckEventArgs e)
+        {
+            if (e.Index == 0)
+            {
+                if (e.NewValue == CheckState.Checked)
+                    ChangeAllCheckBoxValues(true);
+                else
+                    ChangeAllCheckBoxValues(false);
+            }
+        }
 
+        private void ChangeAllCheckBoxValues(bool value)
+        {
+            for (int i = 1; i < clbLinkType.Items.Count; i++)
+            {
+                clbLinkType.SetItemChecked(i, value);
+            }
+        }
     }
 }

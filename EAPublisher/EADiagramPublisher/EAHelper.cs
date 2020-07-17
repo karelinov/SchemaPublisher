@@ -91,7 +91,7 @@ namespace EADiagramPublisher
             List<EA.Element> result = new List<EA.Element>();
 
             // Добавляем к результату непосредственных детей
-            List<EA.Element> children = GetChildrenDeploymentElement(eaElement);
+            List<EA.Element> children = GetDeployChildren(eaElement);
             result.AddRange(children);
 
             // Проходимся по непосредственных детей и тянем из них рекурсией уже внуков
@@ -105,20 +105,20 @@ namespace EADiagramPublisher
         }
 
         /// <summary>
-        /// Возвращает список непосредственных deploy - детей элемента
+        /// Ищет линк коннектора на текущей диаграмме
         /// </summary>
-        /// <param name="eaElement"></param>
+        /// <param name="connector"></param>
         /// <returns></returns>
-        public static List<EA.Element> GetChildrenDeploymentElement(EA.Element eaElement)
+        public static EA.DiagramLink GetConnectorLink(EA.Connector connector)
         {
-            List<EA.Element> result = new List<EA.Element>();
+            EA.DiagramLink result = null;
 
-
-            foreach (EA.Connector connector in eaElement.Connectors)
+            foreach(EA.DiagramLink diagramLink in Context.CurrentDiagram.DiagramLinks)
             {
-                if (connector.Type == "Dependency" && connector.Stereotype == "deploy" && connector.SupplierID == eaElement.ElementID)
+                if(diagramLink.ConnectorID == connector.ConnectorID)
                 {
-                    result.Add(EARepository.GetElementByID(connector.ClientID));
+                    result = diagramLink;
+                    break;
                 }
             }
 
@@ -225,7 +225,7 @@ namespace EADiagramPublisher
 
             foreach (EA.Connector connector in element.Connectors)
             {
-                if (connector.Type == "Dependency" && connector.Stereotype == "deploy" && connector.SupplierID == element.ElementID)
+                if (IsDeploymentLink(connector) && connector.SupplierID == element.ElementID)
                 {
                     result.Add(EARepository.GetElementByID(connector.ClientID));
                 }
@@ -255,6 +255,27 @@ namespace EADiagramPublisher
                     result.Add(childElementDA);
                 }
             }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Возвращает если есть родительский элемент размещения
+        /// </summary>
+        public static EA.Element GetDeployParent(EA.Element eaElement)
+        {
+            EA.Element result = null;
+
+
+            foreach (EA.Connector connector in eaElement.Connectors)
+            {
+                if (IsDeploymentLink(connector) && connector.ClientID == eaElement.ElementID)
+                {
+                    result = EARepository.GetElementByID(connector.SupplierID);
+                    break;
+                }
+            }
+
 
             return result;
         }
@@ -388,28 +409,6 @@ namespace EADiagramPublisher
 
             return result;
         }
-
-        /// <summary>
-        /// Возвращает если есть родительский элемент размещения
-        /// </summary>
-        public static EA.Element GetParentDeploymentElement(EA.Element eaElement)
-        {
-            EA.Element result = null;
-
-
-            foreach (EA.Connector connector in eaElement.Connectors)
-            {
-                if (connector.Type == "Dependency" && connector.Stereotype == "deploy" && connector.ClientID == eaElement.ElementID)
-                {
-                    result = EARepository.GetElementByID(connector.SupplierID);
-                    break;
-                }
-            }
-
-
-            return result;
-        }
-
         /// <summary>
         /// Возвращает Родительскую иерархию размещения объектов начиная от указанного
         /// </summary>
@@ -422,7 +421,7 @@ namespace EADiagramPublisher
             EA.Element parentEAElement = eaElement;
             do
             {
-                parentEAElement = GetParentDeploymentElement(parentEAElement);
+                parentEAElement = GetDeployParent(parentEAElement);
                 if (parentEAElement != null) result.Add(parentEAElement);
 
             } while (parentEAElement != null);
@@ -432,11 +431,11 @@ namespace EADiagramPublisher
 
         public static EA.Collection GetTaggedValues(EA.Element eaElement)
         {
-            // для обычных элементов возвращаем их TaggedValuesEx
+            // Для обычных элементов возвращаем их TaggedValuesEx
             if (eaElement.Type != "Boundary")
                 return eaElement.TaggedValuesEx;
 
-            // Рамочек ищем связанный с рамочкой объект DeploymentSpecification и возвращаем его TaggedValuesEx
+            // Для рамочек ищем связанный с рамочкой объект DeploymentSpecification и возвращаем его TaggedValuesEx
             EA.Collection result = null;
             foreach (EA.Connector connector in eaElement.Connectors)
             {
@@ -452,6 +451,41 @@ namespace EADiagramPublisher
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Проверяет, что child размещён в parent
+        /// т.е. есть библиотечный линк, направленный от child к parent , тип линка = Deploy
+        /// </summary>
+        /// <param name="childElement"></param>
+        /// <param name="parentElement"></param>
+        /// <returns></returns>
+        public static bool IsDeployed(EA.Element childElement, EA.Element parentElement)
+        {
+            bool result = false;
+
+            foreach (EA.Connector connector in childElement.Connectors)
+            {
+                if (IsDeploymentLink(connector) && connector.ClientID == childElement.ElementID)
+                {
+                    result = true;
+                    break;
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Проверяет, что указанный линк - Deploy линк 
+        /// </summary>
+        /// <param name="connector"></param>
+        /// <returns></returns>
+        public static bool IsDeploymentLink(EA.Connector connector)
+        {
+            if (IsLibrary(connector) && connector.TaggedValues.GetByName(DAConst.DP_LinkTypeTag) != null && ((EA.ConnectorTag)connector.TaggedValues.GetByName(DAConst.DP_LinkTypeTag)).Value == LinkType.Deploy.ToString())
+                return true;
+            else
+                return false;
         }
 
         /// <summary>
@@ -481,7 +515,6 @@ namespace EADiagramPublisher
             }
             return result;
         }
-
         /// <summary>
         /// Проверяет является ли коннектор библиотечным
         /// </summary>

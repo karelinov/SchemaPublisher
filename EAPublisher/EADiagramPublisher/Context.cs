@@ -15,7 +15,23 @@ namespace EADiagramPublisher
         /// <summary>
         /// Установленная текущая рабочая диаграмма
         /// </summary>
-        public static EA.Diagram CurrentDiagram { get; set; }
+        /// 
+        private static int CurrentDiagramID = 0;
+        public static EA.Diagram CurrentDiagram
+        {
+            get
+            {
+                if (CurrentDiagramID != 0)
+                    return EARepository.GetDiagramByID(CurrentDiagramID);
+                else
+                    return null;
+            }
+                
+            set
+            {
+                CurrentDiagramID = value.DiagramID;
+            }
+        }
 
     }
 

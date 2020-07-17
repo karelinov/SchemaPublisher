@@ -7,7 +7,8 @@ namespace EADiagramPublisher.Enums
 {
     public enum LinkType : int
     {
-        Communication = 1,
+        Deploy = 0,
+        Communication = 1
     }
 
 }
