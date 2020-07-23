@@ -24,5 +24,9 @@ namespace EADiagramPublisher.Enums
 
         // Константы LinkType
         public static string DP_LinkTypeTag = "DP_LinkType";
+        public static string DP_FlowIDTag = "DP_FlowID";
+        public static string DP_SegmentIDTag = "DP_FlowSegmentID";
+        public static string DP_TempLinkTag = "DP_TempLink";
+        public static string DP_TempLinkDiagramIDTag = "DP_TempLinkDiagramID"; // Идентификатор диаграммы, на которой следует показать этот линк
     }
 }

@@ -19,14 +19,19 @@ namespace EADiagramPublisher.Forms
 
 
             this.clbLinkType.Items.Clear();
-            this.clbLinkType.Items.Add(LinkType.Deploy, false);
-            this.clbLinkType.Items.Add(LinkType.Communication, false);
+            foreach (LinkType linkType in (LinkType[])Enum.GetValues(typeof(LinkType)))
+            {
+                this.clbLinkType.Items.Add(linkType, false);
+            }
+
+            tbTempLinkDiagramID.Text = Context.CurrentDiagram.DiagramGUID.ToString();
+
         }
 
 
-        public ExecResult<LinkType> Execute()
+        public ExecResult<CreateNewLinkData> Execute()
         {
-            ExecResult<LinkType> result = new ExecResult<LinkType>();
+            ExecResult<CreateNewLinkData> result = new ExecResult<CreateNewLinkData>() { value = new CreateNewLinkData() };
             try
             {
                 DialogResult res = this.ShowDialog();
@@ -42,7 +47,11 @@ namespace EADiagramPublisher.Forms
                     }
                     else
                     {
-                        result.value = ((LinkType)clbLinkType.CheckedItems[0]);
+                        result.value.linkType = ((LinkType)clbLinkType.CheckedItems[0]);
+                        result.value.flowID = tbFlowID.Text;
+                        result.value.segmentID = tbSegmentID.Text;
+                        result.value.tempLink = cbTempLink.Checked;
+                        result.value.tempLinkDiagramID = tbTempLinkDiagramID.Text;
                     }
                 }
 
@@ -73,5 +82,19 @@ namespace EADiagramPublisher.Forms
                 clbLinkType.SetItemChecked(i, value);
             }
         }
+
     }
+
+
+    public class CreateNewLinkData
+    {
+        public LinkType linkType;
+        public string flowID;
+        public string segmentID;
+        public bool tempLink;
+        public string tempLinkDiagramID;
+    }
+
+
+
 }

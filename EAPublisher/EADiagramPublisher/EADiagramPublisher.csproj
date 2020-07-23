@@ -82,6 +82,12 @@
     <Compile Include="Forms\FSetLinkVisibility.Designer.cs">
       <DependentUpon>FSetLinkVisibility.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\FSetTags.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FSetTags.Designer.cs">
+      <DependentUpon>FSetTags.cs</DependentUpon>
+    </Compile>
     <Compile Include="LinkDesigner.cs" />
     <Compile Include="LinkDesignerHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -102,6 +108,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\FSetLinkVisibility.resx">
       <DependentUpon>FSetLinkVisibility.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\FSetTags.resx">
+      <DependentUpon>FSetTags.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

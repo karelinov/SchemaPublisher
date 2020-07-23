@@ -33,9 +33,9 @@ namespace EADiagramPublisher.Forms
 
         }
 
-        public ExecResult<SelectedLinkVisibility> Execute()
+        public ExecResult<LinkVisibilityData> Execute()
         {
-            ExecResult<SelectedLinkVisibility> result = new ExecResult<SelectedLinkVisibility>() { value = new SelectedLinkVisibility() };
+            ExecResult<LinkVisibilityData> result = new ExecResult<LinkVisibilityData>() { value = new LinkVisibilityData() };
             try
             {
                 DialogResult res = this.ShowDialog();
@@ -47,12 +47,13 @@ namespace EADiagramPublisher.Forms
                     {
                         result.value.showLinkType.Add((LinkType)checkedItem);
                     }
+                    result.value.showNotLibElements = cbShowNotLibConnectors.Checked;
+
                     foreach (var checkedItem in clbHideLinkType.CheckedItems)
                     {
                         result.value.hideLinkType.Add((LinkType)checkedItem);
                     }
-
-                    result.value.showNotLibElements = cbShowNotLibConnectors.Checked;
+                    result.value.hideTempDiagramLinks = cbHideTempDiagramLinks.Checked;
                 }
                 else
                 {
@@ -73,11 +74,13 @@ namespace EADiagramPublisher.Forms
     /// <summary>
     /// Класс с выбранными опциями показа линков
     /// </summary>
-    public class SelectedLinkVisibility
+    public class LinkVisibilityData
     {
         public List<LinkType> showLinkType = new List<LinkType>(); // список типов линков , которые надо показать
-        public List<LinkType> hideLinkType = new List<LinkType>(); // список типов линков , которые надо скрыть
         public bool showNotLibElements = false; // показывать небиблиотечные линки
+
+        public List<LinkType> hideLinkType = new List<LinkType>(); // список типов линков , которые надо скрыть
+        public bool hideTempDiagramLinks = false; // скрывать временые линки других диаграмм
     }
 
 
