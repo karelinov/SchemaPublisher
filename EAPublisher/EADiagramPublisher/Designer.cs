@@ -182,6 +182,53 @@ namespace EADiagramPublisher
         /// </summary>
         /// <param name="onlyParent"></param>
         /// <returns></returns>
+        public ExecResult<Boolean> PutChildrenDHierarchyOnElement()
+        {
+            ExecResult<Boolean> result = new ExecResult<bool>();
+            DesignerHelper.CallLevel = 0;
+
+            try
+            {
+                ExecResult<List<ComponentLevel>> displayLevelsResult = new FSelectHierarcyLevels().Execute();
+                if (displayLevelsResult.code != 0) return result;
+
+
+                // Получаем текущий (библиотечный) элемент дерева 
+                if (CurrentDiagram.SelectedObjects.Count == 0 || !EAHelper.IsLibrary(CurrentDiagram.SelectedObjects.GetAt(0)))
+                    throw new Exception("Не выделен библиотечный элемент на диаграмме");
+
+                EA.Element curElement = CurrentDiagram.SelectedObjects.GetAt(0);
+
+                // Получаем список дочерних элементов контейнеров
+                List<EA.Element> сhildrenDHierarchy = EAHelper.GetChildHierarchy(curElement);
+
+                // Проходимся по иерархии и размещаем элементы на диаграмме
+                for (int i = 0; i < сhildrenDHierarchy.Count; i++)
+                {
+                    // Размещаем элемент
+                    EA.DiagramObject diagramObject = PutElementOnDiagram(сhildrenDHierarchy[i]);
+                    diagramObject.Update();
+                }
+
+                CurrentDiagram.DiagramLinks.Refresh();
+                SetConnectorVisibility(ConnectorType.Deploy, false);
+                EARepository.ReloadDiagram(CurrentDiagram.DiagramID);
+
+            }
+            catch (Exception ex)
+            {
+                result.setException(ex);
+            }
+
+            return result;
+        }
+
+
+        /// <summary>
+        /// Размещает на диаграмме укзаанный элемент и иерархию его контейнеров
+        /// </summary>
+        /// <param name="onlyParent"></param>
+        /// <returns></returns>
         public ExecResult<Boolean> PutParentHierarchyOnDiagram(bool onlyParent = false)
         {
             ExecResult<Boolean> result = new ExecResult<bool>();
@@ -419,30 +466,6 @@ namespace EADiagramPublisher
 
             return elementDA;
         }
-        /// <summary>
-        /// Устанавливает видимость указанного типо коннекторов
-        /// </summary>
-        private void SetConnectorVisibility(ConnectorType connectorType, bool visibility = true)
-        {
-            foreach (EA.DiagramLink diagramLink in CurrentDiagram.DiagramLinks)
-            {
-
-                EA.Connector connector = EARepository.GetConnectorByID(diagramLink.ConnectorID);
-
-                switch (connectorType)
-                {
-                    case ConnectorType.Deploy:
-                        if (connector.Type == "Dependency" && connector.Stereotype == "deploy")
-                        {
-                            EAHelper.SetConnectorVisibility(diagramLink, visibility);
-                        }
-                        break;
-
-
-                }
-            }
-        }
-
 
         /// <summary>
         /// Устанавливает Zorder для нового элемента

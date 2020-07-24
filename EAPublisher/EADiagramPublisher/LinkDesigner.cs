@@ -192,6 +192,102 @@ namespace EADiagramPublisher
             return result;
         }
 
+        public void SetLinkVisibility(LinkType linkType, bool visibility = true)
+        {
+                // проходимся по элементам диаграммы
+                foreach (EA.DiagramObject diagramObject in CurrentDiagram.DiagramObjects)
+                {
+                    // Получаем элемент
+                    EA.Element diagramElement = EARepository.GetElementByID(diagramObject.ElementID);
+
+                    // Получаем коннекторы элемента
+                    foreach (EA.Connector connector in diagramElement.Connectors)
+                    {
+                        // Получаем тип коннектора
+                        LinkType curLinkType = LTHelper.GetConnectorType(connector);
+                        if (linkType != curLinkType) continue;
+
+
+
+                    // проверяем, что коннектор может быть потенциально показан на диаграмме, т.е, что оба его элемента на диаграмме
+                    EA.Element secondElement = EARepository.GetElementByID((connector.ClientID == diagramElement.ElementID) ? connector.SupplierID : connector.ClientID);
+                        EA.DiagramObject secondElementDA = CurrentDiagram.GetDiagramObjectByID(secondElement.ElementID, "");
+                        if (secondElementDA == null) continue;
+
+                        // Теперь смотрим на настройки видимости коннектора
+                        if (EAHelper.IsLibrary(connector))
+                        {
+
+                            LinkType linkType = LTHelper.GetConnectorType(connector);
+
+                            // показ 
+                            if (selectLVResult.value.showLinkType.Contains(linkType))
+                            {
+                                EA.DiagramLink connectorLink = EAHelper.GetConnectorLink(connector);
+                                if (connectorLink == null)
+                                {
+                                    connectorLink = LinkDesignerHelper.CreateLink(connector);
+                                    connectorLink.Update();
+                                }
+                                if (connectorLink.IsHidden)
+                                {
+                                    connectorLink.IsHidden = false;
+                                    connectorLink.Update();
+                                }
+
+                            }
+
+                            // скрыть 
+                            if (selectLVResult.value.hideLinkType.Contains(linkType))
+                            {
+                                EA.DiagramLink connectorLink = EAHelper.GetConnectorLink(connector);
+                                if (connectorLink != null)
+                                {
+                                    connectorLink.IsHidden = true;
+                                    connectorLink.Update();
+                                }
+                            }
+                        }
+                        else // для небиблиотечных
+                        {
+                            EA.DiagramLink connectorLink = EAHelper.GetConnectorLink(connector);
+                            if ((!connectorLink.IsHidden) != selectLVResult.value.showNotLibElements)
+                            {
+                                connectorLink.IsHidden = selectLVResult.value.showNotLibElements;
+                                connectorLink.Update();
+                            }
+                        }
+                    }
+                }
+        }
+
+
+
+
+        /// <summary>
+        /// Устанавливает видимость указанного типа коннекторов на диаграммме
+        /// </summary>
+        public static void SetConnectorVisibility(LinkType LinkType, bool visibility = true)
+        {
+            foreach (EA.DiagramLink diagramLink in Context.CurrentDiagram.DiagramLinks)
+            {
+
+                EA.Connector connector = Context.EARepository.GetConnectorByID(diagramLink.ConnectorID);
+
+                switch (LinkType)
+                {
+                    case LinkType.Deploy:
+                        if (connector.Type == "Dependency" && connector.Stereotype == "deploy")
+                        {
+                            EAHelper.SetConnectorVisibility(diagramLink, visibility);
+                        }
+                        break;
+
+
+                }
+            }
+        }
+
     }
 }
 

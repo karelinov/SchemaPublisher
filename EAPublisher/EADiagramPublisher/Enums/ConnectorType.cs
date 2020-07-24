@@ -5,14 +5,16 @@ using System.Text;
 
 namespace EADiagramPublisher.Enums
 {
+    /*
     /// <summary>
     /// Стандартные типы коннекторов
     /// </summary>
-    enum ConnectorType
+    public enum ConnectorType
     {
         Deploy,
         Physical,
         Communication,
         InformationFlow
     }
+    */
 }

@@ -22,6 +22,7 @@ namespace EADiagramPublisher
         const string menuPutLibElementOnDiagram = "&PutLibElementOnDiagram";
         const string menuPutParentDHierarchyOnDiagram = "&PutParentDHierarchyOnDiagram";
         const string menuPutChildrenDHierarchyOnDiagram = "&PutChildrenDHierarchyOnDiagram";
+        const string menuPutChildrenDHierarchyOnElement = "&PutChildrenDHierarchyOnElement";
 
         const string menuDesignLinks = "-&DesignLinks";
         const string menuCreateLink = "&CreateLink";
@@ -77,7 +78,7 @@ namespace EADiagramPublisher
                     subMenus = new string[] { menuExportDiagram, menuDesign, menuDesignLinks, menuUtils, menuTest };
                     return subMenus;
                 case menuDesign:
-                    subMenus = new string[] { /*menuSetCurrentLibrary,*/ menuSetCurrentDiagram, menuPutLibElementOnDiagram, menuPutParentDHierarchyOnDiagram, menuPutChildrenDHierarchyOnDiagram };
+                    subMenus = new string[] { /*menuSetCurrentLibrary,*/ menuSetCurrentDiagram, menuPutLibElementOnDiagram, menuPutParentDHierarchyOnDiagram, menuPutChildrenDHierarchyOnDiagram, menuPutChildrenDHierarchyOnElement };
                     return subMenus;
                 case menuDesignLinks:
                     subMenus = new string[] { menuCreateLink, menuSetLinkVisibility };
@@ -139,6 +140,7 @@ namespace EADiagramPublisher
                     case menuPutLibElementOnDiagram:
                     case menuPutParentDHierarchyOnDiagram:
                     case menuPutChildrenDHierarchyOnDiagram:
+                    case menuPutChildrenDHierarchyOnElement:
                         isEnabled = true;
                         break;
                     
@@ -210,6 +212,11 @@ namespace EADiagramPublisher
                     var putPutCDHResult = Designer.PutChildrenDHierarchyOnDiagram();
                     OutExecResult(putPutCDHResult);
                     break;
+                case menuPutChildrenDHierarchyOnElement:
+                    var putPutCDEResult = Designer.PutChildrenDHierarchyOnElement();
+                    OutExecResult(putPutCDEResult);
+                    break;
+
 
                 // ------ DESIGN LINKS --------------------------------------------------------------
                 case menuCreateLink:
