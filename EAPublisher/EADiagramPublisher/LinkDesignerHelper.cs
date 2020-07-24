@@ -35,27 +35,56 @@ namespace EADiagramPublisher
         }
 
 
-        public static EA.Connector CreateConnector(LinkType linkType, EA.DiagramObject firstDA, EA.DiagramObject secondDA, bool putOnDiagram = true, string flowID = null, string segmentID = null)
+        public static EA.Connector CreateConnector(Forms.CreateNewLinkData createNewLinkData, EA.DiagramObject firstDA, EA.DiagramObject secondDA, bool putOnDiagram = true)
         {
             EA.Connector newConnector = null;
 
             EA.Element firstElement = EARepository.GetElementByID(firstDA.ElementID);
             EA.Element secondElement = EARepository.GetElementByID(secondDA.ElementID);
 
+            // Определяем тип создаваемого коннектора
+            string creatingConnectorType;
+            switch (createNewLinkData.linkType)
+            {
+                case LinkType.Communication:
+                case LinkType.Deploy:
+                    creatingConnectorType = "Dependency";
+                    break;
+                case LinkType.InformationFlow:
+                    creatingConnectorType = "InformationFlow";
+                    break;
+                default:
+                    throw new Exception("Непредусмотренный тип коннектора при создании");
+            }
+
             // Создаём
-            newConnector = firstElement.Connectors.AddNew("", "Dependency");
-            newConnector.Direction = "Unspecified";
+            newConnector = firstElement.Connectors.AddNew("", creatingConnectorType);
+
+            if (createNewLinkData.linkType == LinkType.InformationFlow)
+            {
+                newConnector.Direction = "Source -> Destination";
+            }
+            else
+            {
+                newConnector.Direction = "Unspecified";
+            }
             newConnector.ClientID = firstElement.ElementID;
             newConnector.SupplierID = secondElement.ElementID;
 
-            newConnector.Name = linkType.ToString();
-            if (flowID == null)
-                newConnector.Name += " " + flowID + " " + ((segmentID == null) ? "" : segmentID);
+            newConnector.Name = createNewLinkData.linkType.ToString();
+            if (createNewLinkData.flowID == null)
+                newConnector.Name += " " + createNewLinkData.flowID + " " + ((createNewLinkData.segmentID == null) ? "" : createNewLinkData.segmentID);
 
             newConnector.Update();
 
             EAHelper.SetTaggedValue(newConnector, DAConst.DP_LibraryTag, "");
-            EAHelper.SetTaggedValue(newConnector, DAConst.DP_LinkTypeTag, Enum.GetName(typeof(LinkType), linkType));
+            EAHelper.SetTaggedValue(newConnector, DAConst.DP_LinkTypeTag, Enum.GetName(typeof(LinkType), createNewLinkData.linkType));
+            EAHelper.SetTaggedValue(newConnector, DAConst.DP_FlowIDTag, createNewLinkData.flowID);
+            EAHelper.SetTaggedValue(newConnector, DAConst.DP_SegmentIDTag, createNewLinkData.segmentID);
+            EAHelper.SetTaggedValue(newConnector, DAConst.DP_TempLinkTag, createNewLinkData.tempLink.ToString());
+            EAHelper.SetTaggedValue(newConnector, DAConst.DP_TempLinkDiagramIDTag, createNewLinkData.tempLinkDiagramID);
+
+
             newConnector.Update();
             newConnector.TaggedValues.Refresh();
 

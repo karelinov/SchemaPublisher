@@ -60,8 +60,8 @@ namespace EADiagramPublisher
                 EAHelper.Out("Выделенные элементы: ", new EA.Element[] { firstElement, secondElement });
 
                 // запускаем форму
-                ExecResult<LinkType> selectLinkTypeResult = new FCreateNewLink().Execute();
-                if (selectLinkTypeResult.code != 0) return result;
+                ExecResult<CreateNewLinkData> createNewLinkData = new FCreateNewLink().Execute();
+                if (createNewLinkData.code != 0) return result;
 
 
                 // надо проверить, нет ли уже такого линка между элементами
@@ -69,7 +69,7 @@ namespace EADiagramPublisher
                 {
                     if (connector.ClientID == secondElement.ElementID || connector.SupplierID == secondElement.ElementID) {
                         /// !!!!! В будущем надо проверять не только тип, но и и идентификатор !!!!!
-                        if (EAHelper.IsLibrary(connector) && connector.TaggedValues.GetByName(DAConst.DP_LinkTypeTag) != null && ((EA.ConnectorTag)connector.TaggedValues.GetByName(DAConst.DP_LinkTypeTag)).Value == Enum.GetName(typeof(LinkType), selectLinkTypeResult.value))
+                        if (EAHelper.IsLibrary(connector) && connector.TaggedValues.GetByName(DAConst.DP_LinkTypeTag) != null && ((EA.ConnectorTag)connector.TaggedValues.GetByName(DAConst.DP_LinkTypeTag)).Value == Enum.GetName(typeof(LinkType), createNewLinkData.value))
                         {
                             throw new Exception("Запрашиваемая связь уже существует");
                         }
@@ -78,7 +78,7 @@ namespace EADiagramPublisher
 
 
                 // Создаём
-                EA.Connector newConnector = LinkDesignerHelper.CreateConnector(selectLinkTypeResult.value, firstDA, secondDA, true);
+                EA.Connector newConnector = LinkDesignerHelper.CreateConnector(createNewLinkData.value, firstDA, secondDA, true);
 
                 CurrentDiagram.DiagramLinks.Refresh();
                 EARepository.ReloadDiagram(CurrentDiagram.DiagramID);
@@ -119,7 +119,7 @@ namespace EADiagramPublisher
                 }
 
                 // запускаем форму
-                ExecResult<SelectedLinkVisibility> selectLVResult = new FSetLinkVisibility().Execute();
+                ExecResult<LinkVisibilityData> selectLVResult = new FSetLinkVisibility().Execute();
                 if (selectLVResult.code != 0) return result;
 
 
