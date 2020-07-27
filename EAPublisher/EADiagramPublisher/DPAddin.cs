@@ -18,18 +18,19 @@ namespace EADiagramPublisher
 
         const string menuDesign = "-&Design";
         //const string menuSetCurrentLibrary = "&SetCurrentLibrary";
-        const string menuSetCurrentDiagram = "&SetCurrentDiagram";
         const string menuPutLibElementOnDiagram = "&PutLibElementOnDiagram";
         const string menuPutParentDHierarchyOnDiagram = "&PutParentDHierarchyOnDiagram";
         const string menuPutChildrenDHierarchyOnDiagram = "&PutChildrenDHierarchyOnDiagram";
         const string menuPutChildrenDHierarchyOnElement = "&PutChildrenDHierarchyOnElement";
+        const string menuSetElementTags = "&SetElementTags";
 
         const string menuDesignLinks = "-&DesignLinks";
         const string menuCreateLink = "&CreateLink";
         const string menuSetLinkVisibility = "&SetLinkVisibility";
 
-
         const string menuUtils = "-&Utils";
+        const string menuSetCurrentDiagram = "&SetCurrentDiagram";
+        const string menuSetDPLibratyTag = "&SetDPLibratyTag";
         const string menuSetDefaultSize = "&SetDefaultSize";
 
         const string menuTest = "-&Test";
@@ -77,15 +78,17 @@ namespace EADiagramPublisher
                 case menuDPAddin:
                     subMenus = new string[] { menuExportDiagram, menuDesign, menuDesignLinks, menuUtils, menuTest };
                     return subMenus;
+
                 case menuDesign:
-                    subMenus = new string[] { /*menuSetCurrentLibrary,*/ menuSetCurrentDiagram, menuPutLibElementOnDiagram, menuPutParentDHierarchyOnDiagram, menuPutChildrenDHierarchyOnDiagram, menuPutChildrenDHierarchyOnElement };
+                    subMenus = new string[] { /*menuSetCurrentLibrary,*/ menuPutLibElementOnDiagram, menuPutParentDHierarchyOnDiagram, menuPutChildrenDHierarchyOnDiagram, menuPutChildrenDHierarchyOnElement, menuSetElementTags };
                     return subMenus;
+
                 case menuDesignLinks:
                     subMenus = new string[] { menuCreateLink, menuSetLinkVisibility };
                     return subMenus;
 
                 case menuUtils:
-                    subMenus = new string[] { menuSetDefaultSize };
+                    subMenus = new string[] { menuSetCurrentDiagram, menuSetDPLibratyTag, menuSetDefaultSize };
                     return subMenus;
                 case menuTest:
                     subMenus = new string[] { menuTest1 , menuTest2, menuTest3 };
@@ -136,11 +139,11 @@ namespace EADiagramPublisher
                     case menuSetCurrentLibrary:
                     */
 
-                    case menuSetCurrentDiagram:
                     case menuPutLibElementOnDiagram:
                     case menuPutParentDHierarchyOnDiagram:
                     case menuPutChildrenDHierarchyOnDiagram:
                     case menuPutChildrenDHierarchyOnElement:
+                    case menuSetElementTags:
                         isEnabled = true;
                         break;
                     
@@ -151,6 +154,8 @@ namespace EADiagramPublisher
                         break;
 
                     case menuUtils:
+                    case menuSetCurrentDiagram:
+                    case menuSetDPLibratyTag:
                     case menuSetDefaultSize:
                         isEnabled = true;
                         break;
@@ -195,10 +200,6 @@ namespace EADiagramPublisher
                     OutExecResult(setCurrentLibraryResult);
                     break;
                 */
-                case menuSetCurrentDiagram:
-                    Context.CurrentDiagram = Context.EARepository.GetCurrentDiagram();
-                    EAHelper.OutA("Установлена текущая диаграмма = " + Designer.CurrentDiagram.Name);
-                    break;
                 case menuPutLibElementOnDiagram:
                     var putLibElementResult = Designer.PutElementOnDiagram();
                     OutExecResult(putLibElementResult);
@@ -212,10 +213,17 @@ namespace EADiagramPublisher
                     var putPutCDHResult = Designer.PutChildrenDHierarchyOnDiagram();
                     OutExecResult(putPutCDHResult);
                     break;
+
                 case menuPutChildrenDHierarchyOnElement:
                     var putPutCDEResult = Designer.PutChildrenDHierarchyOnElement();
                     OutExecResult(putPutCDEResult);
                     break;
+
+                case menuSetElementTags:
+                    var setElementTagsResult = Designer.SetElementTags(location);
+                    OutExecResult(setElementTagsResult);
+                    break;
+
 
 
                 // ------ DESIGN LINKS --------------------------------------------------------------
@@ -225,13 +233,23 @@ namespace EADiagramPublisher
                     break;
 
                 case menuSetLinkVisibility:
-                    var setLinkVisibilityResult = LinkDesigner.SetLinkVisibility();
+                    var setLinkVisibilityResult = LinkDesigner.SetConnectorVisibility();
                     OutExecResult(setLinkVisibilityResult);
                     break;
 
 
 
                 // ------ UTILS --------------------------------------------------------------
+                case menuSetCurrentDiagram:
+                    Context.CurrentDiagram = Context.EARepository.GetCurrentDiagram();
+                    EAHelper.OutA("Установлена текущая диаграмма = " + Designer.CurrentDiagram.Name);
+                    break;
+
+                case menuSetDPLibratyTag:
+                    var setDPLibratyTagResult = EAHelper.SetDPLibratyTag(location);
+                    OutExecResult(setDPLibratyTagResult);
+                    break;
+
                 case menuSetDefaultSize:
                     var SetElementDefaultSizeResult = EAHelper.SetElementDefaultSize();
                     OutExecResult(SetElementDefaultSizeResult);
@@ -381,8 +399,8 @@ namespace EADiagramPublisher
                     {
                         if(curConnector.Type == "Dependency" && curConnector.Stereotype == "deploy" && !EAHelper.IsDeploymentLink(curConnector))
                         {
-                            EAHelper.SetTaggedValue(curConnector, Enums.DAConst.DP_LibraryTag, "");
-                            EAHelper.SetTaggedValue(curConnector, Enums.DAConst.DP_LinkTypeTag, Enums.LinkType.Deploy.ToString());
+                            EAHelper.TaggedValueSet(curConnector, Enums.DAConst.DP_LibraryTag, "");
+                            EAHelper.TaggedValueSet(curConnector, Enums.DAConst.DP_LinkTypeTag, Enums.LinkType.Deploy.ToString());
                             if (curConnector.Name == null || curConnector.Name == "")
                                 curConnector.Name = Enums.LinkType.Deploy.ToString();
                             curConnector.StereotypeEx = null;

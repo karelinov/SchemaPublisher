@@ -109,7 +109,7 @@ namespace EADiagramPublisher
                 EA.DiagramObject diagramObject = PutElementOnDiagram(curElement);
 
                 CurrentDiagram.DiagramLinks.Refresh();
-                SetConnectorVisibility(ConnectorType.Deploy, false);
+                DPAddin.LinkDesigner.SetLinkTypeVisibility(LinkType.Deploy, false);
                 EARepository.ReloadDiagram(CurrentDiagram.DiagramID);
 
             }
@@ -164,7 +164,7 @@ namespace EADiagramPublisher
                 }
 
                 CurrentDiagram.DiagramLinks.Refresh();
-                SetConnectorVisibility(ConnectorType.Deploy, false);
+                DPAddin.LinkDesigner.SetLinkTypeVisibility(LinkType.Deploy, false);
                 EARepository.ReloadDiagram(CurrentDiagram.DiagramID);
 
             }
@@ -211,7 +211,7 @@ namespace EADiagramPublisher
                 }
 
                 CurrentDiagram.DiagramLinks.Refresh();
-                SetConnectorVisibility(ConnectorType.Deploy, false);
+                DPAddin.LinkDesigner.SetLinkTypeVisibility(LinkType.Deploy, false);
                 EARepository.ReloadDiagram(CurrentDiagram.DiagramID);
 
             }
@@ -271,7 +271,7 @@ namespace EADiagramPublisher
                 }
 
                 CurrentDiagram.DiagramLinks.Refresh();
-                SetConnectorVisibility(ConnectorType.Deploy, false);
+                DPAddin.LinkDesigner.SetLinkTypeVisibility(LinkType.Deploy, false);
                 EARepository.ReloadDiagram(CurrentDiagram.DiagramID);
 
             }
@@ -305,7 +305,7 @@ namespace EADiagramPublisher
                 EAHelper.Out("Получен список вставленных в дочерний элемент ", elementsInsideChild.ToArray());
 
                 // сохраняем начальную позицию child, чтобы когда он подвинется, подвинуть за ним вписанных в него
-                Point originalchildPoint  = new Point(childElementDA.left, childElementDA.top);
+                Point originalchildPoint = new Point(childElementDA.left, childElementDA.top);
 
                 // также получаем список непосредственно дочерних элементов родителя - чтобы понять, как лежат другие дочерние - конкуренты вписываемого
                 List<EA.DiagramObject> elementsInsideParent = EAHelper.GetContainedForDA(parentElementDA);
@@ -348,11 +348,11 @@ namespace EADiagramPublisher
                         EAHelper.Out("Изменились размер или положение родительского DA, всписываем его в grandparent... ", new EA.DiagramObject[] { childElementDA });
                         Point newOriginalParentPoint = new Point(parentElementDA.left, parentElementDA.top);
                         FitElementInElement(parentElementDA, grandparentDA);
-                        
+
                         // После вписывания parent-а следует скорректировать позицию вписываемого элемента
                         Point moveParentVector = DesignerHelper.GetVector(newOriginalParentPoint, new Point(parentElementDA.left, parentElementDA.top));
                         childStart = new Point(childStart.X + moveParentVector.X, childStart.Y + moveParentVector.Y);
-                        EAHelper.Out("Скорректирована позиция child ", new object[]  { childStart });
+                        EAHelper.Out("Скорректирована позиция child ", new object[] { childStart });
                     }
                 }
 
@@ -407,7 +407,7 @@ namespace EADiagramPublisher
 
                 var diagramObjects = CurrentDiagram.DiagramObjects;
 
-                elementDA = CurrentDiagram.GetDiagramObjectByID(element.ElementID,""); // Получаем элемент на диаграмме
+                elementDA = CurrentDiagram.GetDiagramObjectByID(element.ElementID, ""); // Получаем элемент на диаграмме
                 if (elementDA == null) // если элемента нет - создаём
                 {
                     EAHelper.Out("элемента нет на диаграмме, создаём ");
@@ -519,6 +519,95 @@ namespace EADiagramPublisher
             }
 
 
+        }
+
+
+        /// <summary>
+        /// Установка Tags для выделенных элементов
+        /// </summary>
+        /// <returns></returns>
+        public ExecResult<Boolean> SetElementTags(string location)
+        {
+            ExecResult<Boolean> result = new ExecResult<bool>();
+            try
+            {
+                // Сначала получаем список выделеннеых библиотечных элементов
+                List<EA.Element> selectedLibElements = new List<EA.Element>();
+
+                switch (location)
+                {
+                    case "TreeView":
+                        selectedLibElements = EAHelper.GetSelectedLibElement_Tree();
+                        break;
+                    case "Diagram":
+                        selectedLibElements = EAHelper.GetSelectedLibElement_Diagram();
+                        break;
+                    case "MainMenu":
+                        selectedLibElements = EAHelper.GetSelectedLibElement_Diagram();
+                        if (selectedLibElements.Count == 0)
+                        {
+                            selectedLibElements = EAHelper.GetSelectedLibElement_Tree();
+                        }
+                        break;
+                }
+
+                if (selectedLibElements.Count == 0)
+                    throw new Exception("Не выделены библиотечные элементы");
+
+                // Конструируем данные тэгов для формы
+                List<TagData> curTagDataList = new List<TagData>();
+                foreach (EA.Element curElement in selectedLibElements)
+                {
+                    foreach (EA.TaggedValue taggedValue in curElement.TaggedValuesEx)
+                    {
+                        string tagName = taggedValue.Name;
+
+                        TagData curTagData;
+                        curTagData = curTagDataList.FirstOrDefault(item => (item.TagName == tagName));
+                        if (curTagData == null)
+                        {
+                            curTagData = new TagData() { TagName = tagName , TagValue = taggedValue.Value};
+                            curTagDataList.Add(curTagData);
+                        }
+                        curTagData.TagState = true;
+                        curTagData.Count++;
+                        if(taggedValue.ElementID != curElement.ElementID)
+                        {
+                            curTagData.Ex = true;
+                        }
+
+                    }
+                }
+                // Открываем форму для установки Tags
+                ExecResult<List<TagData>> setTagsResult = new FSetTags().Execute(curTagDataList);
+                if (setTagsResult.code != 0) return result;
+
+                // Прописываем в элементах что наустанавливали на форме
+                foreach (EA.Element curElement in selectedLibElements)
+                {
+                    foreach (TagData curTagData in setTagsResult.value)
+                    {
+                        if (curTagData.Enabled) // записываем только для Tags, в котоорые разрешено
+                        {
+
+                            if (curTagData.TagState == false)
+                            {
+                                EAHelper.TaggedValueRemove(curElement, curTagData.TagName);
+                            }
+                            else
+                            {
+                                EAHelper.TaggedValueSet(curElement, curTagData.TagName, curTagData.TagValue);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                result.setException(ex);
+            }
+
+            return result;
         }
 
 

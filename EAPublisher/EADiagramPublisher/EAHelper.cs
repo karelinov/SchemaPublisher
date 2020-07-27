@@ -113,9 +113,9 @@ namespace EADiagramPublisher
         {
             EA.DiagramLink result = null;
 
-            foreach(EA.DiagramLink diagramLink in Context.CurrentDiagram.DiagramLinks)
+            foreach (EA.DiagramLink diagramLink in Context.CurrentDiagram.DiagramLinks)
             {
-                if(diagramLink.ConnectorID == connector.ConnectorID)
+                if (diagramLink.ConnectorID == connector.ConnectorID)
                 {
                     result = diagramLink;
                     break;
@@ -454,6 +454,31 @@ namespace EADiagramPublisher
         }
 
         /// <summary>
+        /// Возвращает в виде строки значение запрошенного TaggedValue из объекта
+        /// Если такого TaggedValue нет - возвращается пустая строка
+        /// </summary>
+        /// <param name="connector"></param>
+        /// <param name="taggedValueName"></param>
+        /// <returns></returns>
+        public static string GetTaggedValue(EA.Connector connector, string taggedValueName)
+        {
+            EA.ConnectorTag taggedValue = connector.TaggedValues.GetByName(taggedValueName);
+            if (taggedValue == null)
+                return "";
+            else
+                return taggedValue.Value;
+        }
+        public static string GetTaggedValue(EA.Element element, string taggedValueName)
+        {
+            EA.TaggedValue taggedValue = element.TaggedValues.GetByName(taggedValueName);
+            if (taggedValue == null)
+                return "";
+            else
+                return taggedValue.Value;
+        }
+
+
+        /// <summary>
         /// Проверяет, что child размещён в parent
         /// т.е. есть библиотечный линк, направленный от child к parent , тип линка = Deploy
         /// </summary>
@@ -503,7 +528,7 @@ namespace EADiagramPublisher
             }
             else
             {
-                if (element.ObjectType == EA.ObjectType.otElement && element.ClassifierID !=0)
+                if (element.ObjectType == EA.ObjectType.otElement && element.ClassifierID != 0)
                 {
                     EA.Element classifier = EARepository.GetElementByID(element.ClassifierID);
                     if (GetTaggedValues(classifier).GetByName(DAConst.DP_LibraryTag) != null)
@@ -530,7 +555,6 @@ namespace EADiagramPublisher
             }
             return result;
         }
-
 
         /// <summary>
         /// Подвигает DA и вписанные в него DA на указанный вектор
@@ -608,7 +632,7 @@ namespace EADiagramPublisher
         }
 
 
-        public static void SetConnectorVisibility(EA.DiagramLink diagramLink, bool visibility)
+        public static void SetDiagramLinkVisibility(EA.DiagramLink diagramLink, bool visibility)
         {
             diagramLink.IsHidden = !visibility;
             diagramLink.Update();
@@ -639,8 +663,8 @@ namespace EADiagramPublisher
                 ExecResult<Size> GetElementSizeOnLibDiagramResult = GetElementSizeOnLibDiagram(curElement);
                 if (GetElementSizeOnLibDiagramResult.code != 0) throw new Exception(GetElementSizeOnLibDiagramResult.message);
 
-                SetTaggedValue(curElement, DAConst.defaultWidthTag, GetElementSizeOnLibDiagramResult.value.Width.ToString());
-                SetTaggedValue(curElement, DAConst.defaultHeightTag, GetElementSizeOnLibDiagramResult.value.Height.ToString());
+                TaggedValueSet(curElement, DAConst.defaultWidthTag, GetElementSizeOnLibDiagramResult.value.Width.ToString());
+                TaggedValueSet(curElement, DAConst.defaultHeightTag, GetElementSizeOnLibDiagramResult.value.Height.ToString());
 
                 Out("Найден элемент диаграммы для установки размеров " + GetElementSizeOnLibDiagramResult.value.Width.ToString() + "x" + GetElementSizeOnLibDiagramResult.value.Height.ToString());
 
@@ -653,7 +677,68 @@ namespace EADiagramPublisher
             return result;
         }
 
-        public static void SetTaggedValue(EA.Element element, string tagName, string tagValue)
+        /// <summary>
+        /// Функция записывает в выделенные элементы признак библиотечного
+        /// </summary>
+        /// <returns></returns>
+        public static ExecResult<Boolean> SetDPLibratyTag(string location)
+        {
+            ExecResult<Boolean> result = new ExecResult<bool>();
+
+            try
+            {
+                switch (location)
+                {
+                    case "TreeView":
+                        foreach (EA.Element curElement in EARepository.GetTreeSelectedElements())
+                        {
+                            TaggedValueSet(curElement, DAConst.DP_LibraryTag, "");
+                        }
+                        break;
+                    case "Diagram":
+                        if (Context.CurrentDiagram != null && Context.CurrentDiagram.SelectedObjects.Count > 0)
+                        {
+                            if (Context.CurrentDiagram != null && Context.CurrentDiagram.SelectedObjects.Count > 0)foreach (EA.DiagramObject curDA in Context.CurrentDiagram.SelectedObjects)
+                            {
+                                EA.Element curElement = EARepository.GetElementByID(curDA.ElementID);
+                                TaggedValueSet(curElement, DAConst.DP_LibraryTag, "");
+                            }
+                        }
+                        break;
+                    case "MainMenu":
+                        if (Context.CurrentDiagram != null && Context.CurrentDiagram.SelectedObjects.Count > 0)
+                        {
+                            foreach (EA.DiagramObject curDA in Context.CurrentDiagram.SelectedObjects)
+                            {
+                                EA.Element curElement = EARepository.GetElementByID(curDA.ElementID);
+                                TaggedValueSet(curElement, DAConst.DP_LibraryTag, "");
+                            }
+                        }
+                        else
+                        {
+                            foreach (EA.Element curElement in EARepository.GetTreeSelectedElements())
+                            {
+                                TaggedValueSet(curElement, DAConst.DP_LibraryTag, "");
+                            }
+                            break;
+                        }
+
+
+
+                        break;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                result.setException(ex);
+            }
+
+            return result;
+        }
+
+
+        public static void TaggedValueSet(EA.Element element, string tagName, string tagValue)
         {
             EA.TaggedValue tag = element.TaggedValues.GetByName(tagName);
             if (tag == null)
@@ -670,7 +755,7 @@ namespace EADiagramPublisher
 
         }
 
-        public static void SetTaggedValue(EA.Connector connector, string tagName, string tagValue)
+        public static void TaggedValueSet(EA.Connector connector, string tagName, string tagValue)
         {
             EA.ConnectorTag tag = null;
             try
@@ -682,13 +767,30 @@ namespace EADiagramPublisher
                 if (ex.Message != "Index out of bounds") throw ex;
             }
 
-            if (tag ==null)
+            if (tag == null)
                 tag = connector.TaggedValues.AddNew(tagName, tagValue);
 
             tag.Value = tagValue;
             bool res = tag.Update();
             //connector.Update(); // is it needed?
 
+        }
+
+        /// <summary>
+        /// Удаляет TaggedValue из элемента
+        /// </summary>
+        /// <param name="element"></param>
+        /// <param name="tagName"></param>
+        public static void TaggedValueRemove(EA.Element element, string tagName)
+        {
+            for (short i = 0; i < element.TaggedValues.Count; i++)
+            {
+                EA.TaggedValue tag = element.TaggedValues.GetAt(i);
+                if (tag.Name == tagName)
+                {
+                    element.TaggedValues.DeleteAt(i, true);
+                }
+            }
         }
 
         /// <summary>
@@ -786,5 +888,87 @@ namespace EADiagramPublisher
 
             return result;
         }
+
+        /// <summary>
+        /// Функция от указанного пакета лезет  вверх по дереву объектов репозитория и останавливается в одном из случаев:
+        /// - когда по пути были библиотечные, но закончились (найден корень библиотеки)
+        /// - когда по пути были библиотечных объектов не нашлось
+        /// </summary>
+        /// <param name="startPackage"></param>
+        /// <returns>Корень библиотеки если найден</returns>
+        public static EA.Package GetRootLibPackage(EA.Package startPackage)
+        {
+            EA.Package result = null;
+
+            // лезем от элемента вверх по дереву пакетов, пока не достигнем верха либо не достигнем пакета без тэга DP_Library после нахождения такого тэга
+            EA.Package curPackage = startPackage;
+            if (IsLibrary(curPackage.Element)) result = curPackage;
+
+            bool foundPackageAfterDPLibrary = false;
+            bool foundDPLibraryPackage = false;
+
+            while (curPackage != null & !(foundPackageAfterDPLibrary))
+            {
+                if (curPackage.ParentID != 0)
+                    curPackage = EARepository.GetPackageByID(curPackage.ParentID);
+                else
+                    curPackage = null;
+
+                if (IsLibrary(curPackage.Element))
+                {
+                    foundDPLibraryPackage = true;
+                    result = curPackage;
+                }
+
+                if (!IsLibrary(curPackage.Element) && foundDPLibraryPackage)
+                    foundPackageAfterDPLibrary = true;
+            }
+
+
+            return result;
+        }
+
+        /// <summary>
+        ///  Возыращает список выделенных в дереве библиотечных элементов
+        /// </summary>
+        /// <returns></returns>
+        public static List<EA.Element> GetSelectedLibElement_Tree()
+        {
+            List<EA.Element> result = new List<EA.Element>();
+
+            foreach (EA.Element curElement in EARepository.GetTreeSelectedElements())
+            {
+                if (IsLibrary(curElement))
+                {
+                    result.Add(curElement);
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        ///  Возыращает список выделенных в диаграмме библиотечных элементов
+        /// </summary>
+        /// <returns></returns>
+        public static List<EA.Element> GetSelectedLibElement_Diagram()
+        {
+            List<EA.Element> result = new List<EA.Element>();
+
+            foreach (EA.DiagramObject curDA in Context.CurrentDiagram.SelectedObjects)
+            {
+                EA.Element curElement = EARepository.GetElementByID(curDA.ElementID);
+
+                if (IsLibrary(curElement))
+                {
+                    result.Add(curElement);
+                }
+            }
+
+            return result;
+        }
+
+
     }
 }
+

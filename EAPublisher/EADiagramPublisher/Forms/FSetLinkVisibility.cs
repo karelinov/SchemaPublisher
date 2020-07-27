@@ -78,6 +78,8 @@ namespace EADiagramPublisher.Forms
     {
         public List<LinkType> showLinkType = new List<LinkType>(); // список типов линков , которые надо показать
         public bool showNotLibElements = false; // показывать небиблиотечные линки
+        public bool showOnlyForSelected = false; // показывать только для выделенных элементов
+        public List<String> showComponents = new List<string>(); // показывать соединения указанных компонентов 
 
         public List<LinkType> hideLinkType = new List<LinkType>(); // список типов линков , которые надо скрыть
         public bool hideTempDiagramLinks = false; // скрывать временые линки других диаграмм

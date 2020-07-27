@@ -77,12 +77,12 @@ namespace EADiagramPublisher
 
             newConnector.Update();
 
-            EAHelper.SetTaggedValue(newConnector, DAConst.DP_LibraryTag, "");
-            EAHelper.SetTaggedValue(newConnector, DAConst.DP_LinkTypeTag, Enum.GetName(typeof(LinkType), createNewLinkData.linkType));
-            EAHelper.SetTaggedValue(newConnector, DAConst.DP_FlowIDTag, createNewLinkData.flowID);
-            EAHelper.SetTaggedValue(newConnector, DAConst.DP_SegmentIDTag, createNewLinkData.segmentID);
-            EAHelper.SetTaggedValue(newConnector, DAConst.DP_TempLinkTag, createNewLinkData.tempLink.ToString());
-            EAHelper.SetTaggedValue(newConnector, DAConst.DP_TempLinkDiagramIDTag, createNewLinkData.tempLinkDiagramID);
+            EAHelper.TaggedValueSet(newConnector, DAConst.DP_LibraryTag, "");
+            EAHelper.TaggedValueSet(newConnector, DAConst.DP_LinkTypeTag, Enum.GetName(typeof(LinkType), createNewLinkData.linkType));
+            EAHelper.TaggedValueSet(newConnector, DAConst.DP_FlowIDTag, createNewLinkData.flowID);
+            EAHelper.TaggedValueSet(newConnector, DAConst.DP_SegmentIDTag, createNewLinkData.segmentID);
+            EAHelper.TaggedValueSet(newConnector, DAConst.DP_TempLinkTag, createNewLinkData.tempLink.ToString());
+            EAHelper.TaggedValueSet(newConnector, DAConst.DP_TempLinkDiagramIDTag, createNewLinkData.tempLink? createNewLinkData.tempLinkDiagramID: "");
 
 
             newConnector.Update();
