@@ -696,22 +696,36 @@ namespace EADiagramPublisher
                         }
                         break;
                     case "Diagram":
-                        if (Context.CurrentDiagram != null && Context.CurrentDiagram.SelectedObjects.Count > 0)
+                        if (Context.CurrentDiagram != null)
                         {
-                            if (Context.CurrentDiagram != null && Context.CurrentDiagram.SelectedObjects.Count > 0)foreach (EA.DiagramObject curDA in Context.CurrentDiagram.SelectedObjects)
+                            if (Context.CurrentDiagram.SelectedObjects.Count > 0)
                             {
-                                EA.Element curElement = EARepository.GetElementByID(curDA.ElementID);
-                                TaggedValueSet(curElement, DAConst.DP_LibraryTag, "");
+                                foreach (EA.DiagramObject curDA in Context.CurrentDiagram.SelectedObjects)
+                                {
+                                    EA.Element curElement = EARepository.GetElementByID(curDA.ElementID);
+                                    TaggedValueSet(curElement, DAConst.DP_LibraryTag, "");
+                                }
+                            }
+                            else if(Context.CurrentDiagram.SelectedConnector != null)
+                            {
+                                TaggedValueSet(Context.CurrentDiagram.SelectedConnector, DAConst.DP_LibraryTag, "");
                             }
                         }
                         break;
                     case "MainMenu":
-                        if (Context.CurrentDiagram != null && Context.CurrentDiagram.SelectedObjects.Count > 0)
+                        if (Context.CurrentDiagram != null)
                         {
-                            foreach (EA.DiagramObject curDA in Context.CurrentDiagram.SelectedObjects)
+                            if (Context.CurrentDiagram.SelectedObjects.Count > 0) {
+
+                                foreach (EA.DiagramObject curDA in Context.CurrentDiagram.SelectedObjects)
+                                {
+                                    EA.Element curElement = EARepository.GetElementByID(curDA.ElementID);
+                                    TaggedValueSet(curElement, DAConst.DP_LibraryTag, "");
+                                }
+                            }
+                            else if (Context.CurrentDiagram.SelectedConnector != null)
                             {
-                                EA.Element curElement = EARepository.GetElementByID(curDA.ElementID);
-                                TaggedValueSet(curElement, DAConst.DP_LibraryTag, "");
+                                TaggedValueSet(Context.CurrentDiagram.SelectedConnector, DAConst.DP_LibraryTag, "");
                             }
                         }
                         else
@@ -792,6 +806,23 @@ namespace EADiagramPublisher
                 }
             }
         }
+        /// <summary>
+        /// Удаляет TaggedValue из элемента
+        /// </summary>
+        /// <param name="connector"></param>
+        /// <param name="tagName"></param>
+        public static void TaggedValueRemove(EA.Connector connector, string tagName)
+        {
+            for (short i = 0; i < connector.TaggedValues.Count; i++)
+            {
+                EA.ConnectorTag tag = connector.TaggedValues.GetAt(i);
+                if (tag.Name == tagName)
+                {
+                    connector.TaggedValues.DeleteAt(i, true);
+                }
+            }
+        }
+
 
         /// <summary>
         /// Преобразует объекты в строку. Для объектов EA визуализирует значения важных свойств
@@ -968,6 +999,21 @@ namespace EADiagramPublisher
             return result;
         }
 
+        /// <summary>
+        ///  Возыращает список выделенных в диаграмме коннекторов
+        /// </summary>
+        /// <returns></returns>
+        public static EA.Connector GetSelectedLibConnector_Diagram()
+        {
+            EA.Connector result = null;
+
+            EA.Connector selectedConnector = Context.CurrentDiagram.SelectedConnector;
+            if (selectedConnector != null && IsLibrary(selectedConnector))
+                result = selectedConnector;
+
+            return result;
+
+        }
 
     }
 }

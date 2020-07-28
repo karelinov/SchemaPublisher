@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 
 using EADiagramPublisher.Enums;
+using EADiagramPublisher.Forms;
 
 namespace EADiagramPublisher
 {
@@ -60,7 +61,7 @@ namespace EADiagramPublisher
             // Создаём
             newConnector = firstElement.Connectors.AddNew("", creatingConnectorType);
 
-            if (createNewLinkData.linkType == LinkType.InformationFlow)
+            if (createNewLinkData.linkType == LinkType.InformationFlow || createNewLinkData.linkType == LinkType.Deploy)
             {
                 newConnector.Direction = "Source -> Destination";
             }
@@ -82,7 +83,7 @@ namespace EADiagramPublisher
             EAHelper.TaggedValueSet(newConnector, DAConst.DP_FlowIDTag, createNewLinkData.flowID);
             EAHelper.TaggedValueSet(newConnector, DAConst.DP_SegmentIDTag, createNewLinkData.segmentID);
             EAHelper.TaggedValueSet(newConnector, DAConst.DP_TempLinkTag, createNewLinkData.tempLink.ToString());
-            EAHelper.TaggedValueSet(newConnector, DAConst.DP_TempLinkDiagramIDTag, createNewLinkData.tempLink? createNewLinkData.tempLinkDiagramID: "");
+            EAHelper.TaggedValueSet(newConnector, DAConst.DP_TempLinkDiagramIDTag, createNewLinkData.tempLink ? createNewLinkData.tempLinkDiagramID : "");
 
 
             newConnector.Update();
@@ -106,8 +107,5 @@ namespace EADiagramPublisher
 
             return diagramLink;
         }
-
-
-
     }
 }

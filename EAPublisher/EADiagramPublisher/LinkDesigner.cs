@@ -171,9 +171,16 @@ namespace EADiagramPublisher
                 foreach (EA.Connector connector in diagramElement.Connectors)
                 {
                     // Получаем тип коннектора
-                    LinkType curLinkType = LTHelper.GetConnectorType(connector);
-                    if (linkType != curLinkType) continue;
-
+                    try
+                    {
+                        LinkType curLinkType = LTHelper.GetConnectorType(connector);
+                        if (linkType != curLinkType) continue;
+                    }
+                    catch (Exception ex)
+                    {
+                        EAHelper.OutA("Не удалось определить тип коннектора "+ex.StackTrace, new EA.Connector[] { connector });
+                        continue;
+                    }
 
                     // проверяем, что коннектор может быть потенциально показан на диаграмме, т.е, что оба его элемента на диаграмме
                     EA.Element secondElement = EARepository.GetElementByID((connector.ClientID == diagramElement.ElementID) ? connector.SupplierID : connector.ClientID);
@@ -256,6 +263,149 @@ namespace EADiagramPublisher
                 }
             }
         }
+
+        /// <summary>
+        /// Установка Tags для выделенного коннектора
+        /// </summary>
+        /// <returns></returns>
+        public ExecResult<Boolean> SetConnectorTags(string location)
+        {
+            ExecResult<Boolean> result = new ExecResult<bool>();
+            try
+            {
+                // Сначала получаем список выделеннеых библиотечных элементов
+                EA.Connector selectedConnector = EAHelper.GetSelectedLibConnector_Diagram();
+
+                if (selectedConnector == null)
+                    throw new Exception("Не выделены библиотечные элементы");
+
+
+                // Конструируем данные тэгов для формы
+                List<TagData> curTagDataList = new List<TagData>();
+
+                foreach (EA.ConnectorTag taggedValue in selectedConnector.TaggedValues)
+                {
+                    string tagName = taggedValue.Name;
+
+                    TagData curTagData = new TagData() { TagName = tagName, TagValue = taggedValue.Value };
+                    curTagData.TagState = true;
+                    curTagData.Ex = false;
+                    curTagData.Count = 1;
+                    curTagDataList.Add(curTagData);
+                }
+
+                // Открываем форму для установки Tags
+                ExecResult<List<TagData>> setTagsResult = new FSetTags().Execute(curTagDataList);
+                if (setTagsResult.code != 0) return result;
+
+                // Прописываем в элементах что наустанавливали на форме
+                foreach (TagData curTagData in setTagsResult.value)
+                {
+                    if (curTagData.Enabled) // записываем только для Tags, в котоорые разрешено
+                    {
+
+                        if (curTagData.TagState == false)
+                        {
+                            EAHelper.TaggedValueRemove(selectedConnector, curTagData.TagName);
+                        }
+                        else
+                        {
+                            EAHelper.TaggedValueSet(selectedConnector, curTagData.TagName, curTagData.TagValue);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                result.setException(ex);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Установка Tags для выделеного коннектора и других видимых на диаграмме линков того же типа
+        /// </summary>
+        /// <returns></returns>
+        public ExecResult<Boolean> SetSimilarLinksTags(string location)
+        {
+            ExecResult<Boolean> result = new ExecResult<bool>();
+            try
+            {
+                // Сначала получаем список выделеннеых библиотечных элементов
+                EA.Connector selectedConnector = EAHelper.GetSelectedLibConnector_Diagram();
+
+                if (selectedConnector == null)
+                    throw new Exception("Не выделены библиотечные элементы");
+
+                // Создаём список коннекторов и добавляем к нему выделенный
+                List<EA.Connector> connectorList = new List<EA.Connector>();
+
+                // Ищем на диаграмме другие линки такого же типа
+                foreach(EA.DiagramLink curDL in CurrentDiagram.DiagramLinks)
+                {
+                    EA.Connector curConnector = EARepository.GetConnectorByID(curDL.ConnectorID);
+                    if(!curDL.IsHidden && curConnector.Type == selectedConnector.Type)
+                    {
+                        connectorList.Add(curConnector);
+                    }
+                }
+
+
+                // Конструируем данные тэгов для формы
+                List<TagData> curTagDataList = new List<TagData>();
+
+                foreach (EA.Connector connector in connectorList)
+                {
+                    foreach (EA.ConnectorTag taggedValue in selectedConnector.TaggedValues)
+                    {
+                        string tagName = taggedValue.Name;
+
+                        TagData curTagData;
+                        curTagData = curTagDataList.FirstOrDefault(item => (item.TagName == tagName));
+                        if (curTagData == null)
+                        {
+                            curTagData = new TagData() { TagName = tagName, TagValue = taggedValue.Value };
+                            curTagDataList.Add(curTagData);
+                        }
+                        curTagData.TagState = true;
+                        curTagData.Ex = false;
+                        curTagData.Count++;
+                    }
+                }
+
+                // Открываем форму для установки Tags
+                ExecResult<List<TagData>> setTagsResult = new FSetTags().Execute(curTagDataList);
+                if (setTagsResult.code != 0) return result;
+
+                // Прописываем в элементах что наустанавливали на форме
+                foreach (EA.Connector connector in connectorList)
+                {
+                    foreach (TagData curTagData in setTagsResult.value)
+                    {
+                        if (curTagData.Enabled) // записываем только для Tags, в котоорые разрешено
+                        {
+
+                            if (curTagData.TagState == false)
+                            {
+                                EAHelper.TaggedValueRemove(connector, curTagData.TagName);
+                            }
+                            else
+                            {
+                                EAHelper.TaggedValueSet(connector, curTagData.TagName, curTagData.TagValue);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                result.setException(ex);
+            }
+
+            return result;
+        }
+
 
     }
 }

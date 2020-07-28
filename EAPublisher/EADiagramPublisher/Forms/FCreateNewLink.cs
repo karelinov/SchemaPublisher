@@ -13,6 +13,8 @@ namespace EADiagramPublisher.Forms
 {
     public partial class FCreateNewLink : Form
     {
+        private int? checkedContext = null;
+
         public FCreateNewLink()
         {
             InitializeComponent();
@@ -66,12 +68,11 @@ namespace EADiagramPublisher.Forms
 
         private void clbLinkType_ItemCheck(object sender, ItemCheckEventArgs e)
         {
-            if (e.Index == 0)
+            if (e.NewValue == CheckState.Checked)
             {
-                if (e.NewValue == CheckState.Checked)
-                    ChangeAllCheckBoxValues(true);
-                else
-                    ChangeAllCheckBoxValues(false);
+               if (checkedContext == null) checkedContext = e.Index;
+               ChangeAllCheckBoxValues(false);
+               checkedContext = null;
             }
         }
 
@@ -79,7 +80,8 @@ namespace EADiagramPublisher.Forms
         {
             for (int i = 1; i < clbLinkType.Items.Count; i++)
             {
-                clbLinkType.SetItemChecked(i, value);
+                if(i!= checkedContext)
+                    clbLinkType.SetItemChecked(i, value);
             }
         }
 

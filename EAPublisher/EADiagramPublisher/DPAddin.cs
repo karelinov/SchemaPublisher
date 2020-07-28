@@ -1,4 +1,5 @@
-﻿using System;
+﻿using EADiagramPublisher.Enums;
+using System;
 using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
@@ -22,11 +23,14 @@ namespace EADiagramPublisher
         const string menuPutParentDHierarchyOnDiagram = "&PutParentDHierarchyOnDiagram";
         const string menuPutChildrenDHierarchyOnDiagram = "&PutChildrenDHierarchyOnDiagram";
         const string menuPutChildrenDHierarchyOnElement = "&PutChildrenDHierarchyOnElement";
+        const string menuPutChildrenDeployHierarchy = "&PutChildrenDeployHierarchy";
         const string menuSetElementTags = "&SetElementTags";
 
         const string menuDesignLinks = "-&DesignLinks";
         const string menuCreateLink = "&CreateLink";
         const string menuSetLinkVisibility = "&SetLinkVisibility";
+        const string menuSetConnectorTags = "&SetConnectorTags";
+        const string menuSetSimilarLinksTags = "&SetSimilarLinksTags";
 
         const string menuUtils = "-&Utils";
         const string menuSetCurrentDiagram = "&SetCurrentDiagram";
@@ -80,11 +84,11 @@ namespace EADiagramPublisher
                     return subMenus;
 
                 case menuDesign:
-                    subMenus = new string[] { /*menuSetCurrentLibrary,*/ menuPutLibElementOnDiagram, menuPutParentDHierarchyOnDiagram, menuPutChildrenDHierarchyOnDiagram, menuPutChildrenDHierarchyOnElement, menuSetElementTags };
+                    subMenus = new string[] { /*menuSetCurrentLibrary,*/ menuPutLibElementOnDiagram, menuPutParentDHierarchyOnDiagram, menuPutChildrenDHierarchyOnDiagram, menuPutChildrenDHierarchyOnElement, menuPutChildrenDeployHierarchy, menuSetElementTags };
                     return subMenus;
 
                 case menuDesignLinks:
-                    subMenus = new string[] { menuCreateLink, menuSetLinkVisibility };
+                    subMenus = new string[] { menuCreateLink, menuSetLinkVisibility, menuSetConnectorTags, menuSetSimilarLinksTags };
                     return subMenus;
 
                 case menuUtils:
@@ -143,6 +147,7 @@ namespace EADiagramPublisher
                     case menuPutParentDHierarchyOnDiagram:
                     case menuPutChildrenDHierarchyOnDiagram:
                     case menuPutChildrenDHierarchyOnElement:
+                    case menuPutChildrenDeployHierarchy:
                     case menuSetElementTags:
                         isEnabled = true;
                         break;
@@ -150,6 +155,8 @@ namespace EADiagramPublisher
                     case menuDesignLinks:
                     case menuCreateLink:
                     case menuSetLinkVisibility:
+                    case menuSetConnectorTags:
+                    case menuSetSimilarLinksTags:
                         isEnabled = true;
                         break;
 
@@ -219,6 +226,11 @@ namespace EADiagramPublisher
                     OutExecResult(putPutCDEResult);
                     break;
 
+                case menuPutChildrenDeployHierarchy:
+                    var putChildrenDeployHierarchyResult = Designer.PutChildrenDeployHierarchy(location);
+                    OutExecResult(putChildrenDeployHierarchyResult);
+                    break;
+
                 case menuSetElementTags:
                     var setElementTagsResult = Designer.SetElementTags(location);
                     OutExecResult(setElementTagsResult);
@@ -235,6 +247,16 @@ namespace EADiagramPublisher
                 case menuSetLinkVisibility:
                     var setLinkVisibilityResult = LinkDesigner.SetConnectorVisibility();
                     OutExecResult(setLinkVisibilityResult);
+                    break;
+
+                case menuSetConnectorTags:
+                    var setConnectorTagsResult = LinkDesigner.SetConnectorTags(location);
+                    OutExecResult(setConnectorTagsResult);
+                    break;
+
+                case menuSetSimilarLinksTags:
+                    var setSimilarLinksTags = LinkDesigner.SetSimilarLinksTags(location);
+                    OutExecResult(setSimilarLinksTags);
                     break;
 
 
@@ -386,25 +408,17 @@ namespace EADiagramPublisher
             ExecResult<Boolean> result = new ExecResult<bool>();
             try
             {
-                // Открываем и чистим тестовую диаграмму 
-                if (Context.EARepository.GetTreeSelectedItemType() != EA.ObjectType.otPackage)
-                    throw new Exception("не выделен package");
+                EA.Diagram diagram = Context.EARepository.GetCurrentDiagram();
 
-                EA.Package curPackage = Context.EARepository.GetTreeSelectedObject();
-
-
-                foreach(EA.Element curElement in curPackage.Elements)
-                {
-                    foreach (EA.Connector curConnector in curElement.Connectors)
+                    foreach (EA.DiagramLink curDL in diagram.DiagramLinks)
                     {
-                        if(curConnector.Type == "Dependency" && curConnector.Stereotype == "deploy" && !EAHelper.IsDeploymentLink(curConnector))
+                        EA.Connector connector = Context.EARepository.GetConnectorByID(curDL.ConnectorID);
+                    foreach(EA.ConnectorTag connectorTag in connector.TaggedValues)
+                    {
+                        if(connectorTag.Name == "DP_Link")
                         {
-                            EAHelper.TaggedValueSet(curConnector, Enums.DAConst.DP_LibraryTag, "");
-                            EAHelper.TaggedValueSet(curConnector, Enums.DAConst.DP_LinkTypeTag, Enums.LinkType.Deploy.ToString());
-                            if (curConnector.Name == null || curConnector.Name == "")
-                                curConnector.Name = Enums.LinkType.Deploy.ToString();
-                            curConnector.StereotypeEx = null;
-                            curConnector.Update();
+                            connectorTag.Name = DAConst.DP_LinkTypeTag;
+                            connectorTag.Update();
                         }
                     }
 
