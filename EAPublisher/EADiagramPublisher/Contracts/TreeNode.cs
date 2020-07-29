@@ -6,47 +6,86 @@ using System.Text;
 
 namespace EADiagramPublisher.Contracts
 {
-    public class TreeNode<T>
+    public class DPTreeNode<T>
     {
         private readonly T _value;
-        private readonly List<TreeNode<T>> _children = new List<TreeNode<T>>();
+        private readonly List<DPTreeNode<T>> _children = new List<DPTreeNode<T>>();
 
-        public TreeNode(T value)
+        public DPTreeNode(T value)
         {
             _value = value;
         }
 
-        public TreeNode<T> this[int i]
-        {
-            get { return _children[i]; }
-        }
+        // ============================================================================
+        //    СВОЙСТВА
+        // ============================================================================
 
-        public TreeNode<T> Parent { get; private set; }
+        /// <summary>
+        /// Родительский узел
+        /// </summary>
+        public DPTreeNode<T> Parent { get; private set; }
 
+        /// <summary>
+        /// Данные узла
+        /// </summary>
         public T Value { get { return _value; } }
 
-        public ReadOnlyCollection<TreeNode<T>> Children
+        // Список дочерних узлов
+        public ReadOnlyCollection<DPTreeNode<T>> Children
         {
             get { return _children.AsReadOnly(); }
         }
 
-        public TreeNode<T> AddChild(T value)
+        /// <summary>
+        /// Индексатор дочерних узлов
+        /// </summary>
+        /// <param name="i"></param>
+        /// <returns></returns>
+        public DPTreeNode<T> this[int i]
         {
-            var node = new TreeNode<T>(value) { Parent = this };
+            get { return _children[i]; }
+        }
+
+        // ============================================================================
+        //    Методы
+        // ============================================================================
+
+        /// <summary>
+        /// Создание дочернего узла (с указанными данными)
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public DPTreeNode<T> AddChild(T value)
+        {
+            var node = new DPTreeNode<T>(value) { Parent = this };
             _children.Add(node);
             return node;
         }
 
-        public TreeNode<T>[] AddChildren(params T[] values)
+        /// <summary>
+        /// Создание дочерних узлов (с указанными данными)
+        /// </summary>
+        /// <param name="values"></param>
+        /// <returns></returns>
+        public DPTreeNode<T>[] AddChildren(params T[] values)
         {
             return values.Select(AddChild).ToArray();
         }
 
-        public bool RemoveChild(TreeNode<T> node)
+        /// <summary>
+        /// Удаление дочернего узла
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns></returns>
+        public bool RemoveChild(DPTreeNode<T> node)
         {
             return _children.Remove(node);
         }
 
+        /// <summary>
+        /// Функция обработки всех узлов делегатом
+        /// </summary>
+        /// <param name="action"></param>
         public void Traverse(Action<T> action)
         {
             action(Value);
@@ -54,16 +93,36 @@ namespace EADiagramPublisher.Contracts
                 child.Traverse(action);
         }
 
+        /// <summary>
+        /// Возврат списка с данными всех дочерних узлов
+        /// </summary>
+        /// <returns></returns>
         public IEnumerable<T> Flatten()
         {
             return new[] { Value }.Concat(_children.SelectMany(x => x.Flatten()));
         }
 
-        TreeNode<T> InsertChild(TreeNode<T> parent, T value)
+        /// <summary>
+        /// Вставка дочернего узла в указанный узел
+        /// </summary>
+        /// <param name="parent"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        DPTreeNode<T> InsertChild(DPTreeNode<T> parent, T value)
         {
-            var node = new TreeNode<T>(value) { Parent = parent };
+            var node = new DPTreeNode<T>(value) { Parent = parent };
             parent._children.Add(node);
             return node;
+        }
+
+        /// <summary>
+        /// Вставка дочернего узла в данный узел
+        /// </summary>
+        /// <param name="child"></param>
+        public void AddChildNode(DPTreeNode<T> child)
+        {
+            _children.Add(child);
+            child.Parent = this;
         }
 
     }

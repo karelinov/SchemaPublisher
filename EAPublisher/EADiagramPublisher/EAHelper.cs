@@ -5,9 +5,10 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
-
+using EADiagramPublisher.Contracts;
 using EADiagramPublisher.Enums;
 
+using System.Windows.Forms;
 namespace EADiagramPublisher
 
 {
@@ -229,6 +230,30 @@ namespace EADiagramPublisher
                 {
                     result.Add(EARepository.GetElementByID(connector.ClientID));
                 }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Возвращает дерево дочерних (deploy) элементов для указанного элемента
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        public static DPTreeNode<EA.Element> GetDeployChildrenHierarchy(EA.Element element)
+        {
+            // Создаём корень
+            DPTreeNode<EA.Element> result = new DPTreeNode<EA.Element>(element);
+
+            // Получаем непосредственно размещённые элементы
+            List<EA.Element> children = GetDeployChildren(element);
+
+            // Проходимся по вложениям
+            foreach (EA.Element child in children)
+            {
+                // получаем дочернее дерево и добавляем его к корневому узлу
+                DPTreeNode<EA.Element> childTree = GetDeployChildrenHierarchy(child);
+                result.AddChildNode(childTree);
             }
 
             return result;
@@ -526,18 +551,7 @@ namespace EADiagramPublisher
             {
                 result = true;
             }
-            else
-            {
-                if (element.ObjectType == EA.ObjectType.otElement && element.ClassifierID != 0)
-                {
-                    EA.Element classifier = EARepository.GetElementByID(element.ClassifierID);
-                    if (GetTaggedValues(classifier).GetByName(DAConst.DP_LibraryTag) != null)
-                    {
-                        result = true;
-                    }
-                }
 
-            }
             return result;
         }
         /// <summary>
@@ -706,7 +720,7 @@ namespace EADiagramPublisher
                                     TaggedValueSet(curElement, DAConst.DP_LibraryTag, "");
                                 }
                             }
-                            else if(Context.CurrentDiagram.SelectedConnector != null)
+                            else if (Context.CurrentDiagram.SelectedConnector != null)
                             {
                                 TaggedValueSet(Context.CurrentDiagram.SelectedConnector, DAConst.DP_LibraryTag, "");
                             }
@@ -715,7 +729,8 @@ namespace EADiagramPublisher
                     case "MainMenu":
                         if (Context.CurrentDiagram != null)
                         {
-                            if (Context.CurrentDiagram.SelectedObjects.Count > 0) {
+                            if (Context.CurrentDiagram.SelectedObjects.Count > 0)
+                            {
 
                                 foreach (EA.DiagramObject curDA in Context.CurrentDiagram.SelectedObjects)
                                 {
@@ -945,13 +960,13 @@ namespace EADiagramPublisher
                 else
                     curPackage = null;
 
-                if (IsLibrary(curPackage.Element))
+                if (curPackage.Element != null && IsLibrary(curPackage.Element))
                 {
                     foundDPLibraryPackage = true;
                     result = curPackage;
                 }
 
-                if (!IsLibrary(curPackage.Element) && foundDPLibraryPackage)
+                if ((curPackage.Element == null || !IsLibrary(curPackage.Element)) && foundDPLibraryPackage)
                     foundPackageAfterDPLibrary = true;
             }
 
@@ -1014,6 +1029,78 @@ namespace EADiagramPublisher
             return result;
 
         }
+
+        /// <summary>
+        /// Возвращает перечисление со списокм возможных групп узлов из заведённого в библиотеке элемента
+        /// </summary>
+        /// <returns></returns>
+        public static List<string> GetNodeGroupEnum()
+        {
+            List<string> result = new List<string>();
+
+            EA.Element ngEnumElement = EARepository.GetElementByGuid(DAConst.DP_NodeGroupsEnumGUID);
+            foreach (EA.Attribute attribute in ngEnumElement.Attributes)
+            {
+                result.Add(attribute.Name);
+            }
+
+            return result;
+        }
+
+        public static bool CheckCurrentDiagram(bool showUI = true, bool autoSetCurrentDiagram = false)
+        {
+            bool result = false;
+
+            EA.Diagram currentOpenedDiagram = EARepository.GetCurrentDiagram();
+            EA.Diagram currentLibDiagram = Context.CurrentDiagram;
+
+            if (currentOpenedDiagram == null && currentLibDiagram != null)
+            {
+                if (autoSetCurrentDiagram)
+                {
+                    EARepository.ActivateDiagram(currentLibDiagram.DiagramID);
+                    result = true;
+                }
+                else if (showUI)
+                {
+                    if (MessageBox.Show("Текущая библиотечная диаграмма не открыта. Открыть?", "", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                    {
+                        EARepository.ActivateDiagram(currentLibDiagram.DiagramID);
+                        result = true;
+                    }
+                }
+            }
+            else if (currentOpenedDiagram.DiagramID != currentLibDiagram.DiagramID)
+            {
+                if (autoSetCurrentDiagram)
+                {
+                    Context.CurrentDiagram = currentOpenedDiagram;
+                    result = true;
+                }
+                else if (showUI)
+                {
+                    DialogResult dr = MessageBox.Show("Текущая Открытая диаграмма не библиотечная библиотечная диаграмма не открыта. Открыть библиотечную (Да)/ Назначить текущей открытую (Нет)?", "", MessageBoxButtons.YesNoCancel);
+                    if (dr == DialogResult.Yes)
+                    {
+                        EARepository.ActivateDiagram(currentLibDiagram.DiagramID);
+                        result = true;
+                    }
+                    else if (dr == DialogResult.No)
+                    {
+                        Context.CurrentDiagram = currentOpenedDiagram;
+                        result = true;
+                    }
+                }
+            }
+            else if (currentOpenedDiagram.DiagramID == currentLibDiagram.DiagramID)
+            {
+                result = true;
+            }
+
+            return result;
+        }
+
+
 
     }
 }

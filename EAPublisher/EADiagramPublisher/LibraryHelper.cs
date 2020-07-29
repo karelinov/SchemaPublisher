@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 
 using EADiagramPublisher.Contracts;
+using EADiagramPublisher.Enums;
 
 namespace EADiagramPublisher
 {
@@ -26,7 +27,7 @@ namespace EADiagramPublisher
         /// <summary>
         /// Shortcut до глобальной переменной с EA.Repository
         /// </summary>
-        private static  EA.Repository EARepository
+        private static EA.Repository EARepository
         {
             get
             {
@@ -40,25 +41,22 @@ namespace EADiagramPublisher
         /// <returns></returns>
         public static EA.Package GetLibraryRootFromDiagram()
         {
-            EA.Element libElement = null;
-
             if (CurrentDiagram == null) return null;
 
             // Пробегаемся по диаграмме в поисках библиотечного элемента
-            foreach(EA.Element curElement in CurrentDiagram.DiagramObjects)
+            foreach (EA.DiagramObject curDA in CurrentDiagram.DiagramObjects)
             {
-                if(EAHelper.IsLibrary(curElement))
+                EA.Element curElement = EARepository.GetElementByID(curDA.ElementID);
+
+                if (EAHelper.IsLibrary(curElement))
                 {
-                    libElement = curElement;
-                    break;
+                    return EAHelper.GetRootLibPackage(EARepository.GetPackageByID(curElement.PackageID));
                 }
             }
-            if (libElement == null) return null; // облом, нет на диаграмме ничего библиотечного
 
-            // Получаем пакет библиотечного элемента
-            EA.Package curpackage = EARepository.GetPackageByID(libElement.PackageID);
+            // Если через библиотечные элементы на диаграмме не получчилось, пытаемся найти от пакета диаграммы
+            return EAHelper.GetRootLibPackage(EARepository.GetPackageByID(CurrentDiagram.PackageID));
 
-            return EAHelper.GetRootLibPackage(curpackage);
         }
 
         /// <summary>
@@ -70,9 +68,9 @@ namespace EADiagramPublisher
             EA.Element libElement = null;
 
             EA.Collection curSelection = EARepository.GetTreeSelectedElements();
-            foreach(EA.Element curSelectedElement in curSelection)
+            foreach (EA.Element curSelectedElement in curSelection)
             {
-                if(EAHelper.IsLibrary(curSelectedElement))
+                if (EAHelper.IsLibrary(curSelectedElement))
                 {
                     libElement = curSelectedElement;
                     break;
@@ -113,9 +111,9 @@ namespace EADiagramPublisher
         }
 
 
-        public static TreeNode<String> GetLibComponentTree()
+        public static DPTreeNode<String> GetLibComponentTree()
         {
-            TreeNode<String> result = new TreeNode<String>(null);
+            DPTreeNode<String> result = new DPTreeNode<String>(null);
 
             // Проходимся по дереву библиотеки и ищем компоненты.
 
@@ -128,11 +126,11 @@ namespace EADiagramPublisher
 
             do
             {
-                foreach(EA.Package curPackage in curLevelPackages)
+                foreach (EA.Package curPackage in curLevelPackages)
                 {
-                    foreach(EA.Element curElement in curPackage.Elements)
+                    foreach (EA.Element curElement in curPackage.Elements)
                     {
-                        if(EAHelper.IsLibrary(curElement))
+                        if (EAHelper.IsLibrary(curElement))
                         {
 
                         }
@@ -151,8 +149,86 @@ namespace EADiagramPublisher
             return result;
         }
 
+        /// <summary>
+        /// Функция возвращает список данных элементов библиотеки, соответствующих переданному уровню
+        /// Даные возвращаются в формате NodeData
+        /// </summary>
+        /// <param name="clList"></param>
+        public static List<NodeData> GetNodeData(List<ComponentLevel> clList)
+        {
+            List<NodeData> result = new List<NodeData>();
+
+
+            EA.Package LibRoot = GetLibraryRoot();
+
+            List<EA.Package> curLevelPackages = new List<EA.Package>();
+            curLevelPackages.Add(LibRoot);
+
+            // Последовательно проходимся по уровням дерева пакетов
+            while (curLevelPackages.Count > 0)
+            {
+                foreach (EA.Package curPackage in curLevelPackages)
+                {
+                    foreach (EA.Element curElement in curPackage.Elements)
+                    {
+                        if (EAHelper.IsLibrary(curElement) && curElement.ClassfierID != 0 && clList.Contains(CLHelper.GetComponentLevel(curElement)))
+                        {
+                            NodeData nodeData = new NodeData();
+                            nodeData.Element = curElement;
+                            nodeData.ComponentLevel = CLHelper.GetComponentLevel(curElement);
+                            nodeData.Contour = GetElementContour(curElement);
+                            nodeData.GroupNames = EAHelper.GetTaggedValue(curElement, DAConst.DP_NodeGroupsTag).Split();
+                            result.Add(nodeData);
+                        }
+                    }
+
+                }
+
+                // строим список пакетов для перехода на следующий уровень
+                List<EA.Package> nextLevelPackages = new List<EA.Package>();
+                foreach (EA.Package curPackage in curLevelPackages)
+                {
+                    foreach (EA.Package nextPackage in curPackage.Packages)
+                        nextLevelPackages.Add(nextPackage);
+                }
+                curLevelPackages = nextLevelPackages;
+            }
+
+            return result;
+        }
+
+
+        /// <summary>
+        /// Возвращает, если есть, название (ближайшего) контура, в который включен компонент
+        /// </summary>
+        /// <param name="curElement"></param>
+        /// <returns></returns>
+        public static EA.Element GetElementContour(EA.Element curElement)
+        {
+            EA.Element result = null;
+
+            List<EA.Element> parentDeployHierrchy = EAHelper.GetParentHierarchy(curElement);
+
+            foreach (EA.Element curParent in parentDeployHierrchy)
+            {
+                if (EAHelper.IsLibrary(curParent) && new ComponentLevel[] { ComponentLevel.ContourComponent, ComponentLevel.ContourContour }.Contains(CLHelper.GetComponentLevel(curParent)))
+                {
+                    result = curParent;
+                    break;
+                }
+            }
+
+            return result;
+        }
+
+
+
 
     }
 
 
+
 }
+
+
+

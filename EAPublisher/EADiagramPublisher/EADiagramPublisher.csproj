@@ -89,6 +89,12 @@
     <Compile Include="Forms\FSelectHierarcyLevels.Designer.cs">
       <DependentUpon>FSelectHierarcyLevels.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\FSelectNodesAndDevices.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FSelectNodesAndDevices.Designer.cs">
+      <DependentUpon>FSelectNodesAndDevices.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\FSetLinkVisibility.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -101,6 +107,7 @@
     <Compile Include="Forms\FSetTags.Designer.cs">
       <DependentUpon>FSetTags.cs</DependentUpon>
     </Compile>
+    <Compile Include="Contracts\NodeData.cs" />
     <Compile Include="Forms\TagData.cs" />
     <Compile Include="LibraryHelper.cs" />
     <Compile Include="LinkDesigner.cs" />
@@ -131,6 +138,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\FSelectHierarcyLevels.resx">
       <DependentUpon>FSelectHierarcyLevels.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\FSelectNodesAndDevices.resx">
+      <DependentUpon>FSelectNodesAndDevices.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\FSetLinkVisibility.resx">
       <DependentUpon>FSetLinkVisibility.cs</DependentUpon>

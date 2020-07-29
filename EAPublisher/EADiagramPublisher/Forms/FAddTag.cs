@@ -73,6 +73,11 @@ namespace EADiagramPublisher.Forms
                 cbTagValue.Items.Clear();
                 cbTagValue.Items.AddRange(Enum.GetNames(typeof(ComponentLevel)));
             }
+            else if(cbTagName.Text == DAConst.DP_NodeGroupsTag)
+            {
+                cbTagValue.Items.Clear();
+                cbTagValue.Items.AddRange(EAHelper.GetNodeGroupEnum().ToArray());
+            }
             else
             {
                 cbTagValue.Items.Clear();

@@ -19,11 +19,13 @@ namespace EADiagramPublisher
 
         const string menuDesign = "-&Design";
         //const string menuSetCurrentLibrary = "&SetCurrentLibrary";
+        const string menuPutElement = "-&PutElement";
         const string menuPutLibElementOnDiagram = "&PutLibElementOnDiagram";
         const string menuPutParentDHierarchyOnDiagram = "&PutParentDHierarchyOnDiagram";
         const string menuPutChildrenDHierarchyOnDiagram = "&PutChildrenDHierarchyOnDiagram";
         const string menuPutChildrenDHierarchyOnElement = "&PutChildrenDHierarchyOnElement";
         const string menuPutChildrenDeployHierarchy = "&PutChildrenDeployHierarchy";
+        const string menuPutNodes = "&PutNodes";
         const string menuSetElementTags = "&SetElementTags";
 
         const string menuDesignLinks = "-&DesignLinks";
@@ -84,7 +86,11 @@ namespace EADiagramPublisher
                     return subMenus;
 
                 case menuDesign:
-                    subMenus = new string[] { /*menuSetCurrentLibrary,*/ menuPutLibElementOnDiagram, menuPutParentDHierarchyOnDiagram, menuPutChildrenDHierarchyOnDiagram, menuPutChildrenDHierarchyOnElement, menuPutChildrenDeployHierarchy, menuSetElementTags };
+                    subMenus = new string[] { menuPutElement,  menuSetElementTags };
+                    return subMenus;
+
+                case menuPutElement:
+                    subMenus = new string[] { menuPutLibElementOnDiagram, menuPutParentDHierarchyOnDiagram, menuPutChildrenDHierarchyOnDiagram, menuPutChildrenDHierarchyOnElement, menuPutChildrenDeployHierarchy, menuPutNodes };
                     return subMenus;
 
                 case menuDesignLinks:
@@ -145,10 +151,12 @@ namespace EADiagramPublisher
 
                     case menuPutLibElementOnDiagram:
                     case menuPutParentDHierarchyOnDiagram:
-                    case menuPutChildrenDHierarchyOnDiagram:
-                    case menuPutChildrenDHierarchyOnElement:
+                    //case menuPutChildrenDHierarchyOnDiagram:
+                    //case menuPutChildrenDHierarchyOnElement:
                     case menuPutChildrenDeployHierarchy:
+                    case menuPutNodes:
                     case menuSetElementTags:
+
                         isEnabled = true;
                         break;
                     
@@ -229,6 +237,11 @@ namespace EADiagramPublisher
                 case menuPutChildrenDeployHierarchy:
                     var putChildrenDeployHierarchyResult = Designer.PutChildrenDeployHierarchy(location);
                     OutExecResult(putChildrenDeployHierarchyResult);
+                    break;
+
+                case menuPutNodes:
+                    var putNodesResult = Designer.PutNodesDevicesOnDiagram(location);
+                    OutExecResult(putNodesResult);
                     break;
 
                 case menuSetElementTags:
@@ -432,7 +445,6 @@ namespace EADiagramPublisher
             return result;
 
         }
-
 
     }
 }

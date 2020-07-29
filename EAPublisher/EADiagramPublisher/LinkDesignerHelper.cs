@@ -82,8 +82,8 @@ namespace EADiagramPublisher
             EAHelper.TaggedValueSet(newConnector, DAConst.DP_LinkTypeTag, Enum.GetName(typeof(LinkType), createNewLinkData.linkType));
             EAHelper.TaggedValueSet(newConnector, DAConst.DP_FlowIDTag, createNewLinkData.flowID);
             EAHelper.TaggedValueSet(newConnector, DAConst.DP_SegmentIDTag, createNewLinkData.segmentID);
-            EAHelper.TaggedValueSet(newConnector, DAConst.DP_TempLinkTag, createNewLinkData.tempLink.ToString());
-            EAHelper.TaggedValueSet(newConnector, DAConst.DP_TempLinkDiagramIDTag, createNewLinkData.tempLink ? createNewLinkData.tempLinkDiagramID : "");
+            //EAHelper.TaggedValueSet(newConnector, DAConst.DP_TempLinkTag, createNewLinkData.tempLink.ToString());
+            //EAHelper.TaggedValueSet(newConnector, DAConst.DP_TempLinkDiagramIDTag, createNewLinkData.tempLink ? createNewLinkData.tempLinkDiagramID : "");
 
 
             newConnector.Update();
