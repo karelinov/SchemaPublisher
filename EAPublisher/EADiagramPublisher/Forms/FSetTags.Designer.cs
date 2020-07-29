@@ -152,7 +152,7 @@
 
         #endregion
 
-        private System.Windows.Forms.ListView lvTags;
+        private ListViewEx lvTags;
         public System.Windows.Forms.ColumnHeader chTag;
         public System.Windows.Forms.ColumnHeader chTagValue;
         private System.Windows.Forms.ColumnHeader chOnOff;

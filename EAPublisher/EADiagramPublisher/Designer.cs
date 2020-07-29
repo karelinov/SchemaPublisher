@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-
+using EADiagramPublisher.Contracts;
 using EADiagramPublisher.Enums;
 using EADiagramPublisher.Forms;
 
@@ -138,7 +138,8 @@ namespace EADiagramPublisher
 
 
                 // Получаем текущий (библиотечный) элемент дерева 
-                EA.Element curElement = EARepository.GetTreeSelectedObject();
+                EA.Element curElement = null;
+                if(EARepository.GetTreeSelectedElements().Count >0) curElement = EARepository.GetTreeSelectedElements().GetAt(0);
                 EAHelper.Out("элемент:", new EA.Element[] { curElement });
                 if (curElement == null || !EAHelper.IsLibrary(curElement))
                 {
@@ -194,10 +195,10 @@ namespace EADiagramPublisher
 
 
                 // Получаем текущий (библиотечный) элемент дерева 
-                if (CurrentDiagram.SelectedObjects.Count == 0 || !EAHelper.IsLibrary(CurrentDiagram.SelectedObjects.GetAt(0)))
+                if (CurrentDiagram.SelectedObjects.Count == 0 || !EAHelper.IsLibrary(EARepository.GetElementByID(((EA.DiagramObject)CurrentDiagram.SelectedObjects.GetAt(0)).ElementID)))
                     throw new Exception("Не выделен библиотечный элемент на диаграмме");
 
-                EA.Element curElement = CurrentDiagram.SelectedObjects.GetAt(0);
+                EA.Element curElement = EARepository.GetElementByID(((EA.DiagramObject)CurrentDiagram.SelectedObjects.GetAt(0)).ElementID);
 
                 // Получаем список дочерних элементов контейнеров
                 List<EA.Element> сhildrenDHierarchy = EAHelper.GetChildHierarchy(curElement);
@@ -222,6 +223,66 @@ namespace EADiagramPublisher
 
             return result;
         }
+
+        /// <summary>
+        /// Размещает на диаграмме под элементом дерево компонентов, размещённых в нём
+        /// </summary>
+        /// <param name="onlyParent"></param>
+        /// <returns></returns>
+        public ExecResult<Boolean> PutChildrenDeployHierarchy(string location)
+        {
+            ExecResult<Boolean> result = new ExecResult<bool>();
+            DesignerHelper.CallLevel = 0;
+
+            try
+            {
+                EA.Element selectedElement = null;
+
+
+
+                switch (location)
+                {
+                    case "TreeView":
+                        throw new Exception("Доступно только для диаграммы");
+                    case "Diagram":
+                    case "MainMenu":
+                        if((EARepository.GetCurrentDiagram() == null) || (EARepository.GetCurrentDiagram() != null && EARepository.GetCurrentDiagram().DiagramID !=  CurrentDiagram.DiagramID))
+                            throw new Exception("Текущая диаграмма должны быть открыта");
+
+                        List<EA.Element> selectedElementList = EAHelper.GetSelectedLibElement_Diagram();
+                        if(selectedElementList.Count ==0)
+                            throw new Exception("На текщей диаграммме нет выделенных библиотечных элементов");
+
+                        selectedElement = selectedElementList[0];
+                        break;
+                }
+
+                // Получаем список дочерних элементов контейнеров
+                //TreeNode сhildrenDHierarchy = EAHelper.GetChildHierarchy(selectedElement);
+
+
+                // Проходимся по иерархии и размещаем элементы на диаграмме
+                /*
+                for (int i = 0; i < сhildrenDHierarchy.Count; i++)
+                {
+                    // Размещаем элемент
+                    EA.DiagramObject diagramObject = PutElementOnDiagram(сhildrenDHierarchy[i]);
+                    diagramObject.Update();
+                }
+
+                CurrentDiagram.DiagramLinks.Refresh();
+                DPAddin.LinkDesigner.SetLinkTypeVisibility(LinkType.Deploy, false);
+                EARepository.ReloadDiagram(CurrentDiagram.DiagramID);
+                */
+            }
+            catch (Exception ex)
+            {
+                result.setException(ex);
+            }
+
+            return result;
+        }
+
 
 
         /// <summary>
@@ -551,8 +612,20 @@ namespace EADiagramPublisher
                         break;
                 }
 
-                if (selectedLibElements.Count == 0)
-                    throw new Exception("Не выделены библиотечные элементы");
+                if (selectedLibElements.Count == 0) // если не выделены элементы  - пытаемся найти выделенные коннекторы
+                {
+                    if(location == "Diagram" || location == "MainMenu")
+                    {
+                        EA.Connector selectedConnector = EAHelper.GetSelectedLibConnector_Diagram();
+                        if (selectedConnector != null)
+                            return DPAddin.LinkDesigner.SetConnectorTags(location);
+                    }
+                    else
+                    {
+                        throw new Exception("Не выделены библиотечные элементы");
+                    }
+                }
+                    
 
                 // Конструируем данные тэгов для формы
                 List<TagData> curTagDataList = new List<TagData>();

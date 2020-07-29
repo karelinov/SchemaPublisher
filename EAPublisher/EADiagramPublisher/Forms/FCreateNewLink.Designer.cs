@@ -43,7 +43,7 @@
             // 
             this.clbLinkType.CheckOnClick = true;
             this.clbLinkType.FormattingEnabled = true;
-            this.clbLinkType.Location = new System.Drawing.Point(12, 10);
+            this.clbLinkType.Location = new System.Drawing.Point(12, 11);
             this.clbLinkType.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.clbLinkType.Name = "clbLinkType";
             this.clbLinkType.Size = new System.Drawing.Size(313, 293);
