@@ -54,6 +54,10 @@ namespace EADiagramPublisher
                 case LinkType.InformationFlow:
                     creatingConnectorType = "InformationFlow";
                     break;
+                case LinkType.SoftwareClassification:
+                    creatingConnectorType = "Generalization";
+                    break;
+
                 default:
                     throw new Exception("Непредусмотренный тип коннектора при создании");
             }

@@ -28,24 +28,26 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.TreeNode treeNode11 = new System.Windows.Forms.TreeNode("Node1");
-            System.Windows.Forms.TreeNode treeNode12 = new System.Windows.Forms.TreeNode("Node0", new System.Windows.Forms.TreeNode[] {
-            treeNode11});
+            System.Windows.Forms.TreeNode treeNode5 = new System.Windows.Forms.TreeNode("Node1");
+            System.Windows.Forms.TreeNode treeNode6 = new System.Windows.Forms.TreeNode("Node0", new System.Windows.Forms.TreeNode[] {
+            treeNode5});
             this.btnOk = new System.Windows.Forms.Button();
             this.tvNodes = new System.Windows.Forms.TreeView();
             this.btnExpandAll = new System.Windows.Forms.Button();
             this.gbSelectnodeGroup = new System.Windows.Forms.GroupBox();
+            this.cbonlySelectedContour = new System.Windows.Forms.CheckBox();
             this.clbNodeGroups = new System.Windows.Forms.CheckedListBox();
-            this.cbCurContourNodeGroup = new System.Windows.Forms.CheckBox();
+            this.btnReverseBranch = new System.Windows.Forms.Button();
             this.gbSelectnodeGroup.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnOk
             // 
             this.btnOk.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.btnOk.Location = new System.Drawing.Point(855, 725);
+            this.btnOk.Location = new System.Drawing.Point(760, 580);
+            this.btnOk.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.btnOk.Name = "btnOk";
-            this.btnOk.Size = new System.Drawing.Size(106, 44);
+            this.btnOk.Size = new System.Drawing.Size(94, 35);
             this.btnOk.TabIndex = 0;
             this.btnOk.Text = "Ok";
             this.btnOk.UseVisualStyleBackColor = true;
@@ -53,23 +55,25 @@
             // tvNodes
             // 
             this.tvNodes.CheckBoxes = true;
-            this.tvNodes.Location = new System.Drawing.Point(12, 36);
+            this.tvNodes.Location = new System.Drawing.Point(11, 49);
+            this.tvNodes.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.tvNodes.Name = "tvNodes";
-            treeNode11.Checked = true;
-            treeNode11.Name = "Node1";
-            treeNode11.Text = "Node1";
-            treeNode12.Name = "Node0";
-            treeNode12.Text = "Node0";
+            treeNode5.Checked = true;
+            treeNode5.Name = "Node1";
+            treeNode5.Text = "Node1";
+            treeNode6.Name = "Node0";
+            treeNode6.Text = "Node0";
             this.tvNodes.Nodes.AddRange(new System.Windows.Forms.TreeNode[] {
-            treeNode12});
-            this.tvNodes.Size = new System.Drawing.Size(510, 733);
+            treeNode6});
+            this.tvNodes.Size = new System.Drawing.Size(454, 567);
             this.tvNodes.TabIndex = 9;
             // 
             // btnExpandAll
             // 
-            this.btnExpandAll.Location = new System.Drawing.Point(12, 7);
+            this.btnExpandAll.Location = new System.Drawing.Point(11, 11);
+            this.btnExpandAll.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.btnExpandAll.Name = "btnExpandAll";
-            this.btnExpandAll.Size = new System.Drawing.Size(232, 23);
+            this.btnExpandAll.Size = new System.Drawing.Size(206, 26);
             this.btnExpandAll.TabIndex = 10;
             this.btnExpandAll.Text = "Expand All";
             this.btnExpandAll.UseVisualStyleBackColor = true;
@@ -77,49 +81,65 @@
             // 
             // gbSelectnodeGroup
             // 
-            this.gbSelectnodeGroup.Controls.Add(this.cbCurContourNodeGroup);
+            this.gbSelectnodeGroup.Controls.Add(this.cbonlySelectedContour);
             this.gbSelectnodeGroup.Controls.Add(this.clbNodeGroups);
-            this.gbSelectnodeGroup.Location = new System.Drawing.Point(559, 36);
+            this.gbSelectnodeGroup.Location = new System.Drawing.Point(497, 29);
+            this.gbSelectnodeGroup.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.gbSelectnodeGroup.Name = "gbSelectnodeGroup";
-            this.gbSelectnodeGroup.Size = new System.Drawing.Size(402, 683);
+            this.gbSelectnodeGroup.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.gbSelectnodeGroup.Size = new System.Drawing.Size(357, 546);
             this.gbSelectnodeGroup.TabIndex = 11;
             this.gbSelectnodeGroup.TabStop = false;
             this.gbSelectnodeGroup.Text = "Выделить сервера группы";
+            // 
+            // cbonlySelectedContour
+            // 
+            this.cbonlySelectedContour.AutoSize = true;
+            this.cbonlySelectedContour.Checked = true;
+            this.cbonlySelectedContour.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.cbonlySelectedContour.Location = new System.Drawing.Point(5, 522);
+            this.cbonlySelectedContour.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.cbonlySelectedContour.Name = "cbonlySelectedContour";
+            this.cbonlySelectedContour.Size = new System.Drawing.Size(252, 21);
+            this.cbonlySelectedContour.TabIndex = 1;
+            this.cbonlySelectedContour.Text = "Только для выделенного контура";
+            this.cbonlySelectedContour.UseVisualStyleBackColor = true;
             // 
             // clbNodeGroups
             // 
             this.clbNodeGroups.CheckOnClick = true;
             this.clbNodeGroups.FormattingEnabled = true;
-            this.clbNodeGroups.Location = new System.Drawing.Point(6, 25);
+            this.clbNodeGroups.Location = new System.Drawing.Point(5, 20);
+            this.clbNodeGroups.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.clbNodeGroups.Name = "clbNodeGroups";
             this.clbNodeGroups.ScrollAlwaysVisible = true;
-            this.clbNodeGroups.Size = new System.Drawing.Size(390, 613);
+            this.clbNodeGroups.Size = new System.Drawing.Size(347, 480);
             this.clbNodeGroups.TabIndex = 0;
             this.clbNodeGroups.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.clbNodeGroups_ItemCheck);
             // 
-            // cbCurContourNodeGroup
+            // btnReverseBranch
             // 
-            this.cbCurContourNodeGroup.AutoSize = true;
-            this.cbCurContourNodeGroup.Checked = true;
-            this.cbCurContourNodeGroup.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cbCurContourNodeGroup.Enabled = false;
-            this.cbCurContourNodeGroup.Location = new System.Drawing.Point(6, 653);
-            this.cbCurContourNodeGroup.Name = "cbCurContourNodeGroup";
-            this.cbCurContourNodeGroup.Size = new System.Drawing.Size(293, 24);
-            this.cbCurContourNodeGroup.TabIndex = 1;
-            this.cbCurContourNodeGroup.Text = "Только для выделенного контура";
-            this.cbCurContourNodeGroup.UseVisualStyleBackColor = true;
+            this.btnReverseBranch.Location = new System.Drawing.Point(223, 11);
+            this.btnReverseBranch.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.btnReverseBranch.Name = "btnReverseBranch";
+            this.btnReverseBranch.Size = new System.Drawing.Size(242, 26);
+            this.btnReverseBranch.TabIndex = 10;
+            this.btnReverseBranch.Text = "ReverseBranch";
+            this.btnReverseBranch.UseVisualStyleBackColor = true;
+            this.btnReverseBranch.Click += new System.EventHandler(this.btnReverseBranch_Click);
             // 
             // FSelectNodesAndDevices
             // 
             this.AcceptButton = this.btnOk;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(973, 781);
+            this.ClientSize = new System.Drawing.Size(865, 625);
             this.Controls.Add(this.gbSelectnodeGroup);
+            this.Controls.Add(this.btnReverseBranch);
             this.Controls.Add(this.btnExpandAll);
             this.Controls.Add(this.tvNodes);
             this.Controls.Add(this.btnOk);
+            this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.Name = "FSelectNodesAndDevices";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "FSelectNodesAndDevices";
@@ -136,6 +156,7 @@
         private System.Windows.Forms.Button btnExpandAll;
         private System.Windows.Forms.GroupBox gbSelectnodeGroup;
         private System.Windows.Forms.CheckedListBox clbNodeGroups;
-        private System.Windows.Forms.CheckBox cbCurContourNodeGroup;
+        private System.Windows.Forms.CheckBox cbonlySelectedContour;
+        private System.Windows.Forms.Button btnReverseBranch;
     }
 }

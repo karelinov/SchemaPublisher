@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
+using EADiagramPublisher.Enums;
 using EADiagramPublisher.Contracts;
 
 namespace EADiagramPublisher.Forms
@@ -69,7 +70,12 @@ namespace EADiagramPublisher.Forms
             return result;
         }
 
-        // Ищет родительский узел для узла, если не находит - создаёт
+        /// <summary>
+        /// Ищет родительский узел для узла, если не находит - создаёт
+        /// Создаются служебные узлы уровня компонента (Node, Device) и контура (с названиями контуров)
+        /// </summary>
+        /// <param name="nodeData"></param>
+        /// <returns></returns>
         private TreeNode GetNodeForNodeData(NodeData nodeData)
         {
             TreeNode componentLevelNode = null;
@@ -86,6 +92,10 @@ namespace EADiagramPublisher.Forms
             if (componentLevelNode == null)
             {
                 componentLevelNode = new TreeNode(nodeData.ComponentLevel.ToString());
+                NodeData componentNodeData = new NodeData();
+                componentNodeData.ComponentLevel = nodeData.ComponentLevel;
+                componentLevelNode.Tag = componentNodeData;
+
                 tvNodes.Nodes.Add(componentLevelNode);
             }
 
@@ -109,16 +119,28 @@ namespace EADiagramPublisher.Forms
             if (countourLevelNode == null)
             {
                 countourLevelNode = new TreeNode(countourName);
+
+                NodeData contourNodeData = new NodeData();
+                contourNodeData.ComponentLevel = ComponentLevel.ContourComponent;
+                contourNodeData.Contour = nodeData.Contour;
+                countourLevelNode.Tag = contourNodeData;
+
                 componentLevelNode.Nodes.Add(countourLevelNode);
             }
 
             return countourLevelNode;
         }
 
+        /// <summary>
+        /// Вспомогательная рекурсивная функция для возврата отмеченных узлов с ComponentLevel = Node/Device и заполеннным элементом
+        /// </summary>
+        /// <param name="node"></param>
+        /// <returns></returns>
         private List<NodeData> GetTreeCheckedNodesData(TreeNode node)
         {
             List<NodeData> result = new List<NodeData>();
-            if (node.Checked && node.Tag != null) result.Add((NodeData)node.Tag);
+            if (node.Checked && (new ComponentLevel[] { ComponentLevel.Device, ComponentLevel.Node}).Contains(((NodeData)node.Tag).ComponentLevel) && (((NodeData)node.Tag).Element != null))
+                result.Add((NodeData)node.Tag);
 
             foreach (TreeNode childNode in node.Nodes)
             {
@@ -137,16 +159,37 @@ namespace EADiagramPublisher.Forms
         {
             string groupName = clbNodeGroups.Items[e.Index].ToString();
 
-            foreach (TreeNode node in tvNodes.Nodes)
+            // если установлена галочка "только для выделенного контура", пытаемся его определить
+            TreeNode countourNode = null;
+            if (cbonlySelectedContour.Checked && tvNodes.SelectedNode != null)
+            {
+                TreeNode selectedNode = tvNodes.SelectedNode;
+                NodeData selectednodeData = (NodeData)selectedNode.Tag;
+                if (selectednodeData.ComponentLevel == ComponentLevel.ContourComponent)
+                {
+                    countourNode = tvNodes.SelectedNode;
+                } 
+            }
+
+
+            foreach (TreeNode node in (countourNode !=null)? countourNode.Nodes: tvNodes.Nodes)
             {
                 SetCheckStateForGroup(node, groupName, e.NewValue == CheckState.Checked);
             }
 
         }
 
+
+        /// <summary>
+        /// Вспомогательная рекурсивная функция установки CheckState для дерева, начиная с указанного узла
+        /// Устанавливаются состояния для узлов, входящих в указанную группу
+        /// </summary>
+        /// <param name="node"></param>
+        /// <param name="groupName"></param>
+        /// <param name="checkState"></param>
         private void SetCheckStateForGroup(TreeNode node, string groupName, bool checkState)
         {
-            if (node.Tag != null)
+            if (node.Tag != null && ((NodeData)node.Tag).GroupNames !=null)
             {
                 if (((NodeData)node.Tag).GroupNames.Contains(groupName))
                 {
@@ -159,6 +202,35 @@ namespace EADiagramPublisher.Forms
             {
                 SetCheckStateForGroup(childNode, groupName, checkState);
             }
+
+        }
+
+        private void btnReverseBranch_Click(object sender, EventArgs e)
+        {
+            TreeNode selectedNode = tvNodes.SelectedNode;
+            if (selectedNode == null) return;
+
+            List<TreeNode> currentLevelNodes = new List<TreeNode>();
+            foreach (TreeNode node in selectedNode.Nodes)
+                currentLevelNodes.Add(node);
+
+            while (currentLevelNodes.Count > 0)
+            {
+                foreach(TreeNode node in currentLevelNodes)
+                {
+                    node.Checked = !node.Checked;
+                }
+
+                List<TreeNode> nextLevelNodes = new List<TreeNode>();
+                foreach(TreeNode node in currentLevelNodes)
+                {
+                    foreach (TreeNode childNode in node.Nodes)
+                        nextLevelNodes.Add(childNode);
+                }
+
+                currentLevelNodes = nextLevelNodes;
+            }
+
 
         }
     }

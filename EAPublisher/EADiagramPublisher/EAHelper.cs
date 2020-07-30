@@ -703,12 +703,6 @@ namespace EADiagramPublisher
             {
                 switch (location)
                 {
-                    case "TreeView":
-                        foreach (EA.Element curElement in EARepository.GetTreeSelectedElements())
-                        {
-                            TaggedValueSet(curElement, DAConst.DP_LibraryTag, "");
-                        }
-                        break;
                     case "Diagram":
                         if (Context.CurrentDiagram != null)
                         {
@@ -726,6 +720,13 @@ namespace EADiagramPublisher
                             }
                         }
                         break;
+                    case "TreeView":
+                        foreach (EA.Element curElement in EARepository.GetTreeSelectedElements())
+                        {
+                            TaggedValueSet(curElement, DAConst.DP_LibraryTag, "");
+                        }
+                        break;
+
                     case "MainMenu":
                         if (Context.CurrentDiagram != null)
                         {
@@ -1018,13 +1019,17 @@ namespace EADiagramPublisher
         ///  Возыращает список выделенных в диаграмме коннекторов
         /// </summary>
         /// <returns></returns>
-        public static EA.Connector GetSelectedLibConnector_Diagram()
+        public static EA.Connector GetSelectedLibConnector_Diagram(bool checkISLibrary = true)
         {
             EA.Connector result = null;
 
             EA.Connector selectedConnector = Context.CurrentDiagram.SelectedConnector;
-            if (selectedConnector != null && IsLibrary(selectedConnector))
-                result = selectedConnector;
+            if (selectedConnector != null) {
+                if (!checkISLibrary)
+                    result = selectedConnector;
+                else if (IsLibrary(selectedConnector))
+                    result = selectedConnector;
+            }
 
             return result;
 
@@ -1079,13 +1084,13 @@ namespace EADiagramPublisher
                 }
                 else if (showUI)
                 {
-                    DialogResult dr = MessageBox.Show("Текущая Открытая диаграмма не библиотечная библиотечная диаграмма не открыта. Открыть библиотечную (Да)/ Назначить текущей открытую (Нет)?", "", MessageBoxButtons.YesNoCancel);
-                    if (dr == DialogResult.Yes)
+                    DialogResult dr = MessageBox.Show("Текущая Открытая диаграмма не библиотечная библиотечная диаграмма не открыта. Назначить текущей открытую (Да) /Открыть библиотечную (Нет)? ", "", MessageBoxButtons.YesNoCancel);
+                    if (dr == DialogResult.No)
                     {
                         EARepository.ActivateDiagram(currentLibDiagram.DiagramID);
                         result = true;
                     }
-                    else if (dr == DialogResult.No)
+                    else if (dr == DialogResult.Yes)
                     {
                         Context.CurrentDiagram = currentOpenedDiagram;
                         result = true;

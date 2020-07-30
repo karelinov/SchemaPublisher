@@ -20,13 +20,24 @@ namespace EADiagramPublisher.Contracts
         {
             get
             {
-                string result = Element.Name;
+                string result = "";
 
-                if (Element.ClassfierID !=0)
+                if (Element != null)
                 {
-                    EA.Element classifier = Context.EARepository.GetElementByID(Element.ClassfierID);
-                    result += ":" + classifier.Name;
+                    result = Element.Name;
+
+                    if (Element.ClassfierID != 0)
+                    {
+                        EA.Element classifier = Context.EARepository.GetElementByID(Element.ClassfierID);
+                        result += ":" + classifier.Name;
+                    }
                 }
+                else if (Contour != null)
+                {
+                    result = Contour.Name;
+                }
+                else
+                    result = ComponentLevel.ToString();
 
                 return result;
             }

@@ -44,6 +44,10 @@ namespace EADiagramPublisher
 
             try
             {
+                if (!EAHelper.CheckCurrentDiagram())
+                    throw new Exception("Не установлена или не открыта текущая диаграмма");
+
+
                 // На диаграмме должны быть выделены 2 (библиотечных) элемента 
                 var selectedObjects = CurrentDiagram.SelectedObjects;
                 if (selectedObjects.Count != 2)
@@ -274,7 +278,7 @@ namespace EADiagramPublisher
             try
             {
                 // Сначала получаем список выделеннеых библиотечных элементов
-                EA.Connector selectedConnector = EAHelper.GetSelectedLibConnector_Diagram();
+                EA.Connector selectedConnector = EAHelper.GetSelectedLibConnector_Diagram(false);
 
                 if (selectedConnector == null)
                     throw new Exception("Не выделены библиотечные элементы");

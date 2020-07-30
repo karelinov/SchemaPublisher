@@ -279,8 +279,9 @@ namespace EADiagramPublisher
                         // Размещаем элемент на диаграмме
                         EA.DiagramObject curDA = PutElementOnDiagram(childLevelNode.Value);
                         // Подвигаем элемент на отведённым ему уровень
-                        EAHelper.ApplyPointToDA(curDA, new Point(curDA.right + DAConst.border, levelStartPoint.Y));
-                        int newLevelRight = curDA.right;
+
+                        EAHelper.ApplyPointToDA(curDA, new Point(levelEndPoint.X, levelStartPoint.Y));
+                        int newLevelRight = curDA.right + DAConst.border;
                         int newLevelBottom = curDA.bottom < levelEndPoint.Y ? curDA.bottom : levelEndPoint.Y;
                         levelEndPoint = new Point(newLevelRight, newLevelBottom);
                     }

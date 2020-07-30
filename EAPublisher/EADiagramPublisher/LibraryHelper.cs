@@ -177,7 +177,7 @@ namespace EADiagramPublisher
                             nodeData.Element = curElement;
                             nodeData.ComponentLevel = CLHelper.GetComponentLevel(curElement);
                             nodeData.Contour = GetElementContour(curElement);
-                            nodeData.GroupNames = EAHelper.GetTaggedValue(curElement, DAConst.DP_NodeGroupsTag).Split();
+                            nodeData.GroupNames = EAHelper.GetTaggedValue(curElement, DAConst.DP_NodeGroupsTag).Split(',');
                             result.Add(nodeData);
                         }
                     }
