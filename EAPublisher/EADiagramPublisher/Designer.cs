@@ -93,137 +93,6 @@ namespace EADiagramPublisher
 
         }
         */
-        public ExecResult<Boolean> PutElementOnDiagram()
-        {
-            ExecResult<Boolean> result = new ExecResult<bool>();
-            try
-            {
-                // Получаем текущий (библиотечный) элемент дерева
-                EA.Element curElement = EARepository.GetTreeSelectedObject();
-                if (curElement == null || !EAHelper.IsLibrary(curElement))
-                {
-                    throw new Exception("Не выделен библиотечный элемент");
-                }
-
-                // Помещаем элемент на диаграмму
-                EA.DiagramObject diagramObject = PutElementOnDiagram(curElement);
-
-                CurrentDiagram.DiagramLinks.Refresh();
-                DPAddin.LinkDesigner.SetLinkTypeVisibility(LinkType.Deploy, false);
-                EARepository.ReloadDiagram(CurrentDiagram.DiagramID);
-
-            }
-            catch (Exception ex)
-            {
-                result.setException(ex);
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Размещает на диаграмме укзаанный элемент и иерархию его контейнеров
-        /// </summary>
-        /// <param name="onlyParent"></param>
-        /// <returns></returns>
-        public ExecResult<Boolean> PutChildrenDHierarchyOnDiagram()
-        {
-            ExecResult<Boolean> result = new ExecResult<bool>();
-            DesignerHelper.CallLevel = 0;
-
-            try
-            {
-                ExecResult<List<ComponentLevel>> displayLevelsResult = new FSelectHierarcyLevels().Execute();
-                if (displayLevelsResult.code != 0) return result;
-
-
-                // Получаем текущий (библиотечный) элемент дерева 
-                EA.Element curElement = null;
-                if (EARepository.GetTreeSelectedElements().Count > 0) curElement = EARepository.GetTreeSelectedElements().GetAt(0);
-                EAHelper.Out("элемент:", new EA.Element[] { curElement });
-                if (curElement == null || !EAHelper.IsLibrary(curElement))
-                {
-                    throw new Exception("Не выделен библиотечный элемент");
-                }
-
-                // Получаем список дочерних элементов контейнеров
-                List<EA.Element> сhildrenDHierarchy = EAHelper.GetChildHierarchy(curElement);
-
-
-                // Размещаем на диаграмме элемент
-                PutElementOnDiagram(curElement);
-
-                // Проходимся по иерархии и размещаем элементы на диаграмме
-                for (int i = 0; i < сhildrenDHierarchy.Count; i++)
-                {
-                    // размещает только элементы выбранных уровней
-                    ComponentLevel componentLevel = CLHelper.GetComponentLevel(сhildrenDHierarchy[i]);
-                    if (!displayLevelsResult.value.Contains(componentLevel)) continue;
-                    // Размещаем элемент
-                    EA.DiagramObject diagramObject = PutElementOnDiagram(сhildrenDHierarchy[i]);
-                    diagramObject.Update();
-                }
-
-                CurrentDiagram.DiagramLinks.Refresh();
-                DPAddin.LinkDesigner.SetLinkTypeVisibility(LinkType.Deploy, false);
-                EARepository.ReloadDiagram(CurrentDiagram.DiagramID);
-
-            }
-            catch (Exception ex)
-            {
-                result.setException(ex);
-            }
-
-            return result;
-        }
-
-
-        /// <summary>
-        /// Размещает на диаграмме укзаанный элемент и иерархию его контейнеров
-        /// </summary>
-        /// <param name="onlyParent"></param>
-        /// <returns></returns>
-        public ExecResult<Boolean> PutChildrenDHierarchyOnElement()
-        {
-            ExecResult<Boolean> result = new ExecResult<bool>();
-            DesignerHelper.CallLevel = 0;
-
-            try
-            {
-                ExecResult<List<ComponentLevel>> displayLevelsResult = new FSelectHierarcyLevels().Execute();
-                if (displayLevelsResult.code != 0) return result;
-
-
-                // Получаем текущий (библиотечный) элемент дерева 
-                if (CurrentDiagram.SelectedObjects.Count == 0 || !EAHelper.IsLibrary(EARepository.GetElementByID(((EA.DiagramObject)CurrentDiagram.SelectedObjects.GetAt(0)).ElementID)))
-                    throw new Exception("Не выделен библиотечный элемент на диаграмме");
-
-                EA.Element curElement = EARepository.GetElementByID(((EA.DiagramObject)CurrentDiagram.SelectedObjects.GetAt(0)).ElementID);
-
-                // Получаем список дочерних элементов контейнеров
-                List<EA.Element> сhildrenDHierarchy = EAHelper.GetChildHierarchy(curElement);
-
-                // Проходимся по иерархии и размещаем элементы на диаграмме
-                for (int i = 0; i < сhildrenDHierarchy.Count; i++)
-                {
-                    // Размещаем элемент
-                    EA.DiagramObject diagramObject = PutElementOnDiagram(сhildrenDHierarchy[i]);
-                    diagramObject.Update();
-                }
-
-                CurrentDiagram.DiagramLinks.Refresh();
-                DPAddin.LinkDesigner.SetLinkTypeVisibility(LinkType.Deploy, false);
-                EARepository.ReloadDiagram(CurrentDiagram.DiagramID);
-
-            }
-            catch (Exception ex)
-            {
-                result.setException(ex);
-            }
-
-            return result;
-        }
-
         /// <summary>
         /// Размещает на диаграмме под элементом дерево компонентов, размещённых в нём
         /// </summary>
@@ -313,7 +182,208 @@ namespace EADiagramPublisher
             return result;
         }
 
+        /// <summary>
+        /// Размещает на диаграмме укзаанный элемент и иерархию его контейнеров
+        /// </summary>
+        /// <param name="onlyParent"></param>
+        /// <returns></returns>
+        public ExecResult<Boolean> PutChildrenDHierarchyOnDiagram()
+        {
+            ExecResult<Boolean> result = new ExecResult<bool>();
+            DesignerHelper.CallLevel = 0;
 
+            try
+            {
+                ExecResult<List<ComponentLevel>> displayLevelsResult = new FSelectHierarcyLevels().Execute();
+                if (displayLevelsResult.code != 0) return result;
+
+
+                // Получаем текущий (библиотечный) элемент дерева 
+                EA.Element curElement = null;
+                if (EARepository.GetTreeSelectedElements().Count > 0) curElement = EARepository.GetTreeSelectedElements().GetAt(0);
+                EAHelper.Out("элемент:", new EA.Element[] { curElement });
+                if (curElement == null || !LibraryHelper.IsLibrary(curElement))
+                {
+                    throw new Exception("Не выделен библиотечный элемент");
+                }
+
+                // Получаем список дочерних элементов контейнеров
+                List<EA.Element> сhildrenDHierarchy = EAHelper.GetChildHierarchy(curElement);
+
+
+                // Размещаем на диаграмме элемент
+                PutElementOnDiagram(curElement);
+
+                // Проходимся по иерархии и размещаем элементы на диаграмме
+                for (int i = 0; i < сhildrenDHierarchy.Count; i++)
+                {
+                    // размещает только элементы выбранных уровней
+                    ComponentLevel componentLevel = CLHelper.GetComponentLevel(сhildrenDHierarchy[i]);
+                    if (!displayLevelsResult.value.Contains(componentLevel)) continue;
+                    // Размещаем элемент
+                    EA.DiagramObject diagramObject = PutElementOnDiagram(сhildrenDHierarchy[i]);
+                    diagramObject.Update();
+                }
+
+                CurrentDiagram.DiagramLinks.Refresh();
+                DPAddin.LinkDesigner.SetLinkTypeVisibility(LinkType.Deploy, false);
+                EARepository.ReloadDiagram(CurrentDiagram.DiagramID);
+
+            }
+            catch (Exception ex)
+            {
+                result.setException(ex);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Размещает на диаграмме укзаанный элемент и иерархию его контейнеров
+        /// </summary>
+        /// <param name="onlyParent"></param>
+        /// <returns></returns>
+        public ExecResult<Boolean> PutChildrenDHierarchyOnElement()
+        {
+            ExecResult<Boolean> result = new ExecResult<bool>();
+            DesignerHelper.CallLevel = 0;
+
+            try
+            {
+                ExecResult<List<ComponentLevel>> displayLevelsResult = new FSelectHierarcyLevels().Execute();
+                if (displayLevelsResult.code != 0) return result;
+
+
+                // Получаем текущий (библиотечный) элемент дерева 
+                if (CurrentDiagram.SelectedObjects.Count == 0 || !LibraryHelper.IsLibrary(EARepository.GetElementByID(((EA.DiagramObject)CurrentDiagram.SelectedObjects.GetAt(0)).ElementID)))
+                    throw new Exception("Не выделен библиотечный элемент на диаграмме");
+
+                EA.Element curElement = EARepository.GetElementByID(((EA.DiagramObject)CurrentDiagram.SelectedObjects.GetAt(0)).ElementID);
+
+                // Получаем список дочерних элементов контейнеров
+                List<EA.Element> сhildrenDHierarchy = EAHelper.GetChildHierarchy(curElement);
+
+                // Проходимся по иерархии и размещаем элементы на диаграмме
+                for (int i = 0; i < сhildrenDHierarchy.Count; i++)
+                {
+                    // Размещаем элемент
+                    EA.DiagramObject diagramObject = PutElementOnDiagram(сhildrenDHierarchy[i]);
+                    diagramObject.Update();
+                }
+
+                CurrentDiagram.DiagramLinks.Refresh();
+                DPAddin.LinkDesigner.SetLinkTypeVisibility(LinkType.Deploy, false);
+                EARepository.ReloadDiagram(CurrentDiagram.DiagramID);
+
+            }
+            catch (Exception ex)
+            {
+                result.setException(ex);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Помещения на текущкю диаграмму выбранных узлов и устройств
+        /// </summary>
+        /// <returns></returns>
+        public ExecResult<Boolean> PutContourContourOnDiagram(string location)
+        {
+            ExecResult<Boolean> result = new ExecResult<bool>();
+            try
+            {
+                if (location == "TreeView" || EARepository.GetCurrentDiagram() == null)
+                    throw new Exception("Операция разрешена только для диаграммы");
+
+
+                if (!EAHelper.CheckCurrentDiagram())
+                    throw new Exception("Не установлена или не открыта текущая диаграмма");
+
+                // получаем список библиотечных элементов нужного типа
+                List<NodeData> nodeDataList = LibraryHelper.GetNodeData(new List<ComponentLevel>() { ComponentLevel.ContourContour, ComponentLevel.SystemContour });
+
+                // показываем список на форме для отмечания
+                ExecResult<List<NodeData>> ndSelectresult = new FSelectContourContour().Execute(nodeDataList);
+                if (ndSelectresult.code != 0) return result;
+
+                // что на форме наотмечали, помещаем на диаграмму
+                foreach (NodeData nodeData in ndSelectresult.value)
+                {
+                    PutElementOnDiagram(nodeData.Element);
+                }
+
+                EARepository.ReloadDiagram(CurrentDiagram.DiagramID);
+            }
+            catch (Exception ex)
+            {
+                result.setException(ex);
+            }
+
+            return result;
+        }
+
+        public ExecResult<Boolean> PutElementOnDiagram()
+        {
+            ExecResult<Boolean> result = new ExecResult<bool>();
+            try
+            {
+                // Получаем текущий (библиотечный) элемент дерева
+                EA.Element curElement = EARepository.GetTreeSelectedObject();
+                if (curElement == null || !LibraryHelper.IsLibrary(curElement))
+                {
+                    throw new Exception("Не выделен библиотечный элемент");
+                }
+
+                // Помещаем элемент на диаграмму
+                EA.DiagramObject diagramObject = PutElementOnDiagram(curElement);
+
+                CurrentDiagram.DiagramLinks.Refresh();
+                DPAddin.LinkDesigner.SetLinkTypeVisibility(LinkType.Deploy, false);
+                EARepository.ReloadDiagram(CurrentDiagram.DiagramID);
+
+            }
+            catch (Exception ex)
+            {
+                result.setException(ex);
+            }
+
+            return result;
+        }
+        /// <summary>
+        /// Помещения на текущкю диаграмму выбранных узлов и устройств
+        /// </summary>
+        /// <returns></returns>
+        public ExecResult<Boolean> PutNodesDevicesOnDiagram(string location)
+        {
+            ExecResult<Boolean> result = new ExecResult<bool>();
+            try
+            {
+                if (!EAHelper.CheckCurrentDiagram())
+                    throw new Exception("Не установлена или не открыта текущая диаграмма");
+
+                // получаем список библиотечных элементов нужного типа
+                List<NodeData> nodeDataList = LibraryHelper.GetNodeData(new List<ComponentLevel>() { ComponentLevel.Device, ComponentLevel.Node });
+
+                // показываем список на форме для отмечания
+                ExecResult<List<NodeData>> ndSelectresult = new FSelectNodesAndDevices().Execute(nodeDataList);
+                if (ndSelectresult.code != 0) return result;
+
+                // что на форме наотмечали, помещаем на диаграмму
+                foreach (NodeData nodeData in ndSelectresult.value)
+                {
+                    PutElementOnDiagram(nodeData.Element);
+                }
+
+                EARepository.ReloadDiagram(CurrentDiagram.DiagramID);
+            }
+            catch (Exception ex)
+            {
+                result.setException(ex);
+            }
+
+            return result;
+        }
 
         /// <summary>
         /// Размещает на диаграмме укзаанный элемент и иерархию его контейнеров
@@ -334,7 +404,7 @@ namespace EADiagramPublisher
                 // Получаем текущий (библиотечный) элемент дерева 
                 EA.Element curElement = EARepository.GetTreeSelectedObject();
                 EAHelper.Out("элемент:", new EA.Element[] { curElement });
-                if (curElement == null || !EAHelper.IsLibrary(curElement))
+                if (curElement == null || !LibraryHelper.IsLibrary(curElement))
                 {
                     throw new Exception("Не выделен библиотечный элемент");
                 }
@@ -365,6 +435,115 @@ namespace EADiagramPublisher
                 DPAddin.LinkDesigner.SetLinkTypeVisibility(LinkType.Deploy, false);
                 EARepository.ReloadDiagram(CurrentDiagram.DiagramID);
 
+            }
+            catch (Exception ex)
+            {
+                result.setException(ex);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Установка Tags для выделенных элементов
+        /// </summary>
+        /// <returns></returns>
+        public ExecResult<Boolean> SetElementTags(string location)
+        {
+            ExecResult<Boolean> result = new ExecResult<bool>();
+            try
+            {
+                // Сначала получаем список выделеннеых библиотечных элементов
+                List<EA.Element> selectedLibElements = new List<EA.Element>();
+
+                switch (location)
+                {
+                    case "TreeView":
+                        selectedLibElements = EAHelper.GetSelectedLibElement_Tree();
+                        break;
+                    case "Diagram":
+                        if (!EAHelper.CheckCurrentDiagram())
+                            throw new Exception("Не установлена или не открыта текущая диаграмма");
+
+                        selectedLibElements = EAHelper.GetSelectedLibElement_Diagram();
+                        break;
+                    case "MainMenu":
+                        if (CurrentDiagram != null)
+                        {
+                            if (EAHelper.CheckCurrentDiagram())
+                                selectedLibElements = EAHelper.GetSelectedLibElement_Diagram();
+                            else
+                                selectedLibElements = EAHelper.GetSelectedLibElement_Tree();
+                        }
+                        else
+                        {
+                            selectedLibElements = EAHelper.GetSelectedLibElement_Tree();
+                        }
+                        break;
+                }
+
+                if (selectedLibElements.Count == 0) // если не выделены элементы  - пытаемся найти выделенные коннекторы
+                {
+                    if (location == "Diagram" || location == "MainMenu")
+                    {
+                        EA.Connector selectedConnector = EAHelper.GetSelectedLibConnector_Diagram();
+                        if (selectedConnector != null)
+                            return DPAddin.LinkDesigner.SetConnectorTags(location);
+                    }
+                    else
+                    {
+                        throw new Exception("Не выделены библиотечные элементы");
+                    }
+                }
+
+
+                // Конструируем данные тэгов для формы
+                List<TagData> curTagDataList = new List<TagData>();
+                foreach (EA.Element curElement in selectedLibElements)
+                {
+                    foreach (EA.TaggedValue taggedValue in curElement.TaggedValuesEx)
+                    {
+                        string tagName = taggedValue.Name;
+
+                        TagData curTagData;
+                        curTagData = curTagDataList.FirstOrDefault(item => (item.TagName == tagName));
+                        if (curTagData == null)
+                        {
+                            curTagData = new TagData() { TagName = tagName, TagValue = taggedValue.Value };
+                            curTagDataList.Add(curTagData);
+                        }
+                        curTagData.TagState = true;
+                        curTagData.Count++;
+                        if (taggedValue.ElementID != curElement.ElementID)
+                        {
+                            curTagData.Ex = true;
+                        }
+
+                    }
+                }
+                // Открываем форму для установки Tags
+                ExecResult<List<TagData>> setTagsResult = new FSetTags().Execute(curTagDataList);
+                if (setTagsResult.code != 0) return result;
+
+                // Прописываем в элементах что наустанавливали на форме
+                foreach (EA.Element curElement in selectedLibElements)
+                {
+                    foreach (TagData curTagData in setTagsResult.value)
+                    {
+                        if (curTagData.Enabled) // записываем только для Tags, в котоорые разрешено
+                        {
+
+                            if (curTagData.TagState == false)
+                            {
+                                EAHelper.TaggedValueRemove(curElement, curTagData.TagName);
+                            }
+                            else
+                            {
+                                EAHelper.TaggedValueSet(curElement, curTagData.TagName, curTagData.TagValue);
+                            }
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -612,153 +791,5 @@ namespace EADiagramPublisher
 
 
         }
-
-
-        /// <summary>
-        /// Установка Tags для выделенных элементов
-        /// </summary>
-        /// <returns></returns>
-        public ExecResult<Boolean> SetElementTags(string location)
-        {
-            ExecResult<Boolean> result = new ExecResult<bool>();
-            try
-            {
-                // Сначала получаем список выделеннеых библиотечных элементов
-                List<EA.Element> selectedLibElements = new List<EA.Element>();
-
-                switch (location)
-                {
-                    case "TreeView":
-                        selectedLibElements = EAHelper.GetSelectedLibElement_Tree();
-                        break;
-                    case "Diagram":
-                        if (!EAHelper.CheckCurrentDiagram())
-                            throw new Exception("Не установлена или не открыта текущая диаграмма");
-
-                        selectedLibElements = EAHelper.GetSelectedLibElement_Diagram();
-                        break;
-                    case "MainMenu":
-                        if (CurrentDiagram != null)
-                        {
-                            if (EAHelper.CheckCurrentDiagram())
-                                selectedLibElements = EAHelper.GetSelectedLibElement_Diagram();
-                            else
-                                selectedLibElements = EAHelper.GetSelectedLibElement_Tree();
-                        }
-                        else
-                        {
-                            selectedLibElements = EAHelper.GetSelectedLibElement_Tree();
-                        }
-                        break;
-                }
-
-                if (selectedLibElements.Count == 0) // если не выделены элементы  - пытаемся найти выделенные коннекторы
-                {
-                    if (location == "Diagram" || location == "MainMenu")
-                    {
-                        EA.Connector selectedConnector = EAHelper.GetSelectedLibConnector_Diagram();
-                        if (selectedConnector != null)
-                            return DPAddin.LinkDesigner.SetConnectorTags(location);
-                    }
-                    else
-                    {
-                        throw new Exception("Не выделены библиотечные элементы");
-                    }
-                }
-
-
-                // Конструируем данные тэгов для формы
-                List<TagData> curTagDataList = new List<TagData>();
-                foreach (EA.Element curElement in selectedLibElements)
-                {
-                    foreach (EA.TaggedValue taggedValue in curElement.TaggedValuesEx)
-                    {
-                        string tagName = taggedValue.Name;
-
-                        TagData curTagData;
-                        curTagData = curTagDataList.FirstOrDefault(item => (item.TagName == tagName));
-                        if (curTagData == null)
-                        {
-                            curTagData = new TagData() { TagName = tagName, TagValue = taggedValue.Value };
-                            curTagDataList.Add(curTagData);
-                        }
-                        curTagData.TagState = true;
-                        curTagData.Count++;
-                        if (taggedValue.ElementID != curElement.ElementID)
-                        {
-                            curTagData.Ex = true;
-                        }
-
-                    }
-                }
-                // Открываем форму для установки Tags
-                ExecResult<List<TagData>> setTagsResult = new FSetTags().Execute(curTagDataList);
-                if (setTagsResult.code != 0) return result;
-
-                // Прописываем в элементах что наустанавливали на форме
-                foreach (EA.Element curElement in selectedLibElements)
-                {
-                    foreach (TagData curTagData in setTagsResult.value)
-                    {
-                        if (curTagData.Enabled) // записываем только для Tags, в котоорые разрешено
-                        {
-
-                            if (curTagData.TagState == false)
-                            {
-                                EAHelper.TaggedValueRemove(curElement, curTagData.TagName);
-                            }
-                            else
-                            {
-                                EAHelper.TaggedValueSet(curElement, curTagData.TagName, curTagData.TagValue);
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                result.setException(ex);
-            }
-
-            return result;
-        }
-
-
-        /// <summary>
-        /// Помещения на текущкю диаграмму выбранных узлов и устройств
-        /// </summary>
-        /// <returns></returns>
-        public ExecResult<Boolean> PutNodesDevicesOnDiagram(string location)
-        {
-            ExecResult<Boolean> result = new ExecResult<bool>();
-            try
-            {
-                if (!EAHelper.CheckCurrentDiagram())
-                    throw new Exception("Не установлена или не открыта текущая диаграмма");
-
-                // получаем список библиотечных элементов нужного типа
-                List<NodeData> nodeDataList = LibraryHelper.GetNodeData(new List<ComponentLevel>() { ComponentLevel.Device, ComponentLevel.Node });
-
-                // показываем список на форме для отмечания
-                ExecResult<List<NodeData>> ndSelectresult = new FSelectNodesAndDevices().Execute(nodeDataList);
-                if (ndSelectresult.code != 0) return result;
-
-                // что на форме наотмечали, помещаем на диаграмму
-                foreach(NodeData nodeData in ndSelectresult.value)
-                {
-                    PutElementOnDiagram(nodeData.Element);
-                }
-
-                EARepository.ReloadDiagram(CurrentDiagram.DiagramID);
-            }
-            catch (Exception ex)
-            {
-                result.setException(ex);
-            }
-
-            return result;
-        }
-
-
     }
 }

@@ -1,11 +1,16 @@
-﻿using System;
+﻿using EADiagramPublisher.Contracts;
+using EADiagramPublisher.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
 namespace EADiagramPublisher
 {
-    class Context
+    /// <summary>
+    /// Хранит общие/кэшированные данные  для облегчения работы
+    /// </summary>
+    public class Context
     {
         /// <summary>
         /// Открытый плагином EA.Repository
@@ -78,8 +83,29 @@ namespace EADiagramPublisher
             }
         }
 
+
+        /// <summary>
+        /// Список данных библиотечных коннекторов
+        /// Структура:
+        /// - LinkType
+        ///  - FlowID
+        ///   - Список ConnectorData
+        /// </summary>
+        private static Dictionary<LinkType, Dictionary<string, List<ConnectorData>>> _ConnectorData = null;
+        public static Dictionary<LinkType, Dictionary<string, List<ConnectorData>>> ConnectorData
+        {
+            get
+            {
+                if (_ConnectorData == null)
+                    _ConnectorData = LinkDesignerHelper.LoadConnectorData();
+
+                return _ConnectorData;
+            }
+            set
+            {
+                _ConnectorData = value;
+            }
+        }
+
     }
-
-
-
 }

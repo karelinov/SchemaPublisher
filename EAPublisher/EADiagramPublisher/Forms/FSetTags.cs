@@ -74,21 +74,30 @@ namespace EADiagramPublisher.Forms
         {
             ListViewItem selectedItem = lvTags.SelectedItems[0];
 
+            /*
             if (((TagData)selectedItem.Tag).Ex == true)
             {
                 MessageBox.Show("Нельзя редактировать унаследованные занчения");
             }
             else
             {
-                //ExecResult<string> inputResult = new FInputString().Execute(selectedItem.SubItems[1].Name);
-                ExecResult<TagData> editDialogResult = new FAddTag().Execute(DAConst.StandardTags, false, (TagData)selectedItem.Tag);
+            */
 
-                if (editDialogResult.code == 0)
-                {
-                    selectedItem.SubItems[1].Text = editDialogResult.value.TagValue;
-                    selectedItem.Tag = editDialogResult.value;
-                }
+            ExecResult<TagData> editDialogResult = new FAddTag().Execute(DAConst.StandardTags, false, (TagData)selectedItem.Tag);
+
+            if (editDialogResult.code == 0)
+            {
+                selectedItem.SubItems[1].Text = editDialogResult.value.TagValue;
+                editDialogResult.value.Ex = false;
+                selectedItem.Tag = editDialogResult.value;
             }
+            else if (editDialogResult.code == -1)
+            {
+                throw new Exception(editDialogResult.message);
+            }
+
+
+
 
             wasdblclick = true;
 
@@ -102,7 +111,7 @@ namespace EADiagramPublisher.Forms
             {
                 foreach (ListViewItem curItem in lvTags.Items)
                 {
-                    if (((TagData)curItem.Tag).TagName == addDialogResult.value.TagName)
+                    if (((TagData)curItem.Tag).TagName == addDialogResult.value.TagName && ((TagData)curItem.Tag).Ex == false)
                     {
                         MessageBox.Show("такой элемент уже есть");
                         return;

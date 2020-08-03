@@ -42,5 +42,11 @@ namespace EADiagramPublisher.Contracts
                 return result;
             }
         }
+
+        public override string ToString()
+        {
+            return "("+ ComponentLevel.ToString()+") "+ ElementName;
+        }
+
     }
 }

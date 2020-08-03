@@ -21,7 +21,7 @@ namespace EADiagramPublisher.Enums
             try
             {
 
-                if (!EAHelper.IsLibrary(eaElement)) throw new Exception("компонент не является библиотечным");
+                if (!LibraryHelper.IsLibrary(eaElement)) throw new Exception("компонент не является библиотечным");
 
                 if (eaElement.Type == "Boundary")
                 {

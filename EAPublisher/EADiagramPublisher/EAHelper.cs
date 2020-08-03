@@ -387,9 +387,9 @@ namespace EADiagramPublisher
                             curPackage = EARepository.GetPackageByID(curPackage.ParentID);
                         else
                             curPackage = null;
-                        if (IsLibrary(curPackage.Element))
+                        if (LibraryHelper.IsLibrary(curPackage.Element))
                             foundDPLibraryPackage = true;
-                        if (!IsLibrary(curPackage.Element) && foundDPLibraryPackage)
+                        if (!LibraryHelper.IsLibrary(curPackage.Element) && foundDPLibraryPackage)
                             foundPackageAfterDPLibrary = true;
                     }
                 }
@@ -487,15 +487,27 @@ namespace EADiagramPublisher
         /// <returns></returns>
         public static string GetTaggedValue(EA.Connector connector, string taggedValueName)
         {
-            EA.ConnectorTag taggedValue = connector.TaggedValues.GetByName(taggedValueName);
+            EA.ConnectorTag taggedValue = null;
+            try
+            {
+                taggedValue = connector.TaggedValues.GetByName(taggedValueName);
+            }
+            catch { };
+
             if (taggedValue == null)
                 return "";
             else
                 return taggedValue.Value;
         }
-        public static string GetTaggedValue(EA.Element element, string taggedValueName)
+        public static string GetTaggedValue(EA.Element element, string taggedValueName, bool useEx = true)
         {
-            EA.TaggedValue taggedValue = element.TaggedValues.GetByName(taggedValueName);
+            EA.Collection elementTags;
+            if (useEx)
+                elementTags = element.TaggedValuesEx;
+            else
+                elementTags = element.TaggedValues;
+
+            EA.TaggedValue taggedValue = elementTags.GetByName(taggedValueName);
             if (taggedValue == null)
                 return "";
             else
@@ -532,42 +544,10 @@ namespace EADiagramPublisher
         /// <returns></returns>
         public static bool IsDeploymentLink(EA.Connector connector)
         {
-            if (IsLibrary(connector) && connector.TaggedValues.GetByName(DAConst.DP_LinkTypeTag) != null && ((EA.ConnectorTag)connector.TaggedValues.GetByName(DAConst.DP_LinkTypeTag)).Value == LinkType.Deploy.ToString())
+            if (LibraryHelper.IsLibrary(connector) && connector.TaggedValues.GetByName(DAConst.DP_LinkTypeTag) != null && ((EA.ConnectorTag)connector.TaggedValues.GetByName(DAConst.DP_LinkTypeTag)).Value == LinkType.Deploy.ToString())
                 return true;
             else
                 return false;
-        }
-
-        /// <summary>
-        /// Проверяет, что элемент является библиотечным. Если это инстанс, проверяет также класс
-        /// </summary>
-        /// <param name="element"></param>
-        /// <returns></returns>
-        public static bool IsLibrary(EA.Element element)
-        {
-            bool result = false;
-
-            if (GetTaggedValues(element).GetByName(DAConst.DP_LibraryTag) != null)
-            {
-                result = true;
-            }
-
-            return result;
-        }
-        /// <summary>
-        /// Проверяет является ли коннектор библиотечным
-        /// </summary>
-        /// <param name="connector"></param>
-        /// <returns></returns>
-        public static bool IsLibrary(EA.Connector connector)
-        {
-            bool result = false;
-
-            if (connector.TaggedValues.GetByName(DAConst.DP_LibraryTag) != null)
-            {
-                result = true;
-            }
-            return result;
         }
 
         /// <summary>
@@ -598,13 +578,13 @@ namespace EADiagramPublisher
         /// <param name="addCallername"></param>
         public static void Out(string outStr, Object[] objectsToOUT = null, string tabname = "System", bool addCallername = true)
         {
-            string result = "";
+            string result = DateTime.Now.ToString("HH:mm:sss.fff ");
             string resultLevel = new StringBuilder(DesignerHelper.CallLevel).Insert(0, " ", DesignerHelper.CallLevel).ToString();
 
             if (writeout || writelog)
             {
                 if (objectsToOUT != null)
-                    result += result + DumpObjects(objectsToOUT);
+                    result += DumpObjects(objectsToOUT);
 
                 if (addCallername)
                     result = new StackFrame(1, true).GetMethod().Name + ":" + outStr + " " + result;
@@ -667,7 +647,7 @@ namespace EADiagramPublisher
                 {
                     throw new Exception("Нет текущего объекта");
                 }
-                if (!(obj is EA.Element) || !IsLibrary((EA.Element)obj))
+                if (!(obj is EA.Element) || !LibraryHelper.IsLibrary((EA.Element)obj))
                 {
                     throw new Exception("Выделен не библиотечный элемент");
                 }
@@ -859,121 +839,125 @@ namespace EADiagramPublisher
             if ((objectsToOUT as EA.Element[]) != null)
             {
                 foreach (EA.Element curElement in (objectsToOUT as EA.Element[]))
-                {
-                    if (curElement == null)
-                    {
-                        result += "NULL;";
-                    }
-                    else
-                    {
-                        if (curElement.ClassfierID != 0)
-                        {
-                            result += "instance(" + curElement.Type;
-                            EA.Element classifier = EARepository.GetElementByID(curElement.ClassfierID);
-                            result += "," + classifier.Name + "," + classifier.Stereotype + ")";
-                        }
-                        else
-                        {
-                            result += "classifier(" + curElement.Type;
-                            result += "," + curElement.Name + "," + curElement.Stereotype + ")";
-                        }
-                        result += ";";
-                    }
-                }
+                    result += DumpObject(curElement) + ";";
             }
             else if ((objectsToOUT as EA.DiagramObject[]) != null)
             {
                 foreach (EA.DiagramObject curDA in (objectsToOUT as EA.DiagramObject[]))
-                {
-                    if (curDA == null)
-                    {
-                        result += "NULL;";
-                    }
-                    else
-                    {
-                        result += "da(" + (curDA.right - curDA.left).ToString() + "x" + Math.Abs(curDA.top - curDA.bottom).ToString() + ")(" + curDA.left.ToString() + "," + curDA.right.ToString() + "," + curDA.top.ToString() + "," + curDA.bottom.ToString() + ")";
-                        EA.Element curElement = EARepository.GetElementByID(curDA.ElementID);
-                        if (curElement.ClassfierID != 0)
-                        {
-                            result += "instance(" + curElement.Type;
-                            EA.Element classifier = EARepository.GetElementByID(curElement.ClassfierID);
-                            result += "," + curElement.Name + "," + classifier.Name + "," + classifier.Stereotype + ")";
-                        }
-                        else
-                        {
-                            result += "classifier(" + curElement.Type;
-                            result += "," + curElement.Name + "," + curElement.Stereotype + ")";
-                        }
-
-                        result += ";";
-                    }
-                }
+                    result += DumpObject(curDA) + ";";
+            }
+            else if ((objectsToOUT as EA.Package[]) != null)
+            {
+                foreach (EA.Package curPackage in (objectsToOUT as EA.Package[]))
+                    result += DumpObject(curPackage) + ";";
+            }
+            else if ((objectsToOUT as EA.Connector[]) != null)
+            {
+                foreach (EA.Connector curConnector in (objectsToOUT as EA.Connector[]))
+                    result += DumpObject(curConnector) + ";";
             }
             else if ((objectsToOUT[0].GetType() == typeof(Point)))
             {
                 foreach (Point point in objectsToOUT)
-                {
-                    result += "(X=" + point.X.ToString() + ", Y=" + point.Y.ToString() + ");";
-                }
-
+                    result += DumpObject(point) + ";";
             }
             else if ((objectsToOUT[0].GetType() == typeof(Size)))
             {
                 foreach (Size size in objectsToOUT)
-                {
-                    result += "(Width=" + size.Width.ToString() + ", Height=" + size.Height.ToString() + ");";
-                }
+                    result += DumpObject(size) + ";";
 
             }
             else
             {
                 foreach (var obj in (objectsToOUT))
-                {
-                    result += obj.ToString() + ";";
-                }
+                    result += DumpObject(obj) + ";";
             }
 
             return result;
         }
+
 
         /// <summary>
-        /// Функция от указанного пакета лезет  вверх по дереву объектов репозитория и останавливается в одном из случаев:
-        /// - когда по пути были библиотечные, но закончились (найден корень библиотеки)
-        /// - когда по пути были библиотечных объектов не нашлось
-        /// </summary>
-        /// <param name="startPackage"></param>
-        /// <returns>Корень библиотеки если найден</returns>
-        public static EA.Package GetRootLibPackage(EA.Package startPackage)
+        /// Преобразует объект в строку. Для объектов EA визуализирует значения важных свойств
+        /// </summary>        
+        public static string DumpObject(object objectToOUT)
         {
-            EA.Package result = null;
-
-            // лезем от элемента вверх по дереву пакетов, пока не достигнем верха либо не достигнем пакета без тэга DP_Library после нахождения такого тэга
-            EA.Package curPackage = startPackage;
-            if (IsLibrary(curPackage.Element)) result = curPackage;
-
-            bool foundPackageAfterDPLibrary = false;
-            bool foundDPLibraryPackage = false;
-
-            while (curPackage != null & !(foundPackageAfterDPLibrary))
+            if (objectToOUT == null)
             {
-                if (curPackage.ParentID != 0)
-                    curPackage = EARepository.GetPackageByID(curPackage.ParentID);
-                else
-                    curPackage = null;
-
-                if (curPackage.Element != null && IsLibrary(curPackage.Element))
-                {
-                    foundDPLibraryPackage = true;
-                    result = curPackage;
-                }
-
-                if ((curPackage.Element == null || !IsLibrary(curPackage.Element)) && foundDPLibraryPackage)
-                    foundPackageAfterDPLibrary = true;
+                return "null";
             }
 
+            string result = ":";
+
+            if ((objectToOUT as EA.Element) != null)
+            {
+                EA.Element curElement = objectToOUT as EA.Element;
+                {
+                    if (curElement.ClassfierID != 0)
+                    {
+                        result += "instance(" + curElement.Type;
+                        EA.Element classifier = EARepository.GetElementByID(curElement.ClassfierID);
+                        result += "," + curElement.Name + "/" + classifier.Name + "," + classifier.Stereotype + ")";
+                    }
+                    else
+                    {
+                        result += "classifier(" + curElement.Type;
+                        result += "," + curElement.Name + "," + curElement.Stereotype + ")";
+                    }
+                }
+            }
+            else if ((objectToOUT as EA.DiagramObject) != null)
+            {
+                EA.DiagramObject curDA = objectToOUT as EA.DiagramObject;
+                {
+                    result += "da(" + (curDA.right - curDA.left).ToString() + "x" + Math.Abs(curDA.top - curDA.bottom).ToString() + ")(" + curDA.left.ToString() + "," + curDA.right.ToString() + "," + curDA.top.ToString() + "," + curDA.bottom.ToString() + ")";
+                    EA.Element curElement = EARepository.GetElementByID(curDA.ElementID);
+                    if (curElement.ClassfierID != 0)
+                    {
+                        result += "instance(" + curElement.Type;
+                        EA.Element classifier = EARepository.GetElementByID(curElement.ClassfierID);
+                        result += "," + curElement.Name + "," + classifier.Name + "," + classifier.Stereotype + ")";
+                    }
+                    else
+                    {
+                        result += "classifier(" + curElement.Type;
+                        result += "," + curElement.Name + "," + curElement.Stereotype + ")";
+                    }
+                }
+            }
+            else if ((objectToOUT as EA.Package) != null)
+            {
+                EA.Package curPackage = objectToOUT as EA.Package;
+                result += "package(" + curPackage.Name + ")";
+            }
+            else if ((objectToOUT as EA.Connector) != null)
+            {
+                EA.Connector curConnector = objectToOUT as EA.Connector;
+                EA.Element elementFrom = EARepository.GetElementByID(curConnector.ClientID);
+                string elementFromDump = DumpObject(elementFrom);
+                EA.Element elementTo = EARepository.GetElementByID(curConnector.SupplierID);
+                string elementToDump = DumpObject(elementTo);
+
+                result += "connector(" + curConnector.Name + "," + curConnector.Type + ") from-to " + elementFromDump + "-" + elementToDump;
+            }
+            else if (objectToOUT.GetType() == typeof(Point))
+            {
+                Point point = (Point)objectToOUT;
+                result += "(X=" + point.X.ToString() + ", Y=" + point.Y.ToString() + ");";
+            }
+            else if (objectToOUT.GetType() == typeof(Size))
+            {
+                Size size = (Size)objectToOUT;
+                result += "(Width=" + size.Width.ToString() + ", Height=" + size.Height.ToString() + ");";
+            }
+            else
+            {
+                result += objectToOUT.ToString() + ";";
+            }
 
             return result;
         }
+
 
         /// <summary>
         ///  Возыращает список выделенных в дереве библиотечных элементов
@@ -985,7 +969,7 @@ namespace EADiagramPublisher
 
             foreach (EA.Element curElement in EARepository.GetTreeSelectedElements())
             {
-                if (IsLibrary(curElement))
+                if (LibraryHelper.IsLibrary(curElement))
                 {
                     result.Add(curElement);
                 }
@@ -1006,7 +990,7 @@ namespace EADiagramPublisher
             {
                 EA.Element curElement = EARepository.GetElementByID(curDA.ElementID);
 
-                if (IsLibrary(curElement))
+                if (LibraryHelper.IsLibrary(curElement))
                 {
                     result.Add(curElement);
                 }
@@ -1024,10 +1008,11 @@ namespace EADiagramPublisher
             EA.Connector result = null;
 
             EA.Connector selectedConnector = Context.CurrentDiagram.SelectedConnector;
-            if (selectedConnector != null) {
+            if (selectedConnector != null)
+            {
                 if (!checkISLibrary)
                     result = selectedConnector;
-                else if (IsLibrary(selectedConnector))
+                else if (LibraryHelper.IsLibrary(selectedConnector))
                     result = selectedConnector;
             }
 
@@ -1105,6 +1090,70 @@ namespace EADiagramPublisher
             return result;
         }
 
+        /// <summary>
+        /// Дерьмометод EA.Package.Elements не возвращает вложенные (а при вкладывании элементов на диаграмме, элементы вкладываются (мать....))
+        /// </summary>
+        /// <param name="package"></param>
+        /// <returns></returns>
+        public static List<EA.Element> GetAllPackageElements(EA.Package package)
+        {
+            List<EA.Element> result = new List<EA.Element>();
+
+            List<EA.Element> curLevelElements = new List<EA.Element>();
+            foreach (EA.Element element in package.Elements)
+            {
+                curLevelElements.Add(element);
+            }
+
+
+            while (curLevelElements.Count > 0)
+            {
+                List<EA.Element> nextLevelElements = new List<EA.Element>();
+
+                foreach (EA.Element element in curLevelElements)
+                {
+                    result.Add(element);
+
+                    foreach (EA.Element nextElement in element.Elements)
+                    {
+                        nextLevelElements.Add(nextElement);
+                    }
+                }
+
+                curLevelElements = nextLevelElements;
+
+            }
+
+
+
+            return result;
+        }
+
+        /// <summary>
+        /// Возвращает элементы, связанные с указанным заданной связью + находящиеся с указанного конца
+        /// </summary>
+        /// <param name="package"></param>
+        /// <returns></returns>
+        public static List<EA.Element> GetConnectedElements(EA.Element element, LinkType linkType, byte connectorEnd = 1 /*0=source 1=target*/ )
+        {
+            List<EA.Element> result = new List<EA.Element>();
+
+            foreach (EA.Connector connector in element.Connectors)
+            {
+                if ((connectorEnd == 0 /*source*/ && connector.ClientID == element.ElementID) || connectorEnd == 1 /*source*/ && connector.SupplierID == element.ElementID)
+                    continue; // не тем концом в другой элемент упирается
+
+                if (LibraryHelper.IsLibrary(connector) && LTHelper.GetConnectorType(connector) == linkType)
+                { // если связь нужного типа 
+                    EA.Element otherEndElement = EARepository.GetElementByID((connectorEnd == 0) ? connector.ClientID : connector.SupplierID);
+                    if (LibraryHelper.IsLibrary(otherEndElement))
+                    {
+                        result.Add(otherEndElement);
+                    }
+                }
+            }
+            return result;
+        }
 
 
     }

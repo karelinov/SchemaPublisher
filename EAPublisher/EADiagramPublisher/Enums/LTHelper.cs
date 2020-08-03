@@ -9,7 +9,16 @@ namespace EADiagramPublisher.Enums
     {
         public static LinkType GetConnectorType(EA.Connector connector)
         {
-            return (LinkType)Enum.Parse(typeof(LinkType), ((EA.ConnectorTag)connector.TaggedValues.GetByName(DAConst.DP_LinkTypeTag)).Value);
+            try
+            {
+                return (LinkType)Enum.Parse(typeof(LinkType), ((EA.ConnectorTag)connector.TaggedValues.GetByName(DAConst.DP_LinkTypeTag)).Value);
+            }
+            catch (Exception ex)
+            {
+                EAHelper.Out("Ошибка в определении типа коннектора " + ex.StackTrace, new EA.Connector[] { connector });
+                throw ex;
+            }
+
         }
     }
 }

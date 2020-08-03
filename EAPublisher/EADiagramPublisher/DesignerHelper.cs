@@ -66,6 +66,7 @@ namespace EADiagramPublisher
             }
 
             // Если из тэгов не установили, пытаемся вычислить на лету по библиотечной диаграмме
+            /*
             if (result.Height == 0 || result.Width == 0)
             {
                 ExecResult<Size> GetElementSizeOnLibDiagramResult = EAHelper.GetElementSizeOnLibDiagram(element);
@@ -74,7 +75,7 @@ namespace EADiagramPublisher
                     result = GetElementSizeOnLibDiagramResult.value;
                 }
             }
-
+            */
             // Ну если совсем ничего, то просто ставим цифры по умолчанию
             if (result.Height == 0)
                 result.Height = DAConst.defaultHeight;

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
+using EADiagramPublisher.Contracts;
 using EADiagramPublisher.Enums;
 using EADiagramPublisher.Forms;
 
@@ -58,13 +58,13 @@ namespace EADiagramPublisher
                 EA.DiagramObject secondDA = selectedObjects.GetAt(1);
                 EA.Element secondElement = EARepository.GetElementByID(secondDA.ElementID);
 
-                if (!EAHelper.IsLibrary(firstElement) || !EAHelper.IsLibrary(secondElement))
+                if (!LibraryHelper.IsLibrary(firstElement) || !LibraryHelper.IsLibrary(secondElement))
                     throw new Exception("Должны быть выделены библиотечные элементы");
 
                 EAHelper.Out("Выделенные элементы: ", new EA.Element[] { firstElement, secondElement });
 
                 // запускаем форму
-                ExecResult<CreateNewLinkData> createNewLinkData = new FCreateNewLink().Execute();
+                ExecResult<ConnectorData> createNewLinkData = new FCreateNewLink().Execute(firstDA, secondDA);
                 if (createNewLinkData.code != 0) return result;
 
 
@@ -73,12 +73,12 @@ namespace EADiagramPublisher
                 {
                     if (connector.ClientID == secondElement.ElementID || connector.SupplierID == secondElement.ElementID)
                     {
-                        if (EAHelper.IsLibrary(connector))
+                        if (LibraryHelper.IsLibrary(connector))
                         {
                             LinkType connectorLinkType = LTHelper.GetConnectorType(connector);
-                            if (createNewLinkData.value.linkType == connectorLinkType)
+                            if (createNewLinkData.value.LinkType == connectorLinkType)
                             {
-                                if (EAHelper.GetTaggedValue(connector, DAConst.DP_FlowIDTag) == createNewLinkData.value.flowID && EAHelper.GetTaggedValue(connector, DAConst.DP_SegmentIDTag) == createNewLinkData.value.segmentID)
+                                if (EAHelper.GetTaggedValue(connector, DAConst.DP_FlowIDTag) == createNewLinkData.value.FlowID && EAHelper.GetTaggedValue(connector, DAConst.DP_SegmentIDTag) == createNewLinkData.value.SegmentID)
                                 {
                                     throw new Exception("Запрашиваемая связь уже существует");
                                 }
@@ -89,7 +89,7 @@ namespace EADiagramPublisher
 
 
                 // Создаём
-                EA.Connector newConnector = LinkDesignerHelper.CreateConnector(createNewLinkData.value, firstDA, secondDA, true);
+                EA.Connector newConnector = LinkDesignerHelper.CreateConnector(createNewLinkData.value, true);
 
                 CurrentDiagram.DiagramLinks.Refresh();
                 EARepository.ReloadDiagram(CurrentDiagram.DiagramID);
@@ -192,7 +192,7 @@ namespace EADiagramPublisher
                     if (secondElementDA == null) continue;
 
                     // Теперь смотрим на настройки видимости коннектора
-                    if (EAHelper.IsLibrary(connector))
+                    if (LibraryHelper.IsLibrary(connector))
                     {
 
                         LinkType connectorlinkType = LTHelper.GetConnectorType(connector);
@@ -251,7 +251,7 @@ namespace EADiagramPublisher
                 foreach (EA.Connector connector in diagramElement.Connectors)
                 {
                     // Проверяем тип коннектора
-                    if (EAHelper.IsLibrary(connector)) continue;
+                    if (LibraryHelper.IsLibrary(connector)) continue;
 
                     // проверяем, что коннектор может быть потенциально показан на диаграмме, т.е, что оба его элемента на диаграмме
                     EA.Element secondElement = EARepository.GetElementByID((connector.ClientID == diagramElement.ElementID) ? connector.SupplierID : connector.ClientID);

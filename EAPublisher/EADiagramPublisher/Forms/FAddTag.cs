@@ -36,6 +36,7 @@ namespace EADiagramPublisher.Forms
                 {
                     cbTagName.SelectedIndex = cbTagName.Items.IndexOf(dataToEdit.TagName);
                     cbTagName.Enabled = false;
+                    cbTagValue.Text = dataToEdit.TagValue;
                 }
 
 
@@ -77,6 +78,11 @@ namespace EADiagramPublisher.Forms
             {
                 cbTagValue.Items.Clear();
                 cbTagValue.Items.AddRange(EAHelper.GetNodeGroupEnum().ToArray());
+            }
+            else if (cbTagName.Text == DAConst.DP_FlowIDTag)
+            {
+                cbTagValue.Items.Clear();
+                cbTagValue.Items.AddRange(Context.ConnectorData[LinkType.InformationFlow].Keys.ToArray());
             }
             else
             {

@@ -6,7 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-
+using EADiagramPublisher.Contracts;
 using EADiagramPublisher.Enums;
 
 namespace EADiagramPublisher.Forms
@@ -26,16 +26,28 @@ namespace EADiagramPublisher.Forms
                 this.clbLinkType.Items.Add(linkType, false);
             }
 
-            tbTempLinkDiagramID.Text = Context.CurrentDiagram.DiagramGUID.ToString();
+            //tbTempLinkDiagramID.Text = Context.CurrentDiagram.DiagramGUID.ToString();
 
         }
 
 
-        public ExecResult<CreateNewLinkData> Execute()
+        public ExecResult<ConnectorData> Execute(EA.DiagramObject firstDA, EA.DiagramObject secondDA)
         {
-            ExecResult<CreateNewLinkData> result = new ExecResult<CreateNewLinkData>() { value = new CreateNewLinkData() };
+            ExecResult<ConnectorData> result = new ExecResult<ConnectorData>() { value = new ConnectorData() };
             try
             {
+                EA.Element firstElement = Context.EARepository.GetElementByID(firstDA.ElementID);
+                tbSource.Text = EAHelper.DumpObject(firstElement);
+                tbSource.Tag = firstElement;
+
+                EA.Element secondElement = Context.EARepository.GetElementByID(secondDA.ElementID);
+                tbDestination.Text = EAHelper.DumpObject(secondElement);
+                tbDestination.Tag = secondElement;
+
+                cbFlowID.Items.Clear();
+                cbFlowID.Items.AddRange(Context.ConnectorData[LinkType.InformationFlow].Keys.ToArray());
+
+
                 DialogResult res = this.ShowDialog();
                 if (res != DialogResult.OK)
                 {
@@ -49,11 +61,15 @@ namespace EADiagramPublisher.Forms
                     }
                     else
                     {
-                        result.value.linkType = ((LinkType)clbLinkType.CheckedItems[0]);
-                        result.value.flowID = tbFlowID.Text;
-                        result.value.segmentID = tbSegmentID.Text;
-                        result.value.tempLink = cbTempLink.Checked;
-                        result.value.tempLinkDiagramID = tbTempLinkDiagramID.Text;
+                        result.value.Name = tbFlowName.Text;
+                        result.value.LinkType = ((LinkType)clbLinkType.CheckedItems[0]);
+                        result.value.FlowID = cbFlowID.Text;
+                        result.value.SegmentID = cbSegmentID.Text;
+
+                        result.value.SourceElementID = ((EA.Element)tbSource.Tag).ElementID;
+                        result.value.DestinationElementID = ((EA.Element)tbDestination.Tag).ElementID;
+                        //result.value.tempLink = cbTempLink.Checked;
+                        //result.value.tempLinkDiagramID = tbTempLinkDiagramID.Text;
                     }
                 }
 
@@ -85,18 +101,54 @@ namespace EADiagramPublisher.Forms
             }
         }
 
+        private void cbFlowID_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            string flowID = cbFlowID.Text;
+
+            cbSegmentID.Items.Clear();
+
+            if (flowID != "")
+            {
+                if(Context.ConnectorData[LinkType.InformationFlow].ContainsKey(flowID))
+                {
+                    foreach(ConnectorData connectorData in Context.ConnectorData[LinkType.InformationFlow][flowID])
+                    {
+                        cbSegmentID.Items.Add(connectorData.SegmentID);
+                    }
+                }
+            }
+
+
+        }
+
+        private void btnSwitchSourceDestination_Click(object sender, EventArgs e)
+        {
+            object xxx = tbSource.Tag;
+            string sxxx = tbSource.Text;
+            tbSource.Tag = tbDestination.Tag;
+            tbSource.Text = tbDestination.Text;
+            tbDestination.Tag = xxx;
+            tbDestination.Text = sxxx;
+
+        }
+
+        private void btnSuggestFromSource_Click(object sender, EventArgs e)
+        {
+            cbFlowID.Text = LibraryHelper.SuggestFlowIDName((EA.Element)tbSource.Tag);
+        }
+
+        private void cbFlowID_TextUpdate(object sender, EventArgs e)
+        {
+            if (tbFlowName.Text =="")
+            {
+                tbFlowName.Text = cbFlowID.Text;
+            }
+        }
+
+        private void btnSuggestFromDest_Click(object sender, EventArgs e)
+        {
+            cbFlowID.Text = LibraryHelper.SuggestFlowIDName((EA.Element)tbDestination.Tag);
+        }
     }
-
-
-    public class CreateNewLinkData
-    {
-        public LinkType linkType;
-        public string flowID;
-        public string segmentID;
-        public bool tempLink;
-        public string tempLinkDiagramID;
-    }
-
-
 
 }
