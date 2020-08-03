@@ -134,7 +134,7 @@ namespace EADiagramPublisher
                 if (selectLVResult.code != 0) return result;
 
                 // Обрабатываем результаты
-                foreach(var curLinkType in selectLVResult.value.showLinkType)
+                foreach (var curLinkType in selectLVResult.value.showLinkType)
                 {
                     SetConnectorVisibility(curLinkType, true);
                 }
@@ -182,7 +182,7 @@ namespace EADiagramPublisher
                     }
                     catch (Exception ex)
                     {
-                        EAHelper.OutA("Не удалось определить тип коннектора "+ex.StackTrace, new EA.Connector[] { connector });
+                        EAHelper.OutA("Не удалось определить тип коннектора " + ex.StackTrace, new EA.Connector[] { connector });
                         continue;
                     }
 
@@ -346,10 +346,10 @@ namespace EADiagramPublisher
                 List<EA.Connector> connectorList = new List<EA.Connector>();
 
                 // Ищем на диаграмме другие линки такого же типа
-                foreach(EA.DiagramLink curDL in CurrentDiagram.DiagramLinks)
+                foreach (EA.DiagramLink curDL in CurrentDiagram.DiagramLinks)
                 {
                     EA.Connector curConnector = EARepository.GetConnectorByID(curDL.ConnectorID);
-                    if(!curDL.IsHidden && curConnector.Type == selectedConnector.Type)
+                    if (!curDL.IsHidden && curConnector.Type == selectedConnector.Type)
                     {
                         connectorList.Add(curConnector);
                     }
@@ -408,6 +408,49 @@ namespace EADiagramPublisher
             }
 
             return result;
+        }
+
+
+        /// <summary>
+        /// Установка Выделения цветом, толщиной... указанных коннекторов
+        /// </summary>
+        /// <returns></returns>
+        public ExecResult<Boolean> LinksSelection(string location)
+        {
+
+            ExecResult<Boolean> result = new ExecResult<bool>();
+
+            try
+            {
+                // Строим список узлов TODO (вообще надо просто дерево в форму и передать потом)
+                List<ConnectorData> connectorDataList = new List<ConnectorData>();
+
+
+                foreach (LinkType linkType in Context.ConnectorData.Keys)
+                {
+                    foreach (string flowID in Context.ConnectorData[linkType].Keys)
+                    {
+                        connectorDataList.AddRange(Context.ConnectorData[linkType][flowID]);
+                    }
+                }
+
+                // Открываем форму для установки свойств линков
+
+                ExecResult<LinksOperationData> linksOperationDataResult = new FLinkSelection().Execute(connectorDataList);
+
+                if (linksOperationDataResult.code != 0) return result;
+
+                // Выполняем операцию
+                //...
+
+
+            }
+            catch (Exception ex)
+            {
+                result.setException(ex);
+            }
+            return result;
+
         }
 
 

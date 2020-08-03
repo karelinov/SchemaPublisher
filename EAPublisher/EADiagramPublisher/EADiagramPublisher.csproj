@@ -52,6 +52,7 @@
   <ItemGroup>
     <Compile Include="Context.cs" />
     <Compile Include="Contracts\ConnectorData.cs" />
+    <Compile Include="Contracts\LinkSOperationData.cs" />
     <Compile Include="Contracts\TreeNode.cs" />
     <Compile Include="DesignerHelper.cs" />
     <Compile Include="Enums\CLHelper.cs" />
@@ -64,6 +65,7 @@
     <Compile Include="Enums\DAConst.cs" />
     <Compile Include="Enums\LinkType.cs" />
     <Compile Include="Enums\LTHelper.cs" />
+    <Compile Include="Enums\LinkSOperation.cs" />
     <Compile Include="ExecResult.cs" />
     <Compile Include="Forms\FAddTag.cs">
       <SubType>Form</SubType>
@@ -82,6 +84,12 @@
     </Compile>
     <Compile Include="Forms\FInputString.Designer.cs">
       <DependentUpon>FInputString.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\FLinkSelection.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FLinkSelection.Designer.cs">
+      <DependentUpon>FLinkSelection.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\FSelectContourContour.cs">
       <SubType>Form</SubType>
@@ -114,7 +122,7 @@
       <DependentUpon>FSetTags.cs</DependentUpon>
     </Compile>
     <Compile Include="Contracts\NodeData.cs" />
-    <Compile Include="Forms\TagData.cs" />
+    <Compile Include="Contracts\TagData.cs" />
     <Compile Include="LibraryHelper.cs" />
     <Compile Include="LinkDesigner.cs" />
     <Compile Include="LinkDesignerHelper.cs" />
@@ -141,6 +149,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\FInputString.resx">
       <DependentUpon>FInputString.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\FLinkSelection.resx">
+      <DependentUpon>FLinkSelection.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\FSelectContourContour.resx">
       <DependentUpon>FSelectContourContour.cs</DependentUpon>

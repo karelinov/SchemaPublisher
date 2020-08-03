@@ -6,7 +6,7 @@ using System.Text;
 /// <summary>
 /// Класс для установки значений TaggedValues
 /// </summary>
-namespace EADiagramPublisher.Forms
+namespace EADiagramPublisher.Contracts
 {
     public class TagData
     {

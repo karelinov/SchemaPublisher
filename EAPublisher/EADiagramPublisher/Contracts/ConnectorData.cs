@@ -9,7 +9,7 @@ namespace EADiagramPublisher.Contracts
 {
     public class ConnectorData
     {
-        private int _ConnectorID = 0;
+        public int _ConnectorID = 0;
         public EA.Connector Connector
         {
             get

@@ -34,6 +34,7 @@ namespace EADiagramPublisher
         const string menuSetLinkVisibility = "&SetLinkVisibility";
         const string menuSetConnectorTags = "&SetConnectorTags";
         const string menuSetSimilarLinksTags = "&SetSimilarLinksTags";
+        const string menuLinksSelection = "&LinksSelection";
 
         const string menuUtils = "-&Utils";
         const string menuSetCurrentDiagram = "&SetCurrentDiagram";
@@ -99,7 +100,7 @@ namespace EADiagramPublisher
                     return subMenus;
 
                 case menuDesignLinks:
-                    subMenus = new string[] { menuCreateLink, menuSetLinkVisibility, menuSetConnectorTags, menuSetSimilarLinksTags };
+                    subMenus = new string[] { menuCreateLink, menuSetLinkVisibility, menuSetConnectorTags, menuSetSimilarLinksTags, menuLinksSelection };
                     return subMenus;
 
                 case menuUtils:
@@ -171,6 +172,7 @@ namespace EADiagramPublisher
                     case menuSetLinkVisibility:
                     case menuSetConnectorTags:
                     case menuSetSimilarLinksTags:
+                    case menuLinksSelection:
                         isEnabled = true;
                         break;
 
@@ -286,6 +288,10 @@ namespace EADiagramPublisher
                     OutExecResult(setSimilarLinksTags);
                     break;
 
+                case menuLinksSelection:
+                    var linksSelectionResult = LinkDesigner.LinksSelection(location);
+                    OutExecResult(linksSelectionResult);
+                    break;
 
 
                 // ------ UTILS --------------------------------------------------------------
