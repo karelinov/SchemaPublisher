@@ -422,21 +422,9 @@ namespace EADiagramPublisher
 
             try
             {
-                // Строим список узлов TODO (вообще надо просто дерево в форму и передать потом)
-                List<ConnectorData> connectorDataList = new List<ConnectorData>();
-
-
-                foreach (LinkType linkType in Context.ConnectorData.Keys)
-                {
-                    foreach (string flowID in Context.ConnectorData[linkType].Keys)
-                    {
-                        connectorDataList.AddRange(Context.ConnectorData[linkType][flowID]);
-                    }
-                }
 
                 // Открываем форму для установки свойств линков
-
-                ExecResult<LinksOperationData> linksOperationDataResult = new FLinkSelection().Execute(connectorDataList);
+                ExecResult<LinksOperationData> linksOperationDataResult = new FLinkSelection().Execute(Context.ConnectorData);
 
                 if (linksOperationDataResult.code != 0) return result;
 

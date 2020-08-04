@@ -67,7 +67,7 @@ namespace EADiagramPublisher.Forms
                         result.value.SegmentID = cbSegmentID.Text;
 
                         result.value.SourceElementID = ((EA.Element)tbSource.Tag).ElementID;
-                        result.value.DestinationElementID = ((EA.Element)tbDestination.Tag).ElementID;
+                        result.value.TargetElementID = ((EA.Element)tbDestination.Tag).ElementID;
                         //result.value.tempLink = cbTempLink.Checked;
                         //result.value.tempLinkDiagramID = tbTempLinkDiagramID.Text;
                     }

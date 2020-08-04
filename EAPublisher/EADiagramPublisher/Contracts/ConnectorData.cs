@@ -29,6 +29,27 @@ namespace EADiagramPublisher.Contracts
         public string SegmentID;
 
         public int SourceElementID;
-        public int DestinationElementID;
+        public int TargetElementID;
+
+        public string NameForShow()
+        {
+            string result = Name;
+            if(result == "")
+            {
+                result = LinkType.ToString();
+            }
+
+
+            if (SourceElementID !=0)
+            {
+                result += " " + EAHelper.DumpObject(Context.EARepository.GetElementByID(SourceElementID));
+            }
+            if(TargetElementID !=0)
+            {
+                result += "-" + EAHelper.DumpObject(Context.EARepository.GetElementByID(TargetElementID));
+            }
+
+            return result;
+        }
     }
 }

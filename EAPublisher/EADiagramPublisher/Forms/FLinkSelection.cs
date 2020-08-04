@@ -19,7 +19,7 @@ namespace EADiagramPublisher.Forms
             InitializeComponent();
         }
 
-        public ExecResult<LinksOperationData> Execute(List<ConnectorData> connectorDataList)
+        public ExecResult<LinksOperationData> Execute(Dictionary<LinkType, Dictionary<string, List<ConnectorData>>> сonnectorDataList)
         {
             ExecResult<LinksOperationData> result = new ExecResult<LinksOperationData>();
             try
@@ -27,17 +27,39 @@ namespace EADiagramPublisher.Forms
                 // Заливаем список узлов в дерево
                 tvLinks.Nodes.Clear();
 
-                foreach (var connectorData in connectorDataList)
+                foreach (var linkType in сonnectorDataList.Keys)
                 {
 
                     // Строим узел
-                    TreeNode treeNode = new TreeNode(connectorData.Name);
-                    treeNode.Tag = connectorData;
+                    TreeNode linkTypeNode = new TreeNode(linkType.ToString());
+                    tvLinks.Nodes.Add(linkTypeNode);
+                    //treeNode.Tag = connectorData;
 
-                    // Определяем родительский узел
-                    TreeNode parentNode = GetNodeForConnectorData(connectorData);
-                    parentNode.Nodes.Add(treeNode);
+                    foreach(var flowID in сonnectorDataList[linkType].Keys)
+                    {
+                        TreeNode nodeForConnector;
 
+                        if (linkType == LinkType.InformationFlow)
+                        {
+                            nodeForConnector = new TreeNode(flowID);
+                            linkTypeNode.Nodes.Add(nodeForConnector);
+
+
+                        }
+                        else // для всех кроме InformationFlow не делаем узлов с flowID
+                        {
+                            nodeForConnector = linkTypeNode;
+                        }
+
+                        foreach (var connectorData in сonnectorDataList[linkType][flowID])
+                        {
+                            TreeNode connectorDataNode = new TreeNode(connectorData.NameForShow());
+                            nodeForConnector.Nodes.Add(connectorDataNode);
+
+                        }
+
+
+                    }
                 }
 
                 DialogResult res = this.ShowDialog();
@@ -77,6 +99,7 @@ namespace EADiagramPublisher.Forms
             return result;
         }
 
+        /*
         /// <summary>
         /// Ищет родительский узел для узла, если не находит - создаёт
         /// Создаются служебные узлы уровня TBD
@@ -138,6 +161,7 @@ namespace EADiagramPublisher.Forms
 
             return flowIDLevelNode;
         }
+        */
 
         /// <summary>
         /// Вспомогательная рекурсивная функция для возврата отмеченных узлов с  заполеннным коннектором

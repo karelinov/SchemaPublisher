@@ -41,7 +41,7 @@ namespace EADiagramPublisher
             EA.Connector newConnector = null;
 
             EA.Element firstElement = EARepository.GetElementByID(createNewLinkData.SourceElementID);
-            EA.Element secondElement = EARepository.GetElementByID(createNewLinkData.DestinationElementID);
+            EA.Element secondElement = EARepository.GetElementByID(createNewLinkData.TargetElementID);
 
             // Определяем тип создаваемого коннектора
             string creatingConnectorType;
@@ -172,12 +172,17 @@ namespace EADiagramPublisher
 
                                 // Добавляем
                                 ConnectorData connectorData = new ConnectorData();
+                                connectorData.Name = curConnector.Name;
+                                connectorData._ConnectorID = curConnector.ConnectorID;
                                 connectorData.Connector = curConnector;
                                 connectorData.LinkType = connectorLinkType;
                                 connectorData.FlowID = connectorFlowID;
                                 connectorData.SegmentID = connectorSegmentID;
 
-                                if (result[connectorLinkType][connectorFlowID].Contains(connectorData, ConnectorDataEqualityComparer))
+                                connectorData.SourceElementID = curConnector.ClientID;
+                                connectorData.TargetElementID  = curConnector.SupplierID;
+
+                                if (!result[connectorLinkType][connectorFlowID].Contains(connectorData, ConnectorDataEqualityComparer))
                                     result[connectorLinkType][connectorFlowID].Add(connectorData);
                             }
 
@@ -204,7 +209,7 @@ namespace EADiagramPublisher
     public class IEqualityComparer_ConnectorData:IEqualityComparer<ConnectorData>  {
         public bool Equals(ConnectorData x, ConnectorData y)
         {
-            return x.Connector.ConnectorID == y.Connector.ConnectorID;
+            return x._ConnectorID == y._ConnectorID;
         }
 
         public int GetHashCode(ConnectorData obj)
