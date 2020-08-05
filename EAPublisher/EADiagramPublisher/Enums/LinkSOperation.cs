@@ -14,7 +14,7 @@ namespace EADiagramPublisher.Enums
         /// <summary>
         /// Установить указанные цвет и толщину
         /// </summary>
-        SetView = 1,
+        SetStyle = 1,
 
     }
 }

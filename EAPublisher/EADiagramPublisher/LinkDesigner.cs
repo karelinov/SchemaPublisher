@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Windows.Forms;
 using EADiagramPublisher.Contracts;
 using EADiagramPublisher.Enums;
 using EADiagramPublisher.Forms;
@@ -114,20 +116,9 @@ namespace EADiagramPublisher
 
             try
             {
-                // Проверяем, что установлена текущая диаграмма
-                if (CurrentDiagram == null)
-                {
-                    if (EARepository.GetCurrentDiagram() != null)
-                    {
-                        Context.CurrentDiagram = EARepository.GetCurrentDiagram();
-                        EAHelper.Out("Установлена текущая диаграмма");
-                    }
-                    else
-                    {
-                        throw new Exception("Нет текущей диаграммы");
-                    }
 
-                }
+                if (!EAHelper.CheckCurrentDiagram())
+                    throw new Exception("Не установлена или не открыта текущая диаграмма");
 
                 // запускаем форму
                 ExecResult<LinkVisibilityData> selectLVResult = new FSetLinkVisibility().Execute();
@@ -422,16 +413,53 @@ namespace EADiagramPublisher
 
             try
             {
+                List<ConnectorData> connectordataList = new List<ConnectorData>();
+                foreach (EA.DiagramLink diagramLink in CurrentDiagram.DiagramLinks)
+                {
+                    if(!diagramLink.IsHidden && LibraryHelper.IsLibrary(EARepository.GetConnectorByID(diagramLink.ConnectorID)))
+                    {
+                        connectordataList.Add(new ConnectorData(diagramLink));
+                    }
+                }
+
 
                 // Открываем форму для установки свойств линков
-                ExecResult<LinksOperationData> linksOperationDataResult = new FLinkSelection().Execute(Context.ConnectorData);
+                ExecResult<LinksOperationData> linksOperationDataResult = new FLinkSelection().Execute(connectordataList);
 
+                if (linksOperationDataResult.code == -1)
+                    throw new Exception(linksOperationDataResult.message);
                 if (linksOperationDataResult.code != 0) return result;
 
                 // Выполняем операцию
-                //...
+                if (linksOperationDataResult.value.Operation == LinkSOperation.ResetAll)
+                {
+                    foreach (ConnectorData connectorData in connectordataList)
+                    {
+                        EA.DiagramLink diagramLink = EAHelper.GetDLFromConnector(connectorData._ConnectorID);
+                        if (diagramLink != null)
+                        {
+                            LinkDesignerHelper.ApplyStyleToDiagramLink(diagramLink, true, 1, true, Color.Black, true, EA.LinkLineStyle.LineStyleOrthogonalRounded);
+                        }
+                    }
+                }
+                else if(linksOperationDataResult.value.Operation == LinkSOperation.SetStyle) {
+                    foreach(ConnectorData connectorData in linksOperationDataResult.value.Connectors)
+                    {
+                        EA.DiagramLink diagramLink = EAHelper.GetDLFromConnector(connectorData._ConnectorID);
+                        if (diagramLink != null)
+                        {
+                            LinkDesignerHelper.ApplyStyleToDiagramLink(diagramLink, linksOperationDataResult.value.SetLineWidth, linksOperationDataResult.value.LineWidth, linksOperationDataResult.value.SetColor, linksOperationDataResult.value.Color, linksOperationDataResult.value.SetLineStyle,  linksOperationDataResult.value.LineStyle);
+                        }
+                    }
+                }
+
+                
+
+                        
 
 
+                CurrentDiagram.DiagramLinks.Refresh();
+                EARepository.ReloadDiagram(CurrentDiagram.DiagramID);
             }
             catch (Exception ex)
             {

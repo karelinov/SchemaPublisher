@@ -10,8 +10,15 @@ namespace EADiagramPublisher.Contracts
     public class LinksOperationData
     {
         public LinkSOperation Operation;
+
+        public bool SetLineWidth;
+        public int LineWidth;
+
+        public bool SetColor;
         public Color Color;
-        public int LineSize;
+
+        public bool SetLineStyle;
+        public EA.LinkLineStyle LineStyle;
 
         public List<ConnectorData> Connectors;
     }
