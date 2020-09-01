@@ -64,7 +64,7 @@ namespace EADiagramPublisher
                 EAHelper.Out("Выделенные элементы: ", new EA.Element[] { firstElement, secondElement });
 
                 // запускаем форму
-                ExecResult<ConnectorData> createNewLinkData = new FCreateNewLink().Execute(firstDA, secondDA);
+                ExecResult<ConnectorData> createNewLinkData = FCreateNewLink.Execute(firstDA, secondDA);
                 if (createNewLinkData.code != 0) return result;
 
 
@@ -130,7 +130,7 @@ namespace EADiagramPublisher
                 }
 
                 // запускаем форму
-                ExecResult<LinkVisibilityData> selectLVResult = new FSetLinkVisibility().Execute();
+                ExecResult<LinkVisibilityData> selectLVResult = FSetLinkVisibility.Execute();
                 if (selectLVResult.code != 0) return result;
 
                 // Обрабатываем результаты

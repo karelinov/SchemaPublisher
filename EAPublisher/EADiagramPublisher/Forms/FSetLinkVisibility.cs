@@ -33,27 +33,29 @@ namespace EADiagramPublisher.Forms
 
         }
 
-        public ExecResult<LinkVisibilityData> Execute()
+        public static ExecResult<LinkVisibilityData> Execute()
         {
             ExecResult<LinkVisibilityData> result = new ExecResult<LinkVisibilityData>() { value = new LinkVisibilityData() };
             try
             {
-                DialogResult res = this.ShowDialog();
+                var form = new FSetLinkVisibility();
+
+                DialogResult res = form.ShowDialog();
                 if (res == DialogResult.OK)
                 {
                     result.code = 0;
 
-                    foreach (var checkedItem in clbShowLinkType.CheckedItems)
+                    foreach (var checkedItem in form.clbShowLinkType.CheckedItems)
                     {
                         result.value.showLinkType.Add((LinkType)checkedItem);
                     }
-                    result.value.showNotLibElements = cbShowNotLibConnectors.Checked;
+                    result.value.showNotLibElements = form.cbShowNotLibConnectors.Checked;
 
-                    foreach (var checkedItem in clbHideLinkType.CheckedItems)
+                    foreach (var checkedItem in form.clbHideLinkType.CheckedItems)
                     {
                         result.value.hideLinkType.Add((LinkType)checkedItem);
                     }
-                    result.value.hideTempDiagramLinks = cbHideTempDiagramLinks.Checked;
+                    result.value.hideTempDiagramLinks = form.cbHideTempDiagramLinks.Checked;
                 }
                 else
                 {

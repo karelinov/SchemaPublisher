@@ -4,6 +4,8 @@ using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
 
+using EADiagramPublisher.Forms;
+
 namespace EADiagramPublisher
 {
     public class DPAddin
@@ -43,6 +45,7 @@ namespace EADiagramPublisher
         //const string menuSetDefaultSize = "&SetDefaultSize";
         const string menuReloadConnectorData = "&ReloadConnectorData";
         const string menuDoOnStartActions = "&DoOnStartActions";
+        const string menuRunSQLQuery = "&RunSQLQuery";
 
         const string menuTest = "-&Test";
         const string menuTest1 = "&Test1";
@@ -104,7 +107,7 @@ namespace EADiagramPublisher
                     return subMenus;
 
                 case menuUtils:
-                    subMenus = new string[] { menuSetCurrentDiagram, menuSetCurrentLibrary, menuSetDPLibratyTag, menuReloadConnectorData, menuDoOnStartActions};
+                    subMenus = new string[] { menuSetCurrentDiagram, menuSetCurrentLibrary, menuSetDPLibratyTag, menuReloadConnectorData, menuDoOnStartActions, menuRunSQLQuery};
                     return subMenus;
                 case menuTest:
                     subMenus = new string[] { menuTest1 , menuTest2, menuTest3 };
@@ -182,6 +185,7 @@ namespace EADiagramPublisher
                     case menuSetDPLibratyTag:
                     case menuReloadConnectorData:
                     case menuDoOnStartActions:
+                    case menuRunSQLQuery:
                         isEnabled = true;
                         break;
 
@@ -325,6 +329,11 @@ namespace EADiagramPublisher
 
                 case menuDoOnStartActions:
                     Addin_Statrtup();
+                    break;
+
+                case menuRunSQLQuery:
+                    var fRunSQLQueryResult = FRunSQLQuery.Execute();
+                    OutExecResult(fRunSQLQueryResult);
                     break;
 
 

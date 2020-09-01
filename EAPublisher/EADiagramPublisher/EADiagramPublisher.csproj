@@ -21,7 +21,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    <WarningLevel>2</WarningLevel>
     <RegisterForComInterop>true</RegisterForComInterop>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -66,7 +66,12 @@
     <Compile Include="Enums\LinkType.cs" />
     <Compile Include="Enums\LTHelper.cs" />
     <Compile Include="Enums\LinkSOperation.cs" />
-    <Compile Include="ExecResult.cs" />
+    <Compile Include="Contracts\ExecResult.cs" />
+    <Compile Include="ERLDataSet.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ERLDataSet.xsd</DependentUpon>
+    </Compile>
     <Compile Include="Forms\FAddTag.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -90,6 +95,12 @@
     </Compile>
     <Compile Include="Forms\FLinkSelection.Designer.cs">
       <DependentUpon>FLinkSelection.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\FRunSQLQuery.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FRunSQLQuery.Designer.cs">
+      <DependentUpon>FRunSQLQuery.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\FSelectContourContour.cs">
       <SubType>Form</SubType>
@@ -132,11 +143,31 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
+    </None>
+    <None Include="ERLDataSet.xsc">
+      <DependentUpon>ERLDataSet.xsd</DependentUpon>
+    </None>
+    <None Include="ERLDataSet.xsd">
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>ERLDataSet.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="ERLDataSet.xss">
+      <DependentUpon>ERLDataSet.xsd</DependentUpon>
+    </None>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <None Include="register.reg" />
   </ItemGroup>
@@ -152,6 +183,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\FLinkSelection.resx">
       <DependentUpon>FLinkSelection.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\FRunSQLQuery.resx">
+      <DependentUpon>FRunSQLQuery.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\FSelectContourContour.resx">
       <DependentUpon>FSelectContourContour.cs</DependentUpon>

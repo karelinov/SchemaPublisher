@@ -31,47 +31,51 @@ namespace EADiagramPublisher.Forms
         }
 
 
-        public ExecResult<ConnectorData> Execute(EA.DiagramObject firstDA, EA.DiagramObject secondDA)
+        public static ExecResult<ConnectorData> Execute(EA.DiagramObject firstDA, EA.DiagramObject secondDA)
         {
             ExecResult<ConnectorData> result = new ExecResult<ConnectorData>() { value = new ConnectorData() };
             try
             {
+                var fCreateNewLink = new FCreateNewLink();
+
                 EA.Element firstElement = Context.EARepository.GetElementByID(firstDA.ElementID);
-                tbSource.Text = EAHelper.DumpObject(firstElement);
-                tbSource.Tag = firstElement;
+                fCreateNewLink.tbSource.Text = EAHelper.DumpObject(firstElement);
+                fCreateNewLink.tbSource.Tag = firstElement;
 
                 EA.Element secondElement = Context.EARepository.GetElementByID(secondDA.ElementID);
-                tbDestination.Text = EAHelper.DumpObject(secondElement);
-                tbDestination.Tag = secondElement;
+                fCreateNewLink.tbDestination.Text = EAHelper.DumpObject(secondElement);
+                fCreateNewLink.tbDestination.Tag = secondElement;
 
-                cbFlowID.Items.Clear();
-                cbFlowID.Items.AddRange(Context.ConnectorData[LinkType.InformationFlow].Keys.ToArray());
+                fCreateNewLink.cbFlowID.Items.Clear();
+                fCreateNewLink.cbFlowID.Items.AddRange(Context.ConnectorData[LinkType.InformationFlow].Keys.ToArray());
 
 
-                DialogResult res = this.ShowDialog();
+                DialogResult res = fCreateNewLink.ShowDialog();
+
                 if (res != DialogResult.OK)
                 {
                     result.code = (int)res;
                 }
                 else
                 {
-                    if(clbLinkType.CheckedItems.Count == 0)
+                    if (fCreateNewLink.clbLinkType.CheckedItems.Count == 0)
                     {
                         result.code = (int)DialogResult.Cancel;
                     }
                     else
                     {
-                        result.value.Name = tbFlowName.Text;
-                        result.value.LinkType = ((LinkType)clbLinkType.CheckedItems[0]);
-                        result.value.FlowID = cbFlowID.Text;
-                        result.value.SegmentID = cbSegmentID.Text;
+                        result.value.Name = fCreateNewLink.tbFlowName.Text;
+                        result.value.LinkType = ((LinkType)fCreateNewLink.clbLinkType.CheckedItems[0]);
+                        result.value.FlowID = fCreateNewLink.cbFlowID.Text;
+                        result.value.SegmentID = fCreateNewLink.cbSegmentID.Text;
 
-                        result.value.SourceElementID = ((EA.Element)tbSource.Tag).ElementID;
-                        result.value.TargetElementID = ((EA.Element)tbDestination.Tag).ElementID;
+                        result.value.SourceElementID = ((EA.Element)fCreateNewLink.tbSource.Tag).ElementID;
+                        result.value.TargetElementID = ((EA.Element)fCreateNewLink.tbDestination.Tag).ElementID;
                         //result.value.tempLink = cbTempLink.Checked;
                         //result.value.tempLinkDiagramID = tbTempLinkDiagramID.Text;
                     }
                 }
+
 
             }
             catch (Exception ex)
@@ -86,9 +90,9 @@ namespace EADiagramPublisher.Forms
         {
             if (e.NewValue == CheckState.Checked)
             {
-               if (checkedContext == null) checkedContext = e.Index;
-               ChangeAllCheckBoxValues(false);
-               checkedContext = null;
+                if (checkedContext == null) checkedContext = e.Index;
+                ChangeAllCheckBoxValues(false);
+                checkedContext = null;
             }
         }
 
@@ -96,7 +100,7 @@ namespace EADiagramPublisher.Forms
         {
             for (int i = 1; i < clbLinkType.Items.Count; i++)
             {
-                if(i!= checkedContext)
+                if (i != checkedContext)
                     clbLinkType.SetItemChecked(i, value);
             }
         }
@@ -109,9 +113,9 @@ namespace EADiagramPublisher.Forms
 
             if (flowID != "")
             {
-                if(Context.ConnectorData[LinkType.InformationFlow].ContainsKey(flowID))
+                if (Context.ConnectorData[LinkType.InformationFlow].ContainsKey(flowID))
                 {
-                    foreach(ConnectorData connectorData in Context.ConnectorData[LinkType.InformationFlow][flowID])
+                    foreach (ConnectorData connectorData in Context.ConnectorData[LinkType.InformationFlow][flowID])
                     {
                         cbSegmentID.Items.Add(connectorData.SegmentID);
                     }
@@ -139,7 +143,7 @@ namespace EADiagramPublisher.Forms
 
         private void cbFlowID_TextUpdate(object sender, EventArgs e)
         {
-            if (tbFlowName.Text =="")
+            if (tbFlowName.Text == "")
             {
                 tbFlowName.Text = cbFlowID.Text;
             }
@@ -149,6 +153,8 @@ namespace EADiagramPublisher.Forms
         {
             cbFlowID.Text = LibraryHelper.SuggestFlowIDName((EA.Element)tbDestination.Tag);
         }
+
+
     }
 
 }

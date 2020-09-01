@@ -1155,6 +1155,16 @@ namespace EADiagramPublisher
             return result;
         }
 
+        /// <summary>
+        /// Выполнение SQL запроса в БД
+        /// </summary>
+        /// <param name="queryText"></param>
+        /// <returns></returns>
+        public static string RunQuery(string queryText)
+        {
+            return EARepository.SQLQuery(queryText);
+        }
+
 
     }
 }
