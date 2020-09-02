@@ -17,9 +17,15 @@ namespace EADiagramPublisher.Forms
         public FLinkSelection()
         {
             InitializeComponent();
+
+            cbLineStyle.SelectedIndex = 0;
+
+            clbNodeGroups.Items.Clear();
+            clbNodeGroups.Items.AddRange(EAHelper.GetNodeGroupEnum().ToArray());
+
         }
 
-        public ExecResult<LinksOperationData> Execute(Dictionary<LinkType, Dictionary<string, List<ConnectorData>>> сonnectorDataList)
+        public ExecResult<LinksOperationData> Execute(List<ConnectorData> сonnectorDataList)
         {
             ExecResult<LinksOperationData> result = new ExecResult<LinksOperationData>();
             try
@@ -27,56 +33,40 @@ namespace EADiagramPublisher.Forms
                 // Заливаем список узлов в дерево
                 tvLinks.Nodes.Clear();
 
-                foreach (var linkType in сonnectorDataList.Keys)
+                foreach(ConnectorData connectorData in сonnectorDataList)
                 {
+                    TreeNode connectorDataNode = new TreeNode(connectorData.NameForShow());
+                    connectorDataNode.Tag = connectorData;
 
-                    // Строим узел
-                    TreeNode linkTypeNode = new TreeNode(linkType.ToString());
-                    tvLinks.Nodes.Add(linkTypeNode);
-                    //treeNode.Tag = connectorData;
-
-                    foreach(var flowID in сonnectorDataList[linkType].Keys)
-                    {
-                        TreeNode nodeForConnector;
-
-                        if (linkType == LinkType.InformationFlow)
-                        {
-                            nodeForConnector = new TreeNode(flowID);
-                            linkTypeNode.Nodes.Add(nodeForConnector);
-
-
-                        }
-                        else // для всех кроме InformationFlow не делаем узлов с flowID
-                        {
-                            nodeForConnector = linkTypeNode;
-                        }
-
-                        foreach (var connectorData in сonnectorDataList[linkType][flowID])
-                        {
-                            TreeNode connectorDataNode = new TreeNode(connectorData.NameForShow());
-                            nodeForConnector.Nodes.Add(connectorDataNode);
-
-                        }
-
-
-                    }
+                    TreeNode parentNode = GetNodeForConnectorData(connectorData);
+                    parentNode.Nodes.Add(connectorDataNode);
                 }
 
                 DialogResult res = this.ShowDialog();
                 if (res == DialogResult.OK)
                 {
                     result.code = 0;
+                    result.value = new LinksOperationData() { Connectors = new List<ConnectorData>()};
 
                     // Операция:
                     if (rbResetAll.Checked)
                         result.value.Operation = LinkSOperation.ResetAll;
                     else
-                        result.value.Operation = LinkSOperation.SetView;
-
+                        result.value.Operation = LinkSOperation.SetStyle;
 
                     // Линия и Цвет
+                    result.value.SetLineWidth = chkSetLineSize.Checked;
+                    result.value.LineWidth = (int)nudLineSize.Value;
+
+                    result.value.SetColor = chkSetColor.Checked;
                     result.value.Color = pbColor.BackColor;
-                    result.value.LineSize = (int)nudLineSize.Value;
+
+                    result.value.SetLineStyle = chkSetLineStyle.Checked;
+                    if (cbLineStyle.SelectedIndex == 0)
+                        result.value.LineStyle = EA.LinkLineStyle.LineStyleOrthogonalRounded;
+                    else
+                        result.value.LineStyle = EA.LinkLineStyle.LineStyleDirect; 
+
 
                     // Собираем список отмеченных
                     result.value.Connectors = new List<ConnectorData>();
@@ -99,7 +89,6 @@ namespace EADiagramPublisher.Forms
             return result;
         }
 
-        /*
         /// <summary>
         /// Ищет родительский узел для узла, если не находит - создаёт
         /// Создаются служебные узлы уровня TBD
@@ -129,6 +118,14 @@ namespace EADiagramPublisher.Forms
 
                 tvLinks.Nodes.Add(linkTypeNode);
             }
+
+            // Для всех узлов кроме InformationFlow нужен только 1 уровень  = linkType
+            if(connectorData.LinkType != LinkType.InformationFlow)
+            {
+                return linkTypeNode;
+            }
+
+            // для InformationFlow делаем ещё один уровень с flowID
 
             TreeNode flowIDLevelNode = null;
 
@@ -161,7 +158,7 @@ namespace EADiagramPublisher.Forms
 
             return flowIDLevelNode;
         }
-        */
+
 
         /// <summary>
         /// Вспомогательная рекурсивная функция для возврата отмеченных узлов с  заполеннным коннектором
@@ -171,7 +168,7 @@ namespace EADiagramPublisher.Forms
         private List<ConnectorData> GetTreeCheckedNodesData(TreeNode node)
         {
             List<ConnectorData> result = new List<ConnectorData>();
-            if (node.Checked && ((ConnectorData)node.Tag)._ConnectorID != 0)
+            if (node.Checked && node.Tag!=null && ((ConnectorData)node.Tag)._ConnectorID != 0)
                 result.Add((ConnectorData)node.Tag);
 
             foreach (TreeNode childNode in node.Nodes)
@@ -182,6 +179,58 @@ namespace EADiagramPublisher.Forms
             return result;
         }
 
+        private void btnSelectColor_Click(object sender, EventArgs e)
+        {
+            ColorDialog colorDialog = new ColorDialog();
+            DialogResult dialogResult = colorDialog.ShowDialog();
+            if(dialogResult == DialogResult.OK)
+            {
+                pbColor.BackColor = colorDialog.Color;
+            }
+        }
 
+        private void btnExpandTree_Click(object sender, EventArgs e)
+        {
+            tvLinks.ExpandAll();
+        }
+
+
+        // Updates all child tree nodes recursively.
+        private void CheckAllChildNodes(TreeNode treeNode, bool nodeChecked)
+        {
+            foreach (TreeNode node in treeNode.Nodes)
+            {
+                node.Checked = nodeChecked;
+                if (node.Nodes.Count > 0)
+                {
+                    // If the current node has child nodes, call the CheckAllChildsNodes method recursively.
+                    this.CheckAllChildNodes(node, nodeChecked);
+                }
+            }
+        }
+
+        private void tvLinks_AfterCheck(object sender, TreeViewEventArgs e)
+        {
+            CheckAllChildNodes(e.Node, e.Node.Checked);
+        }
+
+        private void btnSelect_Click(object sender, EventArgs e)
+        {
+            // Выделение коннекторов, связанных с элементами, относящимися к ПО
+            if(clbNodeGroups.SelectedItems.Count > 0)
+            {
+                List<string> selectedSoftware = new List<string>();
+                foreach (var selectedItem in clbNodeGroups.SelectedItems)
+                    selectedSoftware.Add(selectedItem.ToString());
+
+
+                List<ConnectorData> connectorsToSelect = LinkDesignerHelper.GetDAForSoftwareOnDiagram(selectedSoftware);
+            }
+
+            
+
+
+
+        }
     }
 }

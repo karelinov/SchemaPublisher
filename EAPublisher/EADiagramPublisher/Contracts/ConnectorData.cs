@@ -34,22 +34,54 @@ namespace EADiagramPublisher.Contracts
         public string NameForShow()
         {
             string result = Name;
-            if(result == "")
+            if (result == "")
             {
                 result = LinkType.ToString();
             }
 
 
-            if (SourceElementID !=0)
+            if (SourceElementID != 0)
             {
                 result += " " + EAHelper.DumpObject(Context.EARepository.GetElementByID(SourceElementID));
             }
-            if(TargetElementID !=0)
+            if (TargetElementID != 0)
             {
                 result += "-" + EAHelper.DumpObject(Context.EARepository.GetElementByID(TargetElementID));
             }
 
             return result;
         }
+
+        public ConnectorData(EA.DiagramLink diagramLink)
+        {
+            _ConnectorID = diagramLink.ConnectorID;
+
+            Name = Connector.Name;
+            LinkType = LTHelper.GetConnectorType(Connector);
+            FlowID = EAHelper.GetTaggedValue(Connector, DAConst.DP_FlowIDTag);
+            SegmentID = EAHelper.GetTaggedValue(Connector, DAConst.DP_SegmentIDTag);
+
+            SourceElementID = Connector.ClientID;
+            TargetElementID = Connector.SupplierID;
+        }
+
+        public ConnectorData(EA.Connector connector)
+        {
+            Connector = connector;
+
+            Name = Connector.Name;
+            LinkType = LTHelper.GetConnectorType(connector);
+            FlowID = EAHelper.GetTaggedValue(connector, DAConst.DP_FlowIDTag);
+            SegmentID = EAHelper.GetTaggedValue(connector, DAConst.DP_SegmentIDTag);
+
+            SourceElementID = connector.ClientID;
+            TargetElementID = connector.SupplierID;
+        }
+
+        public ConnectorData()
+        {
+
+        }
+
     }
 }

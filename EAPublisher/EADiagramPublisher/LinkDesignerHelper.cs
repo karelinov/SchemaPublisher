@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using EADiagramPublisher.Contracts;
@@ -101,9 +102,9 @@ namespace EADiagramPublisher
                     Context.ConnectorData[createNewLinkData.LinkType].Add(createNewLinkData.FlowID, new List<ConnectorData>());
                 }
 
-                Context.ConnectorData[createNewLinkData.LinkType][createNewLinkData.FlowID].Add(createNewLinkData); 
+                Context.ConnectorData[createNewLinkData.LinkType][createNewLinkData.FlowID].Add(createNewLinkData);
             }
-                
+
 
 
 
@@ -180,7 +181,7 @@ namespace EADiagramPublisher
                                 connectorData.SegmentID = connectorSegmentID;
 
                                 connectorData.SourceElementID = curConnector.ClientID;
-                                connectorData.TargetElementID  = curConnector.SupplierID;
+                                connectorData.TargetElementID = curConnector.SupplierID;
 
                                 if (!result[connectorLinkType][connectorFlowID].Contains(connectorData, ConnectorDataEqualityComparer))
                                     result[connectorLinkType][connectorFlowID].Add(connectorData);
@@ -201,20 +202,71 @@ namespace EADiagramPublisher
 
 
 
-    }
 
-    /// <summary>
-    /// LINQ+lambda слажали по производительности, пришлось написать свой Comparer для ConnectorData
-    /// </summary>
-    public class IEqualityComparer_ConnectorData:IEqualityComparer<ConnectorData>  {
-        public bool Equals(ConnectorData x, ConnectorData y)
+        public static void ApplyStyleToDiagramLink(EA.DiagramLink diagramLink, bool setLineWidth, int lineWidth, bool setColor, Color color, bool setLineStyle, EA.LinkLineStyle lineStyle)
         {
-            return x._ConnectorID == y._ConnectorID;
+            if (setLineWidth)
+                diagramLink.LineWidth = lineWidth;
+
+            if (setColor)
+                diagramLink.LineColor = (color.B * 256 + color.G) * 256 + color.R;
+
+            if (setLineStyle)
+                diagramLink.LineStyle = lineStyle;
+
+
+            diagramLink.Update();
         }
 
-        public int GetHashCode(ConnectorData obj)
+        /// <summary>
+        /// LINQ+lambda слажали по производительности, пришлось написать свой Comparer для ConnectorData
+        /// </summary>
+        public class IEqualityComparer_ConnectorData : IEqualityComparer<ConnectorData>
         {
-            return obj.Connector.ConnectorID.GetHashCode();
+            public bool Equals(ConnectorData x, ConnectorData y)
+            {
+                return x._ConnectorID == y._ConnectorID;
+            }
+
+            public int GetHashCode(ConnectorData obj)
+            {
+                return obj.Connector.ConnectorID.GetHashCode();
+            }
         }
+
+
+        /// <summary>
+        /// Ищет на текущей диаграмме коннекторы для элементов, которые принадлежат к перечисленному ПО
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        public static List<ConnectorData> GetDAForSoftwareOnDiagram(List<string> selectedSoftware)
+        {
+            List<ConnectorData> result = new List<ConnectorData>();
+
+            foreach(EA.DiagramObject diagramObject in CurrentDiagram.DiagramObjects)
+            {
+                EA.Element element = EARepository.GetElementByID(diagramObject.ElementID);
+                string elementSoftware = LibraryHelper.GetElementSoftwareName(element);
+
+                if (selectedSoftware.Contains(elementSoftware))
+                {
+                    foreach(EA.Connector connector in element.Connectors)
+                    {
+                        EA.DiagramLink diagramLink = EAHelper.GetDLFromConnector(connector.ConnectorID);
+                        if(diagramLink !=null)
+                        {
+                            ConnectorData connectorData = new ConnectorData(connector);
+                            result.Add(connectorData);
+                        }
+                    }
+                }
+            }
+
+
+
+            return result;
+        }
+
     }
 }

@@ -427,7 +427,60 @@ namespace EADiagramPublisher
             return result;
         }
 
+        /// <summary>
+        /// Функция возвращает название ПО, которому принадлежит элемент
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        public static string GetElementSoftwareName(EA.Element element)
+        {
+            string result = "";
 
+            // пока тупо взвращаем ПО верхнего уровня
+
+            // сначала пооучаем классификатор
+            if(element.ClassifierID !=0)
+            {
+                EA.Element classifier = EARepository.GetElementByID(element.ClassifierID);
+                // проверяем наличие связи SoftwareClassifier
+                foreach(EA.Connector connector in classifier.Connectors)
+                {
+                    if (LTHelper.GetConnectorType(connector) == LinkType.SoftwareClassification && connector.ClientEnd == classifier)
+                    {
+                        result = classifier.Name;
+
+                        // есть такая связь - ползём по связям по дереву вверх
+                        // пока "сверху" есть следующий элемент, присваиваем результату имя текущего элемента
+                        EA.Connector curConnector = connector;
+
+                        while (curConnector != null)
+                        {
+                            EA.Element parent = EARepository.GetElementByID(curConnector.SupplierID);
+                            EA.Connector nextConnector = null;
+
+                            foreach (EA.Connector parentConnector in classifier.Connectors)
+                            {
+                                if (LTHelper.GetConnectorType(connector) == LinkType.SoftwareClassification && connector.ClientEnd == classifier)
+                                {
+                                    nextConnector = parentConnector;
+                                    break;
+                                }
+
+                            }
+
+                            if (nextConnector != null)
+                            {
+                                result = parent.Name;
+                            }
+
+                            curConnector = nextConnector;
+                        }
+                    }
+                }
+            }
+
+            return result;
+        }
     }
 }
 

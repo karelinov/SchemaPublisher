@@ -31,12 +31,14 @@ namespace EADiagramPublisher.Enums
         public static string DP_TempLinkDiagramIDTag = "DP_TempLinkDiagramID"; // Идентификатор диаграммы, на которой следует показать этот линк
         public static string DP_TempLinkTag = "DP_TempLink"; // признак временной связи (созданной чтобы показать инфопоток отсутствующих на диаграмме элементов)
 
+        public static string DP_SoftwareIDTag = "DP_SoftwareID"; // (уникальный только в комплексе всей цепочки идентификаторов ПО) Идентификатор ПО в ПК (декларирует, что компонент является классификатором ПО (используется в связке с LinkType = SoftwareClassification))
+
 
         public static string[] StandardTags
         {
             get
             {
-                return new string[] { DP_LibraryTag, DP_ComponentLevelTag, defaultWidthTag, defaultHeightTag, DP_LinkTypeTag, DP_FlowIDTag, DP_SegmentIDTag, DP_NameForFlowIDTag, DP_NodeGroupsTag, DP_TempLinkDiagramIDTag, DP_TempLinkTag };
+                return new string[] { DP_LibraryTag, DP_ComponentLevelTag, defaultWidthTag, defaultHeightTag, DP_LinkTypeTag, DP_FlowIDTag, DP_SegmentIDTag, DP_NodeGroupsTag, DP_TempLinkDiagramIDTag, DP_TempLinkTag, DP_SoftwareIDTag };
             }
         }
 
