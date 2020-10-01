@@ -39,15 +39,15 @@ namespace EADiagramPublisher.Forms
                 var fCreateNewLink = new FCreateNewLink();
 
                 EA.Element firstElement = Context.EARepository.GetElementByID(firstDA.ElementID);
-                fCreateNewLink.tbSource.Text = EAHelper.DumpObject(firstElement);
+                fCreateNewLink.tbSource.Text = Logger.DumpObject(firstElement);
                 fCreateNewLink.tbSource.Tag = firstElement;
 
                 EA.Element secondElement = Context.EARepository.GetElementByID(secondDA.ElementID);
-                fCreateNewLink.tbDestination.Text = EAHelper.DumpObject(secondElement);
+                fCreateNewLink.tbDestination.Text = Logger.DumpObject(secondElement);
                 fCreateNewLink.tbDestination.Tag = secondElement;
 
                 fCreateNewLink.cbFlowID.Items.Clear();
-                fCreateNewLink.cbFlowID.Items.AddRange(Context.ConnectorData[LinkType.InformationFlow].Keys.ToArray());
+                fCreateNewLink.cbFlowID.Items.AddRange(LinkDesignerHelper.GetCurrentFlowIDs());
 
 
                 DialogResult res = fCreateNewLink.ShowDialog();
@@ -107,20 +107,14 @@ namespace EADiagramPublisher.Forms
 
         private void cbFlowID_SelectedIndexChanged(object sender, EventArgs e)
         {
+            // При изменении FlowID перезагружаем комбо с сегментами
+
             string flowID = cbFlowID.Text;
 
             cbSegmentID.Items.Clear();
 
             if (flowID != "")
-            {
-                if (Context.ConnectorData[LinkType.InformationFlow].ContainsKey(flowID))
-                {
-                    foreach (ConnectorData connectorData in Context.ConnectorData[LinkType.InformationFlow][flowID])
-                    {
-                        cbSegmentID.Items.Add(connectorData.SegmentID);
-                    }
-                }
-            }
+                cbSegmentID.Items.AddRange(LinkDesignerHelper.GetSegmentsForFlowID(flowID));
 
 
         }

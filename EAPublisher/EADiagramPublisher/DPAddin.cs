@@ -10,8 +10,6 @@ namespace EADiagramPublisher
 {
     public class DPAddin
     {
-        public static Designer Designer { get; set; }
-        public static LinkDesigner LinkDesigner { get; set; }
         public static String logpath = null;
         public bool startup_done = false;
 
@@ -26,9 +24,9 @@ namespace EADiagramPublisher
         const string menuPutContourContour = "&PutContourContour";
         const string menuPutParentDHierarchyOnDiagram = "&PutParentDHierarchyOnDiagram";
         const string menuPutChildrenDHierarchyOnDiagram = "&PutChildrenDHierarchyOnDiagram";
-        const string menuPutChildrenDHierarchyOnElement = "&PutChildrenDHierarchyOnElement";
+        //const string menuPutChildrenDHierarchyOnElement = "&PutChildrenDHierarchyOnElement";
         const string menuPutChildrenDeployHierarchy = "&PutChildrenDeployHierarchy";
-        const string menuPutNodes = "&PutNodes";
+        //const string menuPutNodes = "&PutNodes";
         const string menuSetElementTags = "&SetElementTags";
 
         const string menuDesignLinks = "-&DesignLinks";
@@ -44,7 +42,7 @@ namespace EADiagramPublisher
         const string menuSetDPLibratyTag = "&SetDPLibratyTag";
         //const string menuSetDefaultSize = "&SetDefaultSize";
         const string menuReloadConnectorData = "&ReloadConnectorData";
-        const string menuDoOnStartActions = "&DoOnStartActions";
+        const string menuDoOnConnectActions = "&DoOnConnectActions";
         const string menuRunSQLQuery = "&RunSQLQuery";
 
         const string menuTest = "-&Test";
@@ -63,8 +61,8 @@ namespace EADiagramPublisher
         {
             Context.EARepository = repository;
 
-            Designer = new Designer();
-            LinkDesigner = new LinkDesigner();
+            Context.Designer = new Designer();
+            Context.LinkDesigner = new LinkDesigner();
             logpath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "EADiagramPublisher.log");
 
             return "";
@@ -99,7 +97,7 @@ namespace EADiagramPublisher
                     return subMenus;
 
                 case menuPutElement:
-                    subMenus = new string[] { menuPutContourContour, /*menuPutLibElementOnDiagram ,*/ menuPutParentDHierarchyOnDiagram /*, menuPutChildrenDHierarchyOnDiagram, menuPutChildrenDHierarchyOnElement*/, menuPutChildrenDeployHierarchy, menuPutNodes };
+                    subMenus = new string[] { menuPutContourContour, menuPutParentDHierarchyOnDiagram, menuPutChildrenDeployHierarchy};
                     return subMenus;
 
                 case menuDesignLinks:
@@ -107,7 +105,7 @@ namespace EADiagramPublisher
                     return subMenus;
 
                 case menuUtils:
-                    subMenus = new string[] { menuSetCurrentDiagram, menuSetCurrentLibrary, menuSetDPLibratyTag, menuReloadConnectorData, menuDoOnStartActions, menuRunSQLQuery};
+                    subMenus = new string[] { menuSetCurrentDiagram, menuSetCurrentLibrary, menuSetDPLibratyTag, menuReloadConnectorData, menuDoOnConnectActions, menuRunSQLQuery};
                     return subMenus;
                 case menuTest:
                     subMenus = new string[] { menuTest1 , menuTest2, menuTest3 };
@@ -154,19 +152,11 @@ namespace EADiagramPublisher
                         isEnabled = true;
                         break;
                     case menuDesign:
-                    /*
-                    case menuSetCurrentLibrary:
-                    */
-
                     case menuPutLibElementOnDiagram:
                     case menuPutContourContour:
                     case menuPutParentDHierarchyOnDiagram:
-                    //case menuPutChildrenDHierarchyOnDiagram:
-                    //case menuPutChildrenDHierarchyOnElement:
                     case menuPutChildrenDeployHierarchy:
-                    case menuPutNodes:
                     case menuSetElementTags:
-
                         isEnabled = true;
                         break;
                     
@@ -184,7 +174,7 @@ namespace EADiagramPublisher
                     case menuSetCurrentLibrary:
                     case menuSetDPLibratyTag:
                     case menuReloadConnectorData:
-                    case menuDoOnStartActions:
+                    case menuDoOnConnectActions:
                     case menuRunSQLQuery:
                         isEnabled = true;
                         break;
@@ -223,49 +213,34 @@ namespace EADiagramPublisher
             switch (itemName)
             {
                 // ------ DESIGN --------------------------------------------------------------
-                /*
-                case menuSetCurrentLibrary:
-                    var setCurrentLibraryResult = Designer.SetCurrentLibrary();
-                    OutExecResult(setCurrentLibraryResult);
-                    break;
-                */
+
                 case menuPutLibElementOnDiagram:
-                    var putLibElementResult = Designer.PutElementOnDiagram();
+                    var putLibElementResult = Context.Designer.PutElementOnDiagram();
                     OutExecResult(putLibElementResult);
                     break;
 
                 case menuPutContourContour:
-                    var putContourContourResult = Designer.PutContourContourOnDiagram(location);
+                    var putContourContourResult = Context.Designer.PutContourContourOnDiagram(location);
                     OutExecResult(putContourContourResult);
                     break;
 
                 case menuPutParentDHierarchyOnDiagram:
-                    var putDeploymentHierarchyResult = Designer.PutParentHierarchyOnDiagram();
+                    var putDeploymentHierarchyResult = Context.Designer.PutParentHierarchyOnDiagram();
                     OutExecResult(putDeploymentHierarchyResult);
                     break;
 
                 case menuPutChildrenDHierarchyOnDiagram:
-                    var putPutCDHResult = Designer.PutChildrenDHierarchyOnDiagram();
+                    var putPutCDHResult = Context.Designer.PutChildrenDHierarchyOnDiagram();
                     OutExecResult(putPutCDHResult);
                     break;
 
-                case menuPutChildrenDHierarchyOnElement:
-                    var putPutCDEResult = Designer.PutChildrenDHierarchyOnElement();
-                    OutExecResult(putPutCDEResult);
-                    break;
-
                 case menuPutChildrenDeployHierarchy:
-                    var putChildrenDeployHierarchyResult = Designer.PutChildrenDeployHierarchy(location);
+                    var putChildrenDeployHierarchyResult = Context.Designer.PutChildrenDeployHierarchy(location);
                     OutExecResult(putChildrenDeployHierarchyResult);
                     break;
 
-                case menuPutNodes:
-                    var putNodesResult = Designer.PutNodesDevicesOnDiagram(location);
-                    OutExecResult(putNodesResult);
-                    break;
-
                 case menuSetElementTags:
-                    var setElementTagsResult = Designer.SetElementTags(location);
+                    var setElementTagsResult = Context.Designer.SetElementTags(location);
                     OutExecResult(setElementTagsResult);
                     break;
 
@@ -273,27 +248,27 @@ namespace EADiagramPublisher
 
                 // ------ DESIGN LINKS --------------------------------------------------------------
                 case menuCreateLink:
-                    var createCommunicationResult = LinkDesigner.CreateLink();
+                    var createCommunicationResult = Context.LinkDesigner.CreateLink();
                     OutExecResult(createCommunicationResult);
                     break;
 
                 case menuSetLinkVisibility:
-                    var setLinkVisibilityResult = LinkDesigner.SetConnectorVisibility();
+                    var setLinkVisibilityResult = Context.LinkDesigner.SetConnectorVisibility();
                     OutExecResult(setLinkVisibilityResult);
                     break;
 
                 case menuSetConnectorTags:
-                    var setConnectorTagsResult = LinkDesigner.SetConnectorTags(location);
+                    var setConnectorTagsResult = Context.LinkDesigner.SetConnectorTags(location);
                     OutExecResult(setConnectorTagsResult);
                     break;
 
                 case menuSetSimilarLinksTags:
-                    var setSimilarLinksTags = LinkDesigner.SetSimilarLinksTags(location);
+                    var setSimilarLinksTags = Context.LinkDesigner.SetSimilarLinksTags(location);
                     OutExecResult(setSimilarLinksTags);
                     break;
 
                 case menuLinksSelection:
-                    var linksSelectionResult = LinkDesigner.LinksSelection(location);
+                    var linksSelectionResult = Context.LinkDesigner.LinksSelection(location);
                     OutExecResult(linksSelectionResult);
                     break;
 
@@ -301,7 +276,7 @@ namespace EADiagramPublisher
                 // ------ UTILS --------------------------------------------------------------
                 case menuSetCurrentDiagram:
                     Context.CurrentDiagram = Context.EARepository.GetCurrentDiagram();
-                    EAHelper.OutA("Установлена текущая диаграмма = " + Context.CurrentDiagram.Name);
+                    Logger.Out("Установлена текущая диаграмма = " + Context.CurrentDiagram.Name);
                     break;
 
                 case menuSetCurrentLibrary:
@@ -310,25 +285,18 @@ namespace EADiagramPublisher
                     break;
 
                 case menuSetDPLibratyTag:
-                    var setDPLibratyTagResult = EAHelper.SetDPLibratyTag(location);
+                    var setDPLibratyTagResult = EATVHelper.SetDPLibratyTag(location);
                     OutExecResult(setDPLibratyTagResult);
                     break;
 
 
-                /*
-                case menuSetDefaultSize:
-                    var SetElementDefaultSizeResult = EAHelper.SetElementDefaultSize();
-                    OutExecResult(SetElementDefaultSizeResult);
-                    break;
-                */
-
                 case menuReloadConnectorData:
                     Context.ConnectorData = null;
-                    EAHelper.OutA("Сброшены данные коннекторов");
+                    Logger.Out("Сброшены данные коннекторов");
                     break;
 
-                case menuDoOnStartActions:
-                    Addin_Statrtup();
+                case menuDoOnConnectActions:
+                    Addin_OnConnectActions();
                     break;
 
                 case menuRunSQLQuery:
@@ -367,7 +335,8 @@ namespace EADiagramPublisher
         ///
         public void EA_Disconnect()
         {
-            Designer = null;
+            Context.Designer = null;
+            Context.LinkDesigner = null;
             Context.EARepository = null;
 
             GC.Collect();
@@ -412,7 +381,7 @@ namespace EADiagramPublisher
                 Context.EARepository.ShowInProjectView(element);
 
                 // Запускаем формирование иерархии элементов диаграммы
-                var putDeploymentHierarchyResult = Designer.PutParentHierarchyOnDiagram();
+                var putDeploymentHierarchyResult = Context.Designer.PutParentHierarchyOnDiagram();
                 OutExecResult(putDeploymentHierarchyResult);
 
 
@@ -432,27 +401,8 @@ namespace EADiagramPublisher
             ExecResult<Boolean> result = new ExecResult<bool>();
             try
             {
-                // Открываем и чистим тестовую диаграмму 
-                EA.Diagram testDiagram = Context.EARepository.GetDiagramByGuid("{0093407F-0187-42a8-93DC-B97E8FA79EED}");
-                if (test1Flag == 0)
-                {
-
-                    while (testDiagram.DiagramObjects.Count > 0)
-                    {
-                        testDiagram.DiagramObjects.DeleteAt(0, true);
-                    }
-                    testDiagram.Update();
-                    testDiagram.DiagramObjects.Refresh();
-                    Context.EARepository.ReloadDiagram(testDiagram.DiagramID);
-                }
-
-                Context.EARepository.OpenDiagram(testDiagram.DiagramID);
-                Context.EARepository.ActivateDiagram(testDiagram.DiagramID);
-                Context.CurrentDiagram = testDiagram;
-
-                // Выделяем элемент
-                EA.Element element = Context.EARepository.GetElementByGuid("{83142BDB-7EE4-48e7-B788-0011E0E2E343}");
-                Context.EARepository.ShowInProjectView(element);
+                Context.CurrentLibrary = Context.EARepository.GetPackageByGuid("{5C806428-D2F2-4bfc-A043-3B84D3E4CACD}"); ; // SELECT * FROM t_package WHERE ea_guid = "{5C806428-D2F2-4bfc-A043-3B84D3E4CACD}"
+                LinkDesignerHelper.LoadConnectorData2();
             }
             catch (Exception ex)
             {
@@ -494,7 +444,7 @@ namespace EADiagramPublisher
         }
 
 
-        private void Addin_Statrtup()
+        private void Addin_OnConnectActions()
         {
             if (startup_done) return;
 
@@ -525,7 +475,7 @@ namespace EADiagramPublisher
             }
             catch (Exception ex)
             {
-                EAHelper.OutA("Addin_Statrtup error: " + ex.StackTrace);
+                Logger.Out("Addin_Statrtup error: " + ex.StackTrace);
             }
 
             

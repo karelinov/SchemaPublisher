@@ -35,9 +35,10 @@
             // btnOk
             // 
             this.btnOk.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.btnOk.Location = new System.Drawing.Point(330, 350);
+            this.btnOk.Location = new System.Drawing.Point(293, 280);
+            this.btnOk.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.btnOk.Name = "btnOk";
-            this.btnOk.Size = new System.Drawing.Size(117, 40);
+            this.btnOk.Size = new System.Drawing.Size(104, 32);
             this.btnOk.TabIndex = 1;
             this.btnOk.Text = "Ok";
             this.btnOk.UseVisualStyleBackColor = true;
@@ -45,21 +46,23 @@
             // clbContours
             // 
             this.clbContours.FormattingEnabled = true;
-            this.clbContours.Location = new System.Drawing.Point(12, 12);
+            this.clbContours.Location = new System.Drawing.Point(11, 10);
+            this.clbContours.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.clbContours.Name = "clbContours";
-            this.clbContours.Size = new System.Drawing.Size(308, 319);
+            this.clbContours.Size = new System.Drawing.Size(274, 242);
             this.clbContours.TabIndex = 2;
             // 
             // FSelectContourContour
             // 
             this.AcceptButton = this.btnOk;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(461, 402);
+            this.ClientSize = new System.Drawing.Size(410, 322);
             this.Controls.Add(this.clbContours);
             this.Controls.Add(this.btnOk);
+            this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.Name = "FSelectContourContour";
-            this.Text = "FSelectContourContour";
+            this.Text = "Выберите контур";
             this.ResumeLayout(false);
 
         }

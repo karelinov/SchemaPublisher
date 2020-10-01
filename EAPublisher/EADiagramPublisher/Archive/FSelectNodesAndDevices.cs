@@ -19,7 +19,7 @@ namespace EADiagramPublisher.Forms
             InitializeComponent();
 
             clbNodeGroups.Items.Clear();
-            clbNodeGroups.Items.AddRange(EAHelper.GetNodeGroupEnum().ToArray());
+            clbNodeGroups.Items.AddRange(LibraryHelper.GetNodeGroupEnum().ToArray());
 
         }
 

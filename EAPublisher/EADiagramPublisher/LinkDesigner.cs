@@ -42,11 +42,11 @@ namespace EADiagramPublisher
         {
             ExecResult<Boolean> result = new ExecResult<bool>();
 
-            EAHelper.Out("");
+            Logger.Out("");
 
             try
             {
-                if (!EAHelper.CheckCurrentDiagram())
+                if (!Context.CheckCurrentDiagram())
                     throw new Exception("Не установлена или не открыта текущая диаграмма");
 
 
@@ -63,7 +63,7 @@ namespace EADiagramPublisher
                 if (!LibraryHelper.IsLibrary(firstElement) || !LibraryHelper.IsLibrary(secondElement))
                     throw new Exception("Должны быть выделены библиотечные элементы");
 
-                EAHelper.Out("Выделенные элементы: ", new EA.Element[] { firstElement, secondElement });
+                Logger.Out("Выделенные элементы: ", new EA.Element[] { firstElement, secondElement });
 
                 // запускаем форму
                 ExecResult<ConnectorData> createNewLinkData = FCreateNewLink.Execute(firstDA, secondDA);
@@ -80,7 +80,7 @@ namespace EADiagramPublisher
                             LinkType connectorLinkType = LTHelper.GetConnectorType(connector);
                             if (createNewLinkData.value.LinkType == connectorLinkType)
                             {
-                                if (EAHelper.GetTaggedValue(connector, DAConst.DP_FlowIDTag) == createNewLinkData.value.FlowID && EAHelper.GetTaggedValue(connector, DAConst.DP_SegmentIDTag) == createNewLinkData.value.SegmentID)
+                                if (EATVHelper.GetTaggedValue(connector, DAConst.DP_FlowIDTag) == createNewLinkData.value.FlowID && EATVHelper.GetTaggedValue(connector, DAConst.DP_SegmentIDTag) == createNewLinkData.value.SegmentID)
                                 {
                                     throw new Exception("Запрашиваемая связь уже существует");
                                 }
@@ -96,7 +96,7 @@ namespace EADiagramPublisher
                 CurrentDiagram.DiagramLinks.Refresh();
                 EARepository.ReloadDiagram(CurrentDiagram.DiagramID);
 
-                EAHelper.Out("Создан ", new EA.Connector[] { newConnector });
+                Logger.Out("Создан ", new EA.Connector[] { newConnector });
 
             }
             catch (Exception ex)
@@ -112,12 +112,12 @@ namespace EADiagramPublisher
         {
             ExecResult<Boolean> result = new ExecResult<bool>();
 
-            EAHelper.Out("");
+            Logger.Out("");
 
             try
             {
 
-                if (!EAHelper.CheckCurrentDiagram())
+                if (!Context.CheckCurrentDiagram())
                     throw new Exception("Не установлена или не открыта текущая диаграмма");
 
                 // запускаем форму
@@ -173,7 +173,7 @@ namespace EADiagramPublisher
                     }
                     catch (Exception ex)
                     {
-                        EAHelper.OutA("Не удалось определить тип коннектора " + ex.StackTrace, new EA.Connector[] { connector });
+                        Logger.OutA("Не удалось определить тип коннектора " + ex.StackTrace, new EA.Connector[] { connector });
                         continue;
                     }
 
@@ -301,11 +301,11 @@ namespace EADiagramPublisher
 
                         if (curTagData.TagState == false)
                         {
-                            EAHelper.TaggedValueRemove(selectedConnector, curTagData.TagName);
+                            EATVHelper.TaggedValueRemove(selectedConnector, curTagData.TagName);
                         }
                         else
                         {
-                            EAHelper.TaggedValueSet(selectedConnector, curTagData.TagName, curTagData.TagValue);
+                            EATVHelper.TaggedValueSet(selectedConnector, curTagData.TagName, curTagData.TagValue);
                         }
                     }
                 }
@@ -383,11 +383,11 @@ namespace EADiagramPublisher
 
                             if (curTagData.TagState == false)
                             {
-                                EAHelper.TaggedValueRemove(connector, curTagData.TagName);
+                                EATVHelper.TaggedValueRemove(connector, curTagData.TagName);
                             }
                             else
                             {
-                                EAHelper.TaggedValueSet(connector, curTagData.TagName, curTagData.TagValue);
+                                EATVHelper.TaggedValueSet(connector, curTagData.TagName, curTagData.TagValue);
                             }
                         }
                     }

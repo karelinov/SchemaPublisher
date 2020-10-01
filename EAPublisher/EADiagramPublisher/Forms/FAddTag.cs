@@ -77,12 +77,12 @@ namespace EADiagramPublisher.Forms
             else if(cbTagName.Text == DAConst.DP_NodeGroupsTag)
             {
                 cbTagValue.Items.Clear();
-                cbTagValue.Items.AddRange(EAHelper.GetNodeGroupEnum().ToArray());
+                cbTagValue.Items.AddRange(LibraryHelper.GetNodeGroupEnum().ToArray());
             }
             else if (cbTagName.Text == DAConst.DP_FlowIDTag)
             {
                 cbTagValue.Items.Clear();
-                cbTagValue.Items.AddRange(Context.ConnectorData[LinkType.InformationFlow].Keys.ToArray());
+                cbTagValue.Items.AddRange(LinkDesignerHelper.GetCurrentFlowIDs());
             }
             else
             {

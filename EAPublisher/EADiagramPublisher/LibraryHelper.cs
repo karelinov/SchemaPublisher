@@ -36,6 +36,153 @@ namespace EADiagramPublisher
         }
 
         /// <summary>
+        /// Вспомопгтельная функция определяет, предназанчен ли библиотечный элемнет для размещения на диаграмме
+        /// Правила: Контуры = разрешён Classifier, остальные компоненты - только Instance
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        public static bool AppropriateForDiagram(EA.Element element)
+        {
+            bool result = false;
+
+            ComponentLevel componentLevel = CLHelper.GetComponentLevel(element);
+
+            switch (componentLevel)
+            {
+                case ComponentLevel.SystemContour:
+                case ComponentLevel.ContourContour:
+
+                    result = true;
+                    break;
+
+                case ComponentLevel.SystemComponent:
+                case ComponentLevel.ContourComponent:
+                case ComponentLevel.Node:
+                case ComponentLevel.Device:
+                case ComponentLevel.ExecutionEnv:
+                case ComponentLevel.Component:
+
+                    result = element.ClassfierID != 0;
+                    break;
+
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Возвращает Список дочерних (deploy) объектов для указанного (дальнейшая иерархия не раскручивается)
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        public static List<EA.Element> GetDeployChildren(EA.Element element)
+        {
+            List<EA.Element> result = new List<EA.Element>();
+
+            foreach (EA.Connector connector in element.Connectors)
+            {
+                if (LinkDesignerHelper.IsDeploymentLink(connector) && connector.SupplierID == element.ElementID)
+                {
+                    result.Add(EARepository.GetElementByID(connector.ClientID));
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Возвращает дерево дочерних (deploy) элементов для указанного элемента
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        public static DPTreeNode<EA.Element> GetDeployChildrenHierarchy(EA.Element element)
+        {
+            // Создаём корень
+            DPTreeNode<EA.Element> result = new DPTreeNode<EA.Element>(element);
+
+            // Получаем непосредственно размещённые элементы
+            List<EA.Element> children = GetDeployChildren(element);
+
+            // Проходимся по вложениям
+            foreach (EA.Element child in children)
+            {
+                // получаем дочернее дерево и добавляем его к корневому узлу
+                DPTreeNode<EA.Element> childTree = GetDeployChildrenHierarchy(child);
+                result.AddChildNode(childTree);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Возвращает Список всех дочерних (deploy, всё дерево) элементов диаграммы, присутствующих на диаграмме
+        /// </summary>
+        /// <param name="eaElement"></param>
+        /// <returns></returns>
+        public static List<EA.DiagramObject> GetDeployChildrenHierarchyDA(EA.Element eaElement)
+        {
+            List<EA.DiagramObject> result = new List<EA.DiagramObject>();
+
+            // Получаем собственно дочерних
+            List<EA.Element> childrenElements = GetChildHierarchy(eaElement);
+
+            // для каждого проверяем, нет ли его на диаграмме
+            foreach (EA.Element childElement in childrenElements)
+            {
+                EA.DiagramObject childElementDA = Context.CurrentDiagram.GetDiagramObjectByID(childElement.ElementID, "");
+                if (childElementDA != null) // если есть на диаграмме - добавляем его в результат
+                {
+                    result.Add(childElementDA);
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Возвращает если есть родительский элемент размещения
+        /// </summary>
+        public static EA.Element GetDeployParent(EA.Element eaElement)
+        {
+            EA.Element result = null;
+
+
+            foreach (EA.Connector connector in eaElement.Connectors)
+            {
+                if (LinkDesignerHelper.IsDeploymentLink(connector) && connector.ClientID == eaElement.ElementID)
+                {
+                    result = EARepository.GetElementByID(connector.SupplierID);
+                    break;
+                }
+            }
+
+
+            return result;
+        }
+
+        /// <summary>
+        /// Возвращает Список элементов диаграммы, являющихся для него родительскими
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns>Отсортированный в сооответствии с род. иерархией список DiagramObjects</returns>
+        public static List<EA.DiagramObject> GetDeployParentHierarchyDA(EA.Element element)
+        {
+            List<EA.DiagramObject> result = new List<EA.DiagramObject>();
+
+            // Получаем список родительской иерархии
+            List<EA.Element> parentHierarchy = GetParentHierarchy(element);
+
+            foreach (EA.Element curParent in parentHierarchy)
+            {
+                EA.DiagramObject curParentDA = Context.Designer.CurrentDiagram.GetDiagramObjectByID(curParent.ElementID, "");
+                if (curParentDA != null)
+                    result.Add(curParentDA);
+            }
+
+            return result;
+        }
+
+        /// <summary>
         /// Возвращает, если есть, название (ближайшего) контура, в который включен компонент
         /// </summary>
         /// <param name="curElement"></param>
@@ -44,7 +191,7 @@ namespace EADiagramPublisher
         {
             EA.Element result = null;
 
-            List<EA.Element> parentDeployHierrchy = EAHelper.GetParentHierarchy(curElement);
+            List<EA.Element> parentDeployHierrchy = GetParentHierarchy(curElement);
 
             foreach (EA.Element curParent in parentDeployHierrchy)
             {
@@ -52,6 +199,61 @@ namespace EADiagramPublisher
                 {
                     result = curParent;
                     break;
+                }
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Функция возвращает название ПО, которому принадлежит элемент
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        public static string GetElementSoftwareName(EA.Element element)
+        {
+            string result = "";
+
+            // пока тупо взвращаем ПО верхнего уровня
+
+            // сначала пооучаем классификатор
+            if (element.ClassifierID != 0)
+            {
+                EA.Element classifier = EARepository.GetElementByID(element.ClassifierID);
+                // проверяем наличие связи SoftwareClassifier
+                foreach (EA.Connector connector in classifier.Connectors)
+                {
+                    if (LTHelper.GetConnectorType(connector) == LinkType.SoftwareClassification && connector.ClientEnd == classifier)
+                    {
+                        result = classifier.Name;
+
+                        // есть такая связь - ползём по связям по дереву вверх
+                        // пока "сверху" есть следующий элемент, присваиваем результату имя текущего элемента
+                        EA.Connector curConnector = connector;
+
+                        while (curConnector != null)
+                        {
+                            EA.Element parent = EARepository.GetElementByID(curConnector.SupplierID);
+                            EA.Connector nextConnector = null;
+
+                            foreach (EA.Connector parentConnector in classifier.Connectors)
+                            {
+                                if (LTHelper.GetConnectorType(connector) == LinkType.SoftwareClassification && connector.ClientEnd == classifier)
+                                {
+                                    nextConnector = parentConnector;
+                                    break;
+                                }
+
+                            }
+
+                            if (nextConnector != null)
+                            {
+                                result = parent.Name;
+                            }
+
+                            curConnector = nextConnector;
+                        }
+                    }
                 }
             }
 
@@ -148,7 +350,7 @@ namespace EADiagramPublisher
                             nodeData.Element = curElement;
                             nodeData.ComponentLevel = CLHelper.GetComponentLevel(curElement);
                             nodeData.Contour = GetElementContour(curElement);
-                            nodeData.GroupNames = EAHelper.GetTaggedValue(curElement, DAConst.DP_NodeGroupsTag).Split(',');
+                            nodeData.GroupNames = EATVHelper.GetTaggedValue(curElement, DAConst.DP_NodeGroupsTag).Split(',');
                             result.Add(nodeData);
                         }
                     }
@@ -164,42 +366,64 @@ namespace EADiagramPublisher
 
             return result;
         }
-
         /// <summary>
-        /// Вспомопгтельная функция определяет, предназанчен ли библиотечный элемнет для размещения на диаграмме
-        /// Правила: Контуры = разрешён Classifier, остальные компоненты - только Instance
+        /// Возвращает перечисление со списком возможных групп узлов из заведённого в библиотеке элемента
         /// </summary>
-        /// <param name=""></param>
         /// <returns></returns>
-        public static bool AppropriateForDiagram(EA.Element element)
+        public static List<string> GetNodeGroupEnum()
         {
-            bool result = false;
+            List<string> result = new List<string>();
 
-            ComponentLevel componentLevel = CLHelper.GetComponentLevel(element);
-
-            switch (componentLevel)
+            EA.Element ngEnumElement = EARepository.GetElementByGuid(DAConst.DP_NodeGroupsEnumGUID);
+            foreach (EA.Attribute attribute in ngEnumElement.Attributes)
             {
-                case ComponentLevel.SystemContour:
-                case ComponentLevel.ContourContour:
-
-                    result = true;
-                    break;
-
-                case ComponentLevel.SystemComponent:
-                case ComponentLevel.ContourComponent:
-                case ComponentLevel.Node:
-                case ComponentLevel.Device:
-                case ComponentLevel.ExecutionEnv:
-                case ComponentLevel.Component:
-
-                    result = element.ClassfierID != 0;
-                    break;
-
+                result.Add(attribute.Name);
             }
 
             return result;
         }
 
+        /// <summary>
+        /// Возвращает Родительскую иерархию размещения объектов начиная от указанного
+        /// </summary>
+        /// <param name="eaElement"></param>
+        /// <returns></returns>
+        public static List<EA.Element> GetParentHierarchy(EA.Element eaElement)
+        {
+            List<EA.Element> result = new List<EA.Element>();
+
+            EA.Element parentEAElement = eaElement;
+            do
+            {
+                parentEAElement = GetDeployParent(parentEAElement);
+                if (parentEAElement != null) result.Add(parentEAElement);
+
+            } while (parentEAElement != null);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Проверяет, что child размещён в parent
+        /// т.е. есть библиотечный линк, направленный от child к parent , тип линка = Deploy
+        /// </summary>
+        /// <param name="childElement"></param>
+        /// <param name="parentElement"></param>
+        /// <returns></returns>
+        public static bool IsDeployed(EA.Element childElement, EA.Element parentElement)
+        {
+            bool result = false;
+
+            foreach (EA.Connector connector in childElement.Connectors)
+            {
+                if (LinkDesignerHelper.IsDeploymentLink(connector) && connector.ClientID == childElement.ElementID)
+                {
+                    result = true;
+                    break;
+                }
+            }
+            return result;
+        }
 
         /// <summary>
         /// Проверяет, что элемент является библиотечным. Если это инстанс, проверяет также класс
@@ -213,7 +437,7 @@ namespace EADiagramPublisher
             if (element.Type != "DeploymentSpecification")
             {
 
-                EA.Collection taggedValues = EAHelper.GetTaggedValues(element);
+                EA.Collection taggedValues = EATVHelper.GetTaggedValues(element);
                 if (taggedValues != null && taggedValues.GetByName(DAConst.DP_LibraryTag) != null)
                 {
                     result = true;
@@ -262,6 +486,62 @@ namespace EADiagramPublisher
             {
                 result.setException(ex);
             }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Вычисляет (предлагаемый) ID инфопотока, исходящего из элемента
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        public static string SuggestFlowIDName(EA.Element element)
+        {
+            string result = "";
+
+            string flowID = EATVHelper.GetTaggedValue(element, DAConst.DP_NameForFlowIDTag, false);
+
+            // от данного элемента лезем вверх по его  свзям SoftwareClassification и склеиваем тэги DP_NameForFlowID
+            List<EA.Element> connectedElements = LinkDesignerHelper.GetConnectedElements(element, LinkType.SoftwareClassification, 1);
+            // если у элемента нет таких зависимостей, но есть классификатор - ищем зависимости у классификатора
+            if (connectedElements.Count == 0)
+            {
+                if (element.ClassifierID != 0)
+                {
+                    flowID = EATVHelper.GetTaggedValue(element, DAConst.DP_NameForFlowIDTag, false);
+                    connectedElements = LinkDesignerHelper.GetConnectedElements(EARepository.GetElementByID(element.ClassifierID), LinkType.SoftwareClassification, 1);
+                }
+            }
+
+            while (connectedElements.Count > 0)
+            {
+                string nextname = EATVHelper.GetTaggedValue(connectedElements[0], DAConst.DP_NameForFlowIDTag, false);
+                if (nextname != "")
+                {
+                    if (flowID == "")
+                        flowID = nextname;
+                    else
+                        flowID = nextname + "." + flowID;
+                }
+
+                connectedElements = LinkDesignerHelper.GetConnectedElements(connectedElements[0], LinkType.SoftwareClassification, 1);
+            }
+
+            // Теперь ищем подбираем номер
+            int segmentNumber = 1;
+
+            string flowIDWithNumber = flowID + " " + segmentNumber.ToString();
+
+            throw new NotImplementedException();
+            /*
+            while (Context.ConnectorData[LinkType.SoftwareClassification].ContainsKey(flowIDWithNumber))
+            {
+                segmentNumber++;
+                flowIDWithNumber = flowID + " " + segmentNumber.ToString();
+            }
+            */
+
+            result = flowIDWithNumber;
 
             return result;
         }
@@ -375,108 +655,23 @@ namespace EADiagramPublisher
         }
 
         /// <summary>
-        /// Вычисляет (предлагаемый) ID инфопотока, исходящего из элемента
+        /// Возвращает Дочернюю иерархию размещения объектов начиная от указанного
         /// </summary>
-        /// <param name="element"></param>
+        /// <param name="eaElement"></param>
         /// <returns></returns>
-        public static string SuggestFlowIDName(EA.Element element)
+        public static List<EA.Element> GetChildHierarchy(EA.Element eaElement)
         {
-            string result = "";
+            List<EA.Element> result = new List<EA.Element>();
 
-            string flowID = EAHelper.GetTaggedValue(element, DAConst.DP_NameForFlowIDTag, false) ;
+            // Добавляем к результату непосредственных детей
+            List<EA.Element> children = GetDeployChildren(eaElement);
+            result.AddRange(children);
 
-            // от данного элемента лезем вверх по его  свзям SoftwareClassification и склеиваем тэги DP_NameForFlowID
-            List<EA.Element> connectedElements = EAHelper.GetConnectedElements(element, LinkType.SoftwareClassification, 1);
-            // если у элемента нет таких зависимостей, но есть классификатор - ищем зависимости у классификатора
-            if (connectedElements.Count == 0)
+            // Проходимся по непосредственных детей и тянем из них рекурсией уже внуков
+            foreach (EA.Element childElement in children)
             {
-                if(element.ClassifierID !=0)
-                {
-                    flowID = EAHelper.GetTaggedValue(element, DAConst.DP_NameForFlowIDTag, false);
-                    connectedElements = EAHelper.GetConnectedElements(EARepository.GetElementByID(element.ClassifierID) , LinkType.SoftwareClassification, 1);
-                }
-            }
-
-            while (connectedElements.Count >0)
-            {
-                string nextname = EAHelper.GetTaggedValue(connectedElements[0], DAConst.DP_NameForFlowIDTag, false);
-                if (nextname != "")
-                {
-                    if (flowID == "")
-                        flowID = nextname;
-                    else
-                        flowID = nextname +"."+ flowID;
-                }
-
-                connectedElements = EAHelper.GetConnectedElements(connectedElements[0], LinkType.SoftwareClassification, 1);
-            }
-
-            // Теперь ищем подбираем номер
-            int segmentNumber = 1;
-
-            string flowIDWithNumber = flowID + " " + segmentNumber.ToString();
-
-            while (Context.ConnectorData[LinkType.SoftwareClassification].ContainsKey(flowIDWithNumber))
-            {
-                segmentNumber++;
-                flowIDWithNumber = flowID + " " + segmentNumber.ToString();
-            }
-
-            result = flowIDWithNumber;
-
-            return result;
-        }
-
-        /// <summary>
-        /// Функция возвращает название ПО, которому принадлежит элемент
-        /// </summary>
-        /// <param name="element"></param>
-        /// <returns></returns>
-        public static string GetElementSoftwareName(EA.Element element)
-        {
-            string result = "";
-
-            // пока тупо взвращаем ПО верхнего уровня
-
-            // сначала пооучаем классификатор
-            if(element.ClassifierID !=0)
-            {
-                EA.Element classifier = EARepository.GetElementByID(element.ClassifierID);
-                // проверяем наличие связи SoftwareClassifier
-                foreach(EA.Connector connector in classifier.Connectors)
-                {
-                    if (LTHelper.GetConnectorType(connector) == LinkType.SoftwareClassification && connector.ClientEnd == classifier)
-                    {
-                        result = classifier.Name;
-
-                        // есть такая связь - ползём по связям по дереву вверх
-                        // пока "сверху" есть следующий элемент, присваиваем результату имя текущего элемента
-                        EA.Connector curConnector = connector;
-
-                        while (curConnector != null)
-                        {
-                            EA.Element parent = EARepository.GetElementByID(curConnector.SupplierID);
-                            EA.Connector nextConnector = null;
-
-                            foreach (EA.Connector parentConnector in classifier.Connectors)
-                            {
-                                if (LTHelper.GetConnectorType(connector) == LinkType.SoftwareClassification && connector.ClientEnd == classifier)
-                                {
-                                    nextConnector = parentConnector;
-                                    break;
-                                }
-
-                            }
-
-                            if (nextConnector != null)
-                            {
-                                result = parent.Name;
-                            }
-
-                            curConnector = nextConnector;
-                        }
-                    }
-                }
+                List<EA.Element> grandСhildren = GetChildHierarchy(childElement);
+                result.AddRange(grandСhildren);
             }
 
             return result;

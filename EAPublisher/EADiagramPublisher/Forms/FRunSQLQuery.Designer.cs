@@ -30,10 +30,10 @@
         {
             this.tcQuery = new System.Windows.Forms.TabControl();
             this.tpQuery = new System.Windows.Forms.TabPage();
+            this.tbQuery = new System.Windows.Forms.TextBox();
             this.tpResults = new System.Windows.Forms.TabPage();
             this.wbResults = new System.Windows.Forms.WebBrowser();
             this.btnRun = new System.Windows.Forms.Button();
-            this.tbQuery = new System.Windows.Forms.TextBox();
             this.panel2 = new System.Windows.Forms.Panel();
             this.tcQuery.SuspendLayout();
             this.tpQuery.SuspendLayout();
@@ -62,6 +62,16 @@
             this.tpQuery.TabIndex = 0;
             this.tpQuery.Text = "Запрос";
             this.tpQuery.UseVisualStyleBackColor = true;
+            // 
+            // tbQuery
+            // 
+            this.tbQuery.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tbQuery.Location = new System.Drawing.Point(3, 3);
+            this.tbQuery.Multiline = true;
+            this.tbQuery.Name = "tbQuery";
+            this.tbQuery.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.tbQuery.Size = new System.Drawing.Size(1094, 583);
+            this.tbQuery.TabIndex = 0;
             // 
             // tpResults
             // 
@@ -93,15 +103,6 @@
             this.btnRun.Text = "Run";
             this.btnRun.UseVisualStyleBackColor = true;
             this.btnRun.Click += new System.EventHandler(this.btnRun_Click);
-            // 
-            // tbQuery
-            // 
-            this.tbQuery.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tbQuery.Location = new System.Drawing.Point(3, 3);
-            this.tbQuery.Multiline = true;
-            this.tbQuery.Name = "tbQuery";
-            this.tbQuery.Size = new System.Drawing.Size(1094, 583);
-            this.tbQuery.TabIndex = 0;
             // 
             // panel2
             // 

@@ -25,15 +25,15 @@ namespace EADiagramPublisher.Enums
 
                 if (eaElement.Type == "Boundary")
                 {
-                    if (EAHelper.GetTaggedValues(eaElement).GetByName(DAConst.DP_ComponentLevelTag) == null || EAHelper.GetTaggedValues(eaElement).GetByName(DAConst.DP_ComponentLevelTag).Value == "")
+                    if (EATVHelper.GetTaggedValues(eaElement).GetByName(DAConst.DP_ComponentLevelTag) == null || EATVHelper.GetTaggedValues(eaElement).GetByName(DAConst.DP_ComponentLevelTag).Value == "")
                         throw new Exception("Не определён уровень компонента контура ");
 
                     //EA.TaggedValue taggedValue = GetTaggedValues(eaElement).GetByName(DP_ComponentLevel);
-                    return (ComponentLevel)Enum.Parse(typeof(ComponentLevel), EAHelper.GetTaggedValues(eaElement).GetByName(DAConst.DP_ComponentLevelTag).Value);
+                    return (ComponentLevel)Enum.Parse(typeof(ComponentLevel), EATVHelper.GetTaggedValues(eaElement).GetByName(DAConst.DP_ComponentLevelTag).Value);
                 }
-                else if (EAHelper.GetTaggedValues(eaElement).GetByName(DAConst.DP_ComponentLevelTag) != null)
+                else if (EATVHelper.GetTaggedValues(eaElement).GetByName(DAConst.DP_ComponentLevelTag) != null)
                 {
-                    return Enum.Parse(typeof(ComponentLevel), EAHelper.GetTaggedValues(eaElement).GetByName(DAConst.DP_ComponentLevelTag).Value);
+                    return Enum.Parse(typeof(ComponentLevel), EATVHelper.GetTaggedValues(eaElement).GetByName(DAConst.DP_ComponentLevelTag).Value);
                 }
                 else if (eaElement.Type == "Component")
                 {
@@ -63,7 +63,7 @@ namespace EADiagramPublisher.Enums
             }
             catch (Exception ex)
             {
-                EAHelper.OutA(ex.ToString(), new EA.Element[] { eaElement });
+                Logger.OutA(ex.ToString(), new EA.Element[] { eaElement });
                 throw ex;
             }
 

@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Xml.Linq;
+using System.Xml.XPath;
 using EADiagramPublisher.Contracts;
 using EADiagramPublisher.Enums;
 using EADiagramPublisher.Forms;
+using EADiagramPublisher.SQL;
 
 namespace EADiagramPublisher
 {
@@ -14,16 +17,6 @@ namespace EADiagramPublisher
     /// </summary>
     class LinkDesignerHelper
     {
-        /// <summary>
-        /// Shortcut для глобальной переменной EA.Repository
-        /// </summary>
-        private static EA.Repository EARepository
-        {
-            get
-            {
-                return Context.EARepository;
-            }
-        }
         /// <summary>
         /// Shortcut до глобальной переменной с EA.Diagram + логика установки
         /// </summary>
@@ -36,6 +29,30 @@ namespace EADiagramPublisher
 
         }
 
+        /// <summary>
+        /// Shortcut для глобальной переменной EA.Repository
+        /// </summary>
+        private static EA.Repository EARepository
+        {
+            get
+            {
+                return Context.EARepository;
+            }
+        }
+        public static void ApplyStyleToDiagramLink(EA.DiagramLink diagramLink, bool setLineWidth, int lineWidth, bool setColor, Color color, bool setLineStyle, EA.LinkLineStyle lineStyle)
+        {
+            if (setLineWidth)
+                diagramLink.LineWidth = lineWidth;
+
+            if (setColor)
+                diagramLink.LineColor = (color.B * 256 + color.G) * 256 + color.R;
+
+            if (setLineStyle)
+                diagramLink.LineStyle = lineStyle;
+
+
+            diagramLink.Update();
+        }
 
         public static EA.Connector CreateConnector(ConnectorData createNewLinkData, bool putOnDiagram = true)
         {
@@ -83,10 +100,10 @@ namespace EADiagramPublisher
 
             newConnector.Update();
 
-            EAHelper.TaggedValueSet(newConnector, DAConst.DP_LibraryTag, "");
-            EAHelper.TaggedValueSet(newConnector, DAConst.DP_LinkTypeTag, Enum.GetName(typeof(LinkType), createNewLinkData.LinkType));
-            EAHelper.TaggedValueSet(newConnector, DAConst.DP_FlowIDTag, createNewLinkData.FlowID);
-            EAHelper.TaggedValueSet(newConnector, DAConst.DP_SegmentIDTag, createNewLinkData.SegmentID);
+            EATVHelper.TaggedValueSet(newConnector, DAConst.DP_LibraryTag, "");
+            EATVHelper.TaggedValueSet(newConnector, DAConst.DP_LinkTypeTag, Enum.GetName(typeof(LinkType), createNewLinkData.LinkType));
+            EATVHelper.TaggedValueSet(newConnector, DAConst.DP_FlowIDTag, createNewLinkData.FlowID);
+            EATVHelper.TaggedValueSet(newConnector, DAConst.DP_SegmentIDTag, createNewLinkData.SegmentID);
             //EAHelper.TaggedValueSet(newConnector, DAConst.DP_TempLinkTag, createNewLinkData.tempLink.ToString());
             //EAHelper.TaggedValueSet(newConnector, DAConst.DP_TempLinkDiagramIDTag, createNewLinkData.tempLink ? createNewLinkData.tempLinkDiagramID : "");
 
@@ -95,18 +112,7 @@ namespace EADiagramPublisher
             newConnector.TaggedValues.Refresh();
 
             // Добавляем коннектор к кэш информации о коннекторах
-            if (Context.ConnectorData != null)
-            {
-                if (!Context.ConnectorData[createNewLinkData.LinkType].ContainsKey(createNewLinkData.FlowID))
-                {
-                    Context.ConnectorData[createNewLinkData.LinkType].Add(createNewLinkData.FlowID, new List<ConnectorData>());
-                }
-
-                Context.ConnectorData[createNewLinkData.LinkType][createNewLinkData.FlowID].Add(createNewLinkData);
-            }
-
-
-
+            Context.ConnectorData.Add(createNewLinkData._ConnectorID, createNewLinkData);
 
             if (putOnDiagram)
             {
@@ -127,6 +133,11 @@ namespace EADiagramPublisher
             return diagramLink;
         }
 
+        /*
+        /// <summary>
+        /// Функция загружает список коннекторов из текущей библиотеки
+        /// </summary>
+        /// <returns></returns>
         public static Dictionary<LinkType, Dictionary<string, List<ConnectorData>>> LoadConnectorData()
         {
             var result = new Dictionary<LinkType, Dictionary<string, List<ConnectorData>>>();
@@ -199,24 +210,150 @@ namespace EADiagramPublisher
 
             return result;
         }
+        */
 
-
-
-
-        public static void ApplyStyleToDiagramLink(EA.DiagramLink diagramLink, bool setLineWidth, int lineWidth, bool setColor, Color color, bool setLineStyle, EA.LinkLineStyle lineStyle)
+        /// <summary>
+        /// Возвращает элементы, связанные с указанным заданной связью + находящиеся с указанного конца
+        /// </summary>
+        /// <param name="package"></param>
+        /// <returns></returns>
+        public static List<EA.Element> GetConnectedElements(EA.Element element, LinkType linkType, byte connectorEnd = 1 /*0=source 1=target*/ )
         {
-            if (setLineWidth)
-                diagramLink.LineWidth = lineWidth;
+            List<EA.Element> result = new List<EA.Element>();
 
-            if (setColor)
-                diagramLink.LineColor = (color.B * 256 + color.G) * 256 + color.R;
+            foreach (EA.Connector connector in element.Connectors)
+            {
+                if ((connectorEnd == 0 /*source*/ && connector.ClientID == element.ElementID) || connectorEnd == 1 /*source*/ && connector.SupplierID == element.ElementID)
+                    continue; // не тем концом в другой элемент упирается
 
-            if (setLineStyle)
-                diagramLink.LineStyle = lineStyle;
-
-
-            diagramLink.Update();
+                if (LibraryHelper.IsLibrary(connector) && LTHelper.GetConnectorType(connector) == linkType)
+                { // если связь нужного типа 
+                    EA.Element otherEndElement = EARepository.GetElementByID((connectorEnd == 0) ? connector.ClientID : connector.SupplierID);
+                    if (LibraryHelper.IsLibrary(otherEndElement))
+                    {
+                        result.Add(otherEndElement);
+                    }
+                }
+            }
+            return result;
         }
+
+        /// <summary>
+        /// Возвращает список FlowID, имеющихся в свойствах коннекторов библиотеки
+        /// </summary>
+        /// <returns></returns>
+        public static string[] GetCurrentFlowIDs()
+        {
+            return Context.ConnectorData.Values.Select(connectorData => connectorData.FlowID).Where(FlowID => FlowID != "" && FlowID != null).Distinct().ToArray<string>();
+        }
+
+        /// <summary>
+        /// Ищет на текущей диаграмме коннекторы для элементов, которые принадлежат к перечисленному ПО
+        /// </summary>
+        /// <param name=""></param>
+        /// <returns></returns>
+        public static List<ConnectorData> GetDAForSoftwareOnDiagram(List<string> selectedSoftware)
+        {
+            List<ConnectorData> result = new List<ConnectorData>();
+
+            foreach (EA.DiagramObject diagramObject in CurrentDiagram.DiagramObjects)
+            {
+                EA.Element element = EARepository.GetElementByID(diagramObject.ElementID);
+                string elementSoftware = LibraryHelper.GetElementSoftwareName(element);
+
+                if (selectedSoftware.Contains(elementSoftware))
+                {
+                    foreach (EA.Connector connector in element.Connectors)
+                    {
+                        EA.DiagramLink diagramLink = EAHelper.GetDLFromConnector(connector.ConnectorID);
+                        if (diagramLink != null)
+                        {
+                            ConnectorData connectorData = new ConnectorData(connector);
+                            result.Add(connectorData);
+                        }
+                    }
+                }
+            }
+
+
+
+            return result;
+        }
+
+
+        /// <summary>
+        /// Возвращает список SegmentID, имеющиеся в свойствах коннекторов библиотеки для коннекторов с указанным FlowID
+        /// </summary>
+        /// <returns></returns>
+        public static string[] GetSegmentsForFlowID(string flowID)
+        {
+            return Context.ConnectorData.Values.Where(connectorData => connectorData.FlowID == flowID).Select(connectorData => connectorData.SegmentID).ToArray<string>();
+        }
+
+        /// <summary>
+        /// Проверяет, что указанный линк - Deploy линк 
+        /// </summary>
+        /// <param name="connector"></param>
+        /// <returns></returns>
+        public static bool IsDeploymentLink(EA.Connector connector)
+        {
+            if (LibraryHelper.IsLibrary(connector) && connector.TaggedValues.GetByName(DAConst.DP_LinkTypeTag) != null && ((EA.ConnectorTag)connector.TaggedValues.GetByName(DAConst.DP_LinkTypeTag)).Value == LinkType.Deploy.ToString())
+                return true;
+            else
+                return false;
+        }
+
+        /// <summary>
+        /// Функция загружает список коннекторов из текущей библиотеки (используя SQL - запрос)
+        /// </summary>
+        /// <returns></returns>
+        public static Dictionary<int, ConnectorData> LoadConnectorData2()
+        {
+            var result = new Dictionary<int, ConnectorData>();
+
+            string[] args = new string[] { Context.CurrentLibrary.PackageGUID };
+
+
+            XDocument sqlResultSet = SQLHelper.RunSQL("GetConnectors.sql", args);
+
+            // Коннекторы
+            IEnumerable<XElement> rowNodes = sqlResultSet.Root.XPathSelectElements("/EADATA/Dataset_0/Data/Row");
+            foreach(XElement rowNode in rowNodes)
+            {
+                ConnectorData connectorData = new ConnectorData();
+                connectorData.Name = rowNode.Descendants("Name").First().Value;
+                connectorData._ConnectorID = int.Parse(rowNode.Descendants("Connector_ID").First().Value);
+
+                connectorData.SourceElementID = int.Parse(rowNode.Descendants("Start_Object_ID").First().Value);
+                connectorData.TargetElementID = int.Parse(rowNode.Descendants("End_Object_ID").First().Value);
+
+                result.Add(connectorData._ConnectorID, connectorData);
+            }
+
+            // Тэги коннекторов
+            sqlResultSet = SQLHelper.RunSQL("GetConnectorsTags.sql", args);
+            rowNodes = sqlResultSet.Root.XPathSelectElements("/EADATA/Dataset_0/Data/Row");
+            foreach (XElement rowNode in rowNodes)
+            {
+                int elementID = int.Parse(rowNode.Descendants("ElementID").First().Value);
+                string property = rowNode.Descendants("Property").First().Value;
+                string value = rowNode.Descendants("VALUE").First().Value;
+
+                ConnectorData connectorData = result[elementID]; // получаем уже созданных объект ConnectorData
+
+                if(property == DAConst.DP_LibraryTag)
+                    connectorData.IsLibrary = true;
+                if (property == DAConst.DP_LinkTypeTag)
+                    connectorData.LinkType = (LinkType)Enum.Parse(typeof(LinkType), value) ;
+                if (property == DAConst.DP_FlowIDTag)
+                    connectorData.FlowID = value;
+                if (property == DAConst.DP_SegmentIDTag)
+                    connectorData.SegmentID = value;
+            }
+
+            return result;
+        }
+
 
         /// <summary>
         /// LINQ+lambda слажали по производительности, пришлось написать свой Comparer для ConnectorData
@@ -233,40 +370,5 @@ namespace EADiagramPublisher
                 return obj.Connector.ConnectorID.GetHashCode();
             }
         }
-
-
-        /// <summary>
-        /// Ищет на текущей диаграмме коннекторы для элементов, которые принадлежат к перечисленному ПО
-        /// </summary>
-        /// <param name=""></param>
-        /// <returns></returns>
-        public static List<ConnectorData> GetDAForSoftwareOnDiagram(List<string> selectedSoftware)
-        {
-            List<ConnectorData> result = new List<ConnectorData>();
-
-            foreach(EA.DiagramObject diagramObject in CurrentDiagram.DiagramObjects)
-            {
-                EA.Element element = EARepository.GetElementByID(diagramObject.ElementID);
-                string elementSoftware = LibraryHelper.GetElementSoftwareName(element);
-
-                if (selectedSoftware.Contains(elementSoftware))
-                {
-                    foreach(EA.Connector connector in element.Connectors)
-                    {
-                        EA.DiagramLink diagramLink = EAHelper.GetDLFromConnector(connector.ConnectorID);
-                        if(diagramLink !=null)
-                        {
-                            ConnectorData connectorData = new ConnectorData(connector);
-                            result.Add(connectorData);
-                        }
-                    }
-                }
-            }
-
-
-
-            return result;
-        }
-
     }
 }

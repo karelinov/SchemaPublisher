@@ -23,6 +23,7 @@ namespace EADiagramPublisher.Contracts
                 _ConnectorID = value.ConnectorID;
             }
         }
+        public bool IsLibrary = false;
         public string Name;
         public LinkType LinkType;
         public string FlowID;
@@ -42,11 +43,11 @@ namespace EADiagramPublisher.Contracts
 
             if (SourceElementID != 0)
             {
-                result += " " + EAHelper.DumpObject(Context.EARepository.GetElementByID(SourceElementID));
+                result += " " + Logger.DumpObject(Context.EARepository.GetElementByID(SourceElementID));
             }
             if (TargetElementID != 0)
             {
-                result += "-" + EAHelper.DumpObject(Context.EARepository.GetElementByID(TargetElementID));
+                result += "-" + Logger.DumpObject(Context.EARepository.GetElementByID(TargetElementID));
             }
 
             return result;
@@ -58,8 +59,8 @@ namespace EADiagramPublisher.Contracts
 
             Name = Connector.Name;
             LinkType = LTHelper.GetConnectorType(Connector);
-            FlowID = EAHelper.GetTaggedValue(Connector, DAConst.DP_FlowIDTag);
-            SegmentID = EAHelper.GetTaggedValue(Connector, DAConst.DP_SegmentIDTag);
+            FlowID = EATVHelper.GetTaggedValue(Connector, DAConst.DP_FlowIDTag);
+            SegmentID = EATVHelper.GetTaggedValue(Connector, DAConst.DP_SegmentIDTag);
 
             SourceElementID = Connector.ClientID;
             TargetElementID = Connector.SupplierID;
@@ -71,8 +72,8 @@ namespace EADiagramPublisher.Contracts
 
             Name = Connector.Name;
             LinkType = LTHelper.GetConnectorType(connector);
-            FlowID = EAHelper.GetTaggedValue(connector, DAConst.DP_FlowIDTag);
-            SegmentID = EAHelper.GetTaggedValue(connector, DAConst.DP_SegmentIDTag);
+            FlowID = EATVHelper.GetTaggedValue(connector, DAConst.DP_FlowIDTag);
+            SegmentID = EATVHelper.GetTaggedValue(connector, DAConst.DP_SegmentIDTag);
 
             SourceElementID = connector.ClientID;
             TargetElementID = connector.SupplierID;

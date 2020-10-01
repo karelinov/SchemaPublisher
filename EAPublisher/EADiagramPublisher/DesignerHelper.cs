@@ -56,13 +56,13 @@ namespace EADiagramPublisher
             EA.Element element = EARepository.GetElementByID(diagramObject.ElementID);
 
             // Для начала пытаемся установить размер из тэгов
-            if (result.Width == 0 && EAHelper.GetTaggedValues(element).GetByName(DAConst.defaultWidthTag) != null)
+            if (result.Width == 0 && EATVHelper.GetTaggedValues(element).GetByName(DAConst.defaultWidthTag) != null)
             {
-                result.Width = int.Parse(EAHelper.GetTaggedValues(element).GetByName(DAConst.defaultWidthTag).Value);
+                result.Width = int.Parse(EATVHelper.GetTaggedValues(element).GetByName(DAConst.defaultWidthTag).Value);
             }
-            if (result.Height == 0 && EAHelper.GetTaggedValues(element).GetByName(DAConst.defaultHeightTag) != null)
+            if (result.Height == 0 && EATVHelper.GetTaggedValues(element).GetByName(DAConst.defaultHeightTag) != null)
             {
-                result.Height = int.Parse(EAHelper.GetTaggedValues(element).GetByName(DAConst.defaultHeightTag).Value);
+                result.Height = int.Parse(EATVHelper.GetTaggedValues(element).GetByName(DAConst.defaultHeightTag).Value);
             }
 
             // Если из тэгов не установили, пытаемся вычислить на лету по библиотечной диаграмме

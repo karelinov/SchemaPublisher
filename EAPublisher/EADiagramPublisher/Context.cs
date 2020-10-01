@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Windows.Forms;
 
 namespace EADiagramPublisher
 {
@@ -12,6 +13,10 @@ namespace EADiagramPublisher
     /// </summary>
     public class Context
     {
+        public static Designer Designer { get; set; }
+        public static LinkDesigner LinkDesigner { get; set; }
+
+
         /// <summary>
         /// Открытый плагином EA.Repository
         /// </summary>
@@ -91,13 +96,13 @@ namespace EADiagramPublisher
         ///  - FlowID
         ///   - Список ConnectorData
         /// </summary>
-        private static Dictionary<LinkType, Dictionary<string, List<ConnectorData>>> _ConnectorData = null;
-        public static Dictionary<LinkType, Dictionary<string, List<ConnectorData>>> ConnectorData
+        private static Dictionary<int, ConnectorData> _ConnectorData = null;
+        public static Dictionary<int, ConnectorData> ConnectorData
         {
             get
             {
                 if (_ConnectorData == null)
-                    _ConnectorData = LinkDesignerHelper.LoadConnectorData();
+                    _ConnectorData = LinkDesignerHelper.LoadConnectorData2();
 
                 return _ConnectorData;
             }
@@ -106,6 +111,62 @@ namespace EADiagramPublisher
                 _ConnectorData = value;
             }
         }
+
+        /// <summary>
+        /// Функция проверки, что текущая диаграмма установлена
+        /// Могут быть установлены параметры, для авто открытия текущей или устанавливающий открытую на экране как текующую
+        /// </summary>
+        /// <param name="showUI"></param>
+        /// <param name="autoSetCurrentDiagram"></param>
+        /// <returns></returns>
+        public static bool CheckCurrentDiagram(bool autoOpenLibDiagram = false, bool showUI = true)
+        {
+            bool result = false;
+
+            EA.Diagram currentOpenedDiagram = EARepository.GetCurrentDiagram();
+            EA.Diagram currentLibDiagram = Context.CurrentDiagram;
+
+            if (currentOpenedDiagram == null && currentLibDiagram != null)
+            {
+                if (autoOpenLibDiagram)
+                {
+                    EARepository.ActivateDiagram(currentLibDiagram.DiagramID);
+                    result = true;
+                }
+                else if (showUI)
+                {
+                    if (MessageBox.Show("Текущая библиотечная диаграмма не открыта. Открыть?", "", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                    {
+                        EARepository.ActivateDiagram(currentLibDiagram.DiagramID);
+                        result = true;
+                    }
+                }
+            }
+            else if (currentOpenedDiagram != null && currentLibDiagram != null && currentOpenedDiagram.DiagramID != currentLibDiagram.DiagramID)
+            {
+                if (autoOpenLibDiagram)
+                {
+                    Context.CurrentDiagram = currentOpenedDiagram;
+                    result = true;
+                }
+                else if (showUI)
+                {
+                    DialogResult dr = MessageBox.Show("Текущая Открытая диаграмма не библиотечная библиотечная диаграмма не открыта. Назначить текущей открытую (Да) /Открыть библиотечную (Нет)? ", "", MessageBoxButtons.YesNoCancel);
+                    if (dr == DialogResult.Yes)
+                    {
+                        Context.CurrentDiagram = currentOpenedDiagram;
+                        result = true;
+                    }
+                }
+            }
+            else if (currentOpenedDiagram != null && currentLibDiagram != null && currentOpenedDiagram.DiagramID == currentLibDiagram.DiagramID)
+            {
+                result = true;
+            }
+
+            return result;
+        }
+
 
     }
 }

@@ -15,7 +15,7 @@ namespace EADiagramPublisher.Enums
             }
             catch (Exception ex)
             {
-                EAHelper.Out("Ошибка в определении типа коннектора " + ex.StackTrace, new EA.Connector[] { connector });
+                Logger.Out("Ошибка в определении типа коннектора " + ex.StackTrace, new EA.Connector[] { connector });
                 throw ex;
             }
 

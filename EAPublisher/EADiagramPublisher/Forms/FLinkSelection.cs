@@ -21,7 +21,7 @@ namespace EADiagramPublisher.Forms
             cbLineStyle.SelectedIndex = 0;
 
             clbNodeGroups.Items.Clear();
-            clbNodeGroups.Items.AddRange(EAHelper.GetNodeGroupEnum().ToArray());
+            clbNodeGroups.Items.AddRange(LibraryHelper.GetNodeGroupEnum().ToArray());
 
         }
 
