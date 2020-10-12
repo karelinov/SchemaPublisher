@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 
@@ -81,7 +82,7 @@ namespace EADiagramPublisher
 
             foreach (EA.Connector connector in element.Connectors)
             {
-                if (LinkDesignerHelper.IsDeploymentLink(connector) && connector.SupplierID == element.ElementID)
+                if (ConnectorHelper.IsDeploymentLink(connector) && connector.SupplierID == element.ElementID)
                 {
                     result.Add(EARepository.GetElementByID(connector.ClientID));
                 }
@@ -149,7 +150,7 @@ namespace EADiagramPublisher
 
             foreach (EA.Connector connector in eaElement.Connectors)
             {
-                if (LinkDesignerHelper.IsDeploymentLink(connector) && connector.ClientID == eaElement.ElementID)
+                if (ConnectorHelper.IsDeploymentLink(connector) && connector.ClientID == eaElement.ElementID)
                 {
                     result = EARepository.GetElementByID(connector.SupplierID);
                     break;
@@ -416,7 +417,7 @@ namespace EADiagramPublisher
 
             foreach (EA.Connector connector in childElement.Connectors)
             {
-                if (LinkDesignerHelper.IsDeploymentLink(connector) && connector.ClientID == childElement.ElementID)
+                if (ConnectorHelper.IsDeploymentLink(connector) && connector.ClientID == childElement.ElementID)
                 {
                     result = true;
                     break;
@@ -502,14 +503,14 @@ namespace EADiagramPublisher
             string flowID = EATVHelper.GetTaggedValue(element, DAConst.DP_NameForFlowIDTag, false);
 
             // от данного элемента лезем вверх по его  свзям SoftwareClassification и склеиваем тэги DP_NameForFlowID
-            List<EA.Element> connectedElements = LinkDesignerHelper.GetConnectedElements(element, LinkType.SoftwareClassification, 1);
+            List<EA.Element> connectedElements = ConnectorHelper.GetConnectedElements(element, LinkType.SoftwareClassification, 1);
             // если у элемента нет таких зависимостей, но есть классификатор - ищем зависимости у классификатора
             if (connectedElements.Count == 0)
             {
                 if (element.ClassifierID != 0)
                 {
                     flowID = EATVHelper.GetTaggedValue(element, DAConst.DP_NameForFlowIDTag, false);
-                    connectedElements = LinkDesignerHelper.GetConnectedElements(EARepository.GetElementByID(element.ClassifierID), LinkType.SoftwareClassification, 1);
+                    connectedElements = ConnectorHelper.GetConnectedElements(EARepository.GetElementByID(element.ClassifierID), LinkType.SoftwareClassification, 1);
                 }
             }
 
@@ -524,7 +525,7 @@ namespace EADiagramPublisher
                         flowID = nextname + "." + flowID;
                 }
 
-                connectedElements = LinkDesignerHelper.GetConnectedElements(connectedElements[0], LinkType.SoftwareClassification, 1);
+                connectedElements = ConnectorHelper.GetConnectedElements(connectedElements[0], LinkType.SoftwareClassification, 1);
             }
 
             // Теперь ищем подбираем номер
@@ -676,6 +677,100 @@ namespace EADiagramPublisher
 
             return result;
         }
+
+        /// <summary>
+        /// Функция возвращает размер элемента, соответствующий размеру элемента на библиотечной диаграмме
+        /// </summary>
+        /// <returns></returns>
+        public static ExecResult<Size> GetElementSizeOnLibDiagram(EA.Element element)
+        {
+            ExecResult<Size> result = new ExecResult<Size>() { code = -1 };
+
+            try
+            {
+                // лезем от элемента вверх по дереву пакетов, пока не достигнем верха либо не достигнем пакета без тэга DP_Library после нахождения такого тэга
+                EA.Package curPackage = EARepository.GetPackageByID(element.PackageID);
+                bool foundPackageAfterDPLibrary = false;
+                bool foundDPLibraryPackage = false;
+
+                while (curPackage != null & !(foundPackageAfterDPLibrary))
+                {
+                    // Проходимся по диаграммам пакета
+                    foreach (EA.Diagram curDiagram in curPackage.Diagrams)
+                    {
+                        // ... В в диаграмме - по объектам 
+                        foreach (EA.DiagramObject diagramObject in curDiagram.DiagramObjects)
+                        {
+                            // если объект на диаграмме - наш объект, то срисовываем его размеры как дефолтные
+                            if (diagramObject.ElementID == element.ElementID)
+                            {
+                                Size curSize = ElementDesignerHelper.GetSize(diagramObject);
+                                result.value = curSize;
+                                result.code = 0;
+                                return result;
+                            }
+                        }
+
+                        if (curPackage.ParentID != 0)
+                            curPackage = EARepository.GetPackageByID(curPackage.ParentID);
+                        else
+                            curPackage = null;
+                        if (LibraryHelper.IsLibrary(curPackage.Element))
+                            foundDPLibraryPackage = true;
+                        if (!LibraryHelper.IsLibrary(curPackage.Element) && foundDPLibraryPackage)
+                            foundPackageAfterDPLibrary = true;
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                result.setException(ex);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Функция устанавливает размер элемента по умолчанию, соответствующий размеру элемента на библиотечной диаграмме
+        /// </summary>
+        /// <returns></returns>
+        public static ExecResult<Boolean> SetElementDefaultSize()
+        {
+            ExecResult<Boolean> result = new ExecResult<bool>();
+
+            try
+            {
+                var obj = EARepository.GetContextObject();
+                if (obj == null)
+                {
+                    throw new Exception("Нет текущего объекта");
+                }
+                if (!(obj is EA.Element) || !LibraryHelper.IsLibrary((EA.Element)obj))
+                {
+                    throw new Exception("Выделен не библиотечный элемент");
+                }
+                EA.Element curElement = (EA.Element)obj;
+
+                // Ищем размер на библиотечных диаграммах
+                ExecResult<Size> GetElementSizeOnLibDiagramResult = GetElementSizeOnLibDiagram(curElement);
+                if (GetElementSizeOnLibDiagramResult.code != 0) throw new Exception(GetElementSizeOnLibDiagramResult.message);
+
+                EATVHelper.TaggedValueSet(curElement, DAConst.defaultWidthTag, GetElementSizeOnLibDiagramResult.value.Width.ToString());
+                EATVHelper.TaggedValueSet(curElement, DAConst.defaultHeightTag, GetElementSizeOnLibDiagramResult.value.Height.ToString());
+
+                Logger.Out("Найден элемент диаграммы для установки размеров " + GetElementSizeOnLibDiagramResult.value.Width.ToString() + "x" + GetElementSizeOnLibDiagramResult.value.Height.ToString());
+
+            }
+            catch (Exception ex)
+            {
+                result.setException(ex);
+            }
+
+            return result;
+        }
+
+
     }
 }
 

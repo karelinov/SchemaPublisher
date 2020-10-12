@@ -12,7 +12,7 @@ namespace EADiagramPublisher
     /// <summary>
     /// Класс для решения задач дизайна схем (бизнес-функции)
     /// </summary>
-    public class Designer
+    public class ElementDesigner
     {
         /// <summary>
         /// Shortcut до глобальной переменной с EA.Diagram + логика установки
@@ -101,7 +101,7 @@ namespace EADiagramPublisher
         public ExecResult<Boolean> PutChildrenDeployHierarchy(string location)
         {
             ExecResult<Boolean> result = new ExecResult<bool>();
-            DesignerHelper.CallLevel = 0;
+            ElementDesignerHelper.CallLevel = 0;
 
             try
             {
@@ -149,7 +149,7 @@ namespace EADiagramPublisher
                         EA.DiagramObject curDA = PutElementOnDiagram(childLevelNode.Value);
                         // Подвигаем элемент на отведённым ему уровень
 
-                        EADAHelper.ApplyPointToDA(curDA, new Point(levelEndPoint.X, levelStartPoint.Y));
+                        EADOHelper.ApplyPointToDA(curDA, new Point(levelEndPoint.X, levelStartPoint.Y));
                         int newLevelRight = curDA.right + DAConst.border;
                         int newLevelBottom = curDA.bottom < levelEndPoint.Y ? curDA.bottom : levelEndPoint.Y;
                         levelEndPoint = new Point(newLevelRight, newLevelBottom);
@@ -190,7 +190,7 @@ namespace EADiagramPublisher
         public ExecResult<Boolean> PutChildrenDHierarchyOnDiagram()
         {
             ExecResult<Boolean> result = new ExecResult<bool>();
-            DesignerHelper.CallLevel = 0;
+            ElementDesignerHelper.CallLevel = 0;
 
             try
             {
@@ -314,7 +314,7 @@ namespace EADiagramPublisher
         public ExecResult<Boolean> PutParentHierarchyOnDiagram(bool onlyParent = false)
         {
             ExecResult<Boolean> result = new ExecResult<bool>();
-            DesignerHelper.CallLevel = 0;
+            ElementDesignerHelper.CallLevel = 0;
 
             try
             {
@@ -482,7 +482,7 @@ namespace EADiagramPublisher
         /// <param name="parentElement"></param>
         public EA.DiagramObject PutElementOnDiagram(EA.Element element)
         {
-            DesignerHelper.CallLevel++;
+            ElementDesignerHelper.CallLevel++;
             EA.DiagramObject elementDA;
 
             try
@@ -503,12 +503,12 @@ namespace EADiagramPublisher
                     elementDA.ElementID = element.ElementID;
 
                     // устанавливаем размер объекта 
-                    Size elementSize = DesignerHelper.GetDefaultDASize(elementDA);
-                    EADAHelper.ApplySizeToDA(elementDA, elementSize, false);
+                    Size elementSize = ElementDesignerHelper.GetDefaultDASize(elementDA);
+                    EADOHelper.ApplySizeToDA(elementDA, elementSize, false);
                     int elementID = elementDA.ElementID;
 
-                    Point newDAPoint = DesignerHelper.GetFirstFreePoinForDA(elementDA);
-                    EADAHelper.ApplyPointToDA(elementDA, newDAPoint, false);
+                    Point newDAPoint = ElementDesignerHelper.GetFirstFreePoinForDA(elementDA);
+                    EADOHelper.ApplyPointToDA(elementDA, newDAPoint, false);
 
                     elementDA.Update();
                     CurrentDiagram.Update();
@@ -548,7 +548,7 @@ namespace EADiagramPublisher
             }
             finally
             {
-                DesignerHelper.CallLevel--;
+                ElementDesignerHelper.CallLevel--;
             }
 
             return elementDA;

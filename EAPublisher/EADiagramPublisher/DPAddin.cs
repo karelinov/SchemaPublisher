@@ -24,23 +24,20 @@ namespace EADiagramPublisher
         const string menuPutContourContour = "&PutContourContour";
         const string menuPutParentDHierarchyOnDiagram = "&PutParentDHierarchyOnDiagram";
         const string menuPutChildrenDHierarchyOnDiagram = "&PutChildrenDHierarchyOnDiagram";
-        //const string menuPutChildrenDHierarchyOnElement = "&PutChildrenDHierarchyOnElement";
         const string menuPutChildrenDeployHierarchy = "&PutChildrenDeployHierarchy";
-        //const string menuPutNodes = "&PutNodes";
         const string menuSetElementTags = "&SetElementTags";
 
         const string menuDesignLinks = "-&DesignLinks";
         const string menuCreateLink = "&CreateLink";
+        const string menuManageLinkVisibility = "&ManageLinkVisibility";
         const string menuSetLinkVisibility = "&SetLinkVisibility";
         const string menuSetConnectorTags = "&SetConnectorTags";
         const string menuSetSimilarLinksTags = "&SetSimilarLinksTags";
-        const string menuLinksSelection = "&LinksSelection";
 
         const string menuUtils = "-&Utils";
         const string menuSetCurrentDiagram = "&SetCurrentDiagram";
         const string menuSetCurrentLibrary = "&SetCurrentLibrary";
         const string menuSetDPLibratyTag = "&SetDPLibratyTag";
-        //const string menuSetDefaultSize = "&SetDefaultSize";
         const string menuReloadConnectorData = "&ReloadConnectorData";
         const string menuDoOnConnectActions = "&DoOnConnectActions";
         const string menuRunSQLQuery = "&RunSQLQuery";
@@ -61,7 +58,7 @@ namespace EADiagramPublisher
         {
             Context.EARepository = repository;
 
-            Context.Designer = new Designer();
+            Context.Designer = new ElementDesigner();
             Context.LinkDesigner = new LinkDesigner();
             logpath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "EADiagramPublisher.log");
 
@@ -101,7 +98,7 @@ namespace EADiagramPublisher
                     return subMenus;
 
                 case menuDesignLinks:
-                    subMenus = new string[] { menuCreateLink, menuSetLinkVisibility, menuSetConnectorTags, menuSetSimilarLinksTags, menuLinksSelection };
+                    subMenus = new string[] { menuCreateLink, menuManageLinkVisibility, menuSetLinkVisibility, menuSetConnectorTags, menuSetSimilarLinksTags};
                     return subMenus;
 
                 case menuUtils:
@@ -162,10 +159,10 @@ namespace EADiagramPublisher
                     
                     case menuDesignLinks:
                     case menuCreateLink:
+                    case menuManageLinkVisibility:
                     case menuSetLinkVisibility:
                     case menuSetConnectorTags:
                     case menuSetSimilarLinksTags:
-                    case menuLinksSelection:
                         isEnabled = true;
                         break;
 
@@ -252,6 +249,12 @@ namespace EADiagramPublisher
                     OutExecResult(createCommunicationResult);
                     break;
 
+                case menuManageLinkVisibility:
+                    var ManageLinkVisibilityResult = Context.LinkDesigner.ManageLinkVisibility();
+                    OutExecResult(ManageLinkVisibilityResult);
+                    break;
+
+
                 case menuSetLinkVisibility:
                     var setLinkVisibilityResult = Context.LinkDesigner.SetConnectorVisibility();
                     OutExecResult(setLinkVisibilityResult);
@@ -266,12 +269,6 @@ namespace EADiagramPublisher
                     var setSimilarLinksTags = Context.LinkDesigner.SetSimilarLinksTags(location);
                     OutExecResult(setSimilarLinksTags);
                     break;
-
-                case menuLinksSelection:
-                    var linksSelectionResult = Context.LinkDesigner.LinksSelection(location);
-                    OutExecResult(linksSelectionResult);
-                    break;
-
 
                 // ------ UTILS --------------------------------------------------------------
                 case menuSetCurrentDiagram:
@@ -402,7 +399,7 @@ namespace EADiagramPublisher
             try
             {
                 Context.CurrentLibrary = Context.EARepository.GetPackageByGuid("{5C806428-D2F2-4bfc-A043-3B84D3E4CACD}"); ; // SELECT * FROM t_package WHERE ea_guid = "{5C806428-D2F2-4bfc-A043-3B84D3E4CACD}"
-                LinkDesignerHelper.LoadConnectorData2();
+                ConnectorHelper.LoadConnectorData2();
             }
             catch (Exception ex)
             {

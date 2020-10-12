@@ -47,7 +47,7 @@ namespace EADiagramPublisher.Forms
                 fCreateNewLink.tbDestination.Tag = secondElement;
 
                 fCreateNewLink.cbFlowID.Items.Clear();
-                fCreateNewLink.cbFlowID.Items.AddRange(LinkDesignerHelper.GetCurrentFlowIDs());
+                fCreateNewLink.cbFlowID.Items.AddRange(ConnectorHelper.GetCurrentFlowIDs());
 
 
                 DialogResult res = fCreateNewLink.ShowDialog();
@@ -114,7 +114,7 @@ namespace EADiagramPublisher.Forms
             cbSegmentID.Items.Clear();
 
             if (flowID != "")
-                cbSegmentID.Items.AddRange(LinkDesignerHelper.GetSegmentsForFlowID(flowID));
+                cbSegmentID.Items.AddRange(ConnectorHelper.GetSegmentsForFlowID(flowID));
 
 
         }

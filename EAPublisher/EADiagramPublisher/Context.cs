@@ -13,7 +13,7 @@ namespace EADiagramPublisher
     /// </summary>
     public class Context
     {
-        public static Designer Designer { get; set; }
+        public static ElementDesigner Designer { get; set; }
         public static LinkDesigner LinkDesigner { get; set; }
 
 
@@ -102,7 +102,7 @@ namespace EADiagramPublisher
             get
             {
                 if (_ConnectorData == null)
-                    _ConnectorData = LinkDesignerHelper.LoadConnectorData2();
+                    _ConnectorData = ConnectorHelper.LoadConnectorData2();
 
                 return _ConnectorData;
             }
@@ -116,8 +116,8 @@ namespace EADiagramPublisher
         /// Функция проверки, что текущая диаграмма установлена
         /// Могут быть установлены параметры, для авто открытия текущей или устанавливающий открытую на экране как текующую
         /// </summary>
+        /// <param name="autoOpenLibDiagram"></param>/// 
         /// <param name="showUI"></param>
-        /// <param name="autoSetCurrentDiagram"></param>
         /// <returns></returns>
         public static bool CheckCurrentDiagram(bool autoOpenLibDiagram = false, bool showUI = true)
         {

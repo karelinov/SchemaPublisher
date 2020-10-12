@@ -13,7 +13,7 @@ namespace EADiagramPublisher
     /// Здесь помещаются вспомогательные функции
     /// </summary>
 
-    class DesignerHelper
+    class ElementDesignerHelper
     {
         public static int CallLevel { get; set; }
 
@@ -484,5 +484,66 @@ namespace EADiagramPublisher
             Rectangle firstRectangle = GetRectangle(firstDA);
             return Intersects(firstRectangle, secondRectangle);
         }
+
+        /// <summary>
+        /// Конструирует имя элемента для показа в UI
+        /// </summary>        
+        public static string ElementDisplayName(object eaObject)
+        {
+            if (eaObject == null)
+            {
+                return "null";
+            }
+
+            string result = ":";
+
+            if ((eaObject as EA.Element) != null)
+            {
+                EA.Element curElement = eaObject as EA.Element;
+                {
+                    if (curElement.ClassfierID != 0)
+                    {
+                        result += ":(" + curElement.Type;
+                        EA.Element classifier = EARepository.GetElementByID(curElement.ClassfierID);
+                        result += curElement.Name + "/" + classifier.Name + "," + classifier.Stereotype + ")";
+                    }
+                    else
+                    {
+                        result += "" + curElement.Type + "," + curElement.Name;
+                    }
+                }
+            }
+            else if ((eaObject as EA.DiagramObject) != null)
+            {
+                EA.DiagramObject curDA = eaObject as EA.DiagramObject;
+                {
+                    result += "da(" + (curDA.right - curDA.left).ToString() + "x" + Math.Abs(curDA.top - curDA.bottom).ToString() + ")(" + curDA.left.ToString() + "," + curDA.right.ToString() + "," + curDA.top.ToString() + "," + curDA.bottom.ToString() + ")";
+                    EA.Element curElement = EARepository.GetElementByID(curDA.ElementID);
+                    if (curElement.ClassfierID != 0)
+                    {
+                        result += ":(" + curElement.Type;
+                        EA.Element classifier = EARepository.GetElementByID(curElement.ClassfierID);
+                        result += curElement.Name + "," + classifier.Name + "," + classifier.Stereotype + ")";
+                    }
+                    else
+                    {
+                        result += "" + curElement.Type + curElement.Name;
+                    }
+                }
+            }
+            else if ((eaObject as EA.Package) != null)
+            {
+                EA.Package curPackage = eaObject as EA.Package;
+                result += "package(" + curPackage.Name + ")";
+            }
+            else
+            {
+                result += eaObject.ToString() + ";";
+            }
+
+            return result;
+        }
+
+
     }
 }

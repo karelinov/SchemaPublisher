@@ -13,9 +13,9 @@ using EADiagramPublisher.SQL;
 namespace EADiagramPublisher
 {
     /// <summary>
-    /// Класс вспомогательных функций для линков
+    /// Класс вспомогательных функций для коннекторов 
     /// </summary>
-    class LinkDesignerHelper
+    class ConnectorHelper
     {
         /// <summary>
         /// Shortcut до глобальной переменной с EA.Diagram + логика установки
@@ -38,20 +38,6 @@ namespace EADiagramPublisher
             {
                 return Context.EARepository;
             }
-        }
-        public static void ApplyStyleToDiagramLink(EA.DiagramLink diagramLink, bool setLineWidth, int lineWidth, bool setColor, Color color, bool setLineStyle, EA.LinkLineStyle lineStyle)
-        {
-            if (setLineWidth)
-                diagramLink.LineWidth = lineWidth;
-
-            if (setColor)
-                diagramLink.LineColor = (color.B * 256 + color.G) * 256 + color.R;
-
-            if (setLineStyle)
-                diagramLink.LineStyle = lineStyle;
-
-
-            diagramLink.Update();
         }
 
         public static EA.Connector CreateConnector(ConnectorData createNewLinkData, bool putOnDiagram = true)
@@ -117,21 +103,13 @@ namespace EADiagramPublisher
             if (putOnDiagram)
             {
                 // Помещаем на диаграмму
-                EA.DiagramLink diagramLink = CreateLink(newConnector);
+                EA.DiagramLink diagramLink = DiagramLinkHelper.CreateDiagramLink(newConnector);
             }
 
             return newConnector;
         }
 
 
-        public static EA.DiagramLink CreateLink(EA.Connector connector)
-        {
-            EA.DiagramLink diagramLink = CurrentDiagram.DiagramLinks.AddNew("", "");
-            diagramLink.ConnectorID = connector.ConnectorID;
-            diagramLink.Update();
-
-            return diagramLink;
-        }
 
         /*
         /// <summary>
@@ -265,7 +243,7 @@ namespace EADiagramPublisher
                 {
                     foreach (EA.Connector connector in element.Connectors)
                     {
-                        EA.DiagramLink diagramLink = EAHelper.GetDLFromConnector(connector.ConnectorID);
+                        EA.DiagramLink diagramLink = DiagramLinkHelper.GetDLFromConnector(connector.ConnectorID);
                         if (diagramLink != null)
                         {
                             ConnectorData connectorData = new ConnectorData(connector);
@@ -356,19 +334,25 @@ namespace EADiagramPublisher
 
 
         /// <summary>
-        /// LINQ+lambda слажали по производительности, пришлось написать свой Comparer для ConnectorData
+        /// Проверяет, что элементы-концы (линка) помещены на текущую диаграмму
         /// </summary>
-        public class IEqualityComparer_ConnectorData : IEqualityComparer<ConnectorData>
-        {
-            public bool Equals(ConnectorData x, ConnectorData y)
-            {
-                return x._ConnectorID == y._ConnectorID;
-            }
+        /// <param name="connector"></param>
+        public static bool IsConnectorEndsOnCurrentDiagram(int sourceElementID, int targetElementID)
 
-            public int GetHashCode(ConnectorData obj)
-            {
-                return obj.Connector.ConnectorID.GetHashCode();
-            }
+        {
+            bool result = false;
+
+            if (Context.CurrentDiagram == null) return false; // Диаграмма не открыта
+
+            EA.DiagramObject sourceDA = Context.CurrentDiagram.GetDiagramObjectByID(sourceElementID,"");
+            EA.DiagramObject targetDA = Context.CurrentDiagram.GetDiagramObjectByID(targetElementID,"");
+
+            if (sourceDA != null && targetDA != null)
+                result = true;
+
+            return result;
         }
+
+
     }
 }

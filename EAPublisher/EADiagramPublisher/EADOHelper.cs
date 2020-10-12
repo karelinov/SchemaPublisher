@@ -6,7 +6,10 @@ using System.Text;
 
 namespace EADiagramPublisher
 {
-    class EADAHelper
+    /// <summary>
+    /// Хэлпер с функциями манипулирования Объектами диаграмм (DiagramObject)
+    /// </summary>
+    class EADOHelper
     {
         /// <summary>
         /// Функция передвигает DA в указанную точку
@@ -16,7 +19,7 @@ namespace EADiagramPublisher
         /// <param name="doUpdate"></param>
         public static void ApplyPointToDA(EA.DiagramObject diagramObject, Point newStart, bool doUpdate = true)
         {
-            Size diagramObjectSize = DesignerHelper.GetSize(diagramObject);
+            Size diagramObjectSize = ElementDesignerHelper.GetSize(diagramObject);
 
             diagramObject.left = newStart.X;
             diagramObject.right = diagramObject.left + diagramObjectSize.Width;
@@ -46,7 +49,7 @@ namespace EADiagramPublisher
         /// <param name="doUpdate"></param>
         public static void ApplyVectorToDA(EA.DiagramObject diagramObject, Point vector, bool doUpdate = true)
         {
-            Size diagramObjectSize = DesignerHelper.GetSize(diagramObject);
+            Size diagramObjectSize = ElementDesignerHelper.GetSize(diagramObject);
 
             diagramObject.left += vector.X;
             diagramObject.right += vector.X;
@@ -76,14 +79,14 @@ namespace EADiagramPublisher
                 if (curDA.ElementID == da.ElementID) continue;
                 // если такой элемент есть, проходимся по элементам даграммы ещё раз и смотрим, 
                 // не может ли он принадлежать ещё кому-то с меньшим Z-order
-                if (DesignerHelper.DAFitInside(curDA, da) && da.Sequence > curDA.Sequence)
+                if (ElementDesignerHelper.DAFitInside(curDA, da) && da.Sequence > curDA.Sequence)
                 {
                     bool hasAnotherParent = false;
 
                     foreach (EA.DiagramObject curDA1 in Context.Designer.CurrentDiagram.DiagramObjects)
                     {
                         if (curDA1.ElementID == da.ElementID) continue;
-                        if (DesignerHelper.DAFitInside(curDA, curDA1) && curDA1.Sequence < da.Sequence)
+                        if (ElementDesignerHelper.DAFitInside(curDA, curDA1) && curDA1.Sequence < da.Sequence)
                         {
                             hasAnotherParent = true;
                             break;
@@ -124,7 +127,7 @@ namespace EADiagramPublisher
             {
                 if (curDA.ElementID == da.ElementID) continue;
 
-                if (DesignerHelper.DAFitInside(da, curDA) && da.Sequence < curDA.Sequence)
+                if (ElementDesignerHelper.DAFitInside(da, curDA) && da.Sequence < curDA.Sequence)
                 {
                     if (result == null)
                     {

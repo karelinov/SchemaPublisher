@@ -19,41 +19,41 @@ namespace EADiagramPublisher.Archive
         /// <param name="parentElementDA"></param>
         private void FitElementInElement(EA.DiagramObject childElementDA, EA.DiagramObject parentElementDA)
         {
-            DesignerHelper.CallLevel++;
+            ElementDesignerHelper.CallLevel++;
             try
             {
                 Logger.Out("", new EA.DiagramObject[] { childElementDA, parentElementDA });
 
                 // получаем элемент, в котором находится родитель - чтобы при изменении размеров родителя перевписать его в "прародителя"
-                EA.DiagramObject grandparentDA = EADAHelper.GetContainerOfDA(parentElementDA);
+                EA.DiagramObject grandparentDA = EADOHelper.GetContainerOfDA(parentElementDA);
                 Logger.Out("Получен элемент прародителя ", new EA.DiagramObject[] { grandparentDA });
 
                 // получаем список тех элементов, которые находятся внутри дочернего, чтобы при подвижке дочернего они из него не вывалились
-                List<EA.DiagramObject> elementsInsideChild = EADAHelper.GetContainedForDA(childElementDA);
+                List<EA.DiagramObject> elementsInsideChild = EADOHelper.GetContainedForDA(childElementDA);
                 Logger.Out("Получен список вставленных в дочерний элемент ", elementsInsideChild.ToArray());
 
                 // сохраняем начальную позицию child, чтобы когда он подвинется, подвинуть за ним вписанных в него
                 Point originalchildPoint = new Point(childElementDA.left, childElementDA.top);
 
                 // также получаем список непосредственно дочерних элементов родителя - чтобы понять, как лежат другие дочерние - конкуренты вписываемого
-                List<EA.DiagramObject> elementsInsideParent = EADAHelper.GetContainedForDA(parentElementDA);
+                List<EA.DiagramObject> elementsInsideParent = EADOHelper.GetContainedForDA(parentElementDA);
                 Logger.Out("Получен список вставленных в родительский элемент ", elementsInsideParent.ToArray());
 
                 // Теперь делаем размеры объектов не диаграмме ненулевыми (а они такие могут быть)
                 // Устанавливаем либо дефолтные размеры из тэгов либо (если там нет) просто дефолтные
-                Size childSize = DesignerHelper.GetDefaultDASize(childElementDA);
-                EADAHelper.ApplySizeToDA(childElementDA, childSize);
+                Size childSize = ElementDesignerHelper.GetDefaultDASize(childElementDA);
+                EADOHelper.ApplySizeToDA(childElementDA, childSize);
                 Logger.Out("Определены начальные координаты child ", new EA.DiagramObject[] { childElementDA });
 
                 Point originalParentPoint = new Point(parentElementDA.left, parentElementDA.top);
-                Size originalParentSize = DesignerHelper.GetSize(parentElementDA);
-                Size parentSize = DesignerHelper.GetDefaultDASize(parentElementDA);
-                EADAHelper.ApplySizeToDA(parentElementDA, parentSize);
+                Size originalParentSize = ElementDesignerHelper.GetSize(parentElementDA);
+                Size parentSize = ElementDesignerHelper.GetDefaultDASize(parentElementDA);
+                EADOHelper.ApplySizeToDA(parentElementDA, parentSize);
                 Logger.Out("Определены начальные координаты parent ", new EA.DiagramObject[] { parentElementDA });
 
                 // Определяем место на родителе для размещения child
                 Point childStart;
-                ExecResult<Point> childStartResult = DesignerHelper.GetPointForChild(parentElementDA, childElementDA, elementsInsideParent);
+                ExecResult<Point> childStartResult = ElementDesignerHelper.GetPointForChild(parentElementDA, childElementDA, elementsInsideParent);
                 if (childStartResult.code == 0)
                 {
                     childStart = childStartResult.value;  // В parentDA найдено место для childDA
@@ -61,15 +61,15 @@ namespace EADiagramPublisher.Archive
                 }
                 else // если нет места на parentDA, рассчитываем, как его надо расширить
                 {
-                    Tuple<Size, Point> expandDAdata = DesignerHelper.GetExpandedDASizeForChild(parentElementDA, childElementDA, elementsInsideParent);
-                    EADAHelper.ApplySizeToDA(parentElementDA, expandDAdata.Item1); // расширяем родителя
+                    Tuple<Size, Point> expandDAdata = ElementDesignerHelper.GetExpandedDASizeForChild(parentElementDA, childElementDA, elementsInsideParent);
+                    EADOHelper.ApplySizeToDA(parentElementDA, expandDAdata.Item1); // расширяем родителя
                     childStart = new Point(expandDAdata.Item2.X + parentElementDA.left, expandDAdata.Item2.Y + parentElementDA.top); // координаты child корректируются с учётом позиции родителя, т.к. возвращены координты внутри родителя
                     Logger.Out("Определены и установлены новые координаты parent ", new EA.DiagramObject[] { parentElementDA });
                     Logger.Out("Определены координаты для расмещения child ", new object[] { childStart });
                 }
 
                 // Если координаты или размер parentElementDA изменились, его надо перевписать в его родителя 
-                if ((!originalParentPoint.Equals(new Point(parentElementDA.left, parentElementDA.top))) || (!originalParentSize.Equals(DesignerHelper.GetSize(parentElementDA))))
+                if ((!originalParentPoint.Equals(new Point(parentElementDA.left, parentElementDA.top))) || (!originalParentSize.Equals(ElementDesignerHelper.GetSize(parentElementDA))))
                 {
                     if (grandparentDA != null)
                     {
@@ -78,14 +78,14 @@ namespace EADiagramPublisher.Archive
                         FitElementInElement(parentElementDA, grandparentDA);
 
                         // После вписывания parent-а следует скорректировать позицию вписываемого элемента
-                        Point moveParentVector = DesignerHelper.GetVector(newOriginalParentPoint, new Point(parentElementDA.left, parentElementDA.top));
+                        Point moveParentVector = ElementDesignerHelper.GetVector(newOriginalParentPoint, new Point(parentElementDA.left, parentElementDA.top));
                         childStart = new Point(childStart.X + moveParentVector.X, childStart.Y + moveParentVector.Y);
                         Logger.Out("Скорректирована позиция child ", new object[] { childStart });
                     }
                 }
 
                 // теперь подвигаем дочерний внутрь родительского
-                EADAHelper.ApplyPointToDA(childElementDA, childStart);
+                EADOHelper.ApplyPointToDA(childElementDA, childStart);
                 /*
                 childElementDA.left = childStart.X;// parentElementDA.left + border;
                 childElementDA.right = childElementDA.left + childSize.Width;
@@ -96,7 +96,7 @@ namespace EADiagramPublisher.Archive
                 Logger.Out("установлены новые координаты child ", new EA.DiagramObject[] { childElementDA });
 
                 // теперь вслед за дочерним, подвигаем элементы, которые были внутри дочернего
-                Point moveVector = DesignerHelper.GetVector(originalchildPoint, childStart);
+                Point moveVector = ElementDesignerHelper.GetVector(originalchildPoint, childStart);
                 if (elementsInsideChild.Count > 0)
                 {
                     Logger.Out("инициируется подвижка вложенных в child...");
@@ -112,7 +112,7 @@ namespace EADiagramPublisher.Archive
             }
             finally
             {
-                DesignerHelper.CallLevel--;
+                ElementDesignerHelper.CallLevel--;
             }
 
         }
@@ -125,7 +125,7 @@ namespace EADiagramPublisher.Archive
         public ExecResult<Boolean> PutChildrenDHierarchyOnElement()
         {
             ExecResult<Boolean> result = new ExecResult<bool>();
-            DesignerHelper.CallLevel = 0;
+            ElementDesignerHelper.CallLevel = 0;
 
             try
             {
