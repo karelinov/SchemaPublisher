@@ -1,4 +1,5 @@
 ﻿using EADiagramPublisher.Contracts;
+using EADiagramPublisher.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -37,6 +38,7 @@ namespace EADiagramPublisher.Forms
                 else
                 {
                     form.Show();
+                    form.BringToFront();
                 }
                     
 
@@ -131,38 +133,43 @@ namespace EADiagramPublisher.Forms
 
         private void LoadConnectorList()
         {
+            // получаем список описателей элементов диаграммы
+            Dictionary<int, ElementData> elementDataList = EAHelper.GetCurDiagramElementData();
+
+            // получаем список коннекторов диаграммы
+            Dictionary<int, bool> curDiagramConnectorsID = EAHelper.GetCurDiagramConnectorsID();
+
+
             // заливаем список коннекторов на форму
             lvConnectors.Items.Clear();
-            foreach (EA.DiagramLink diagramLink in Context.CurrentDiagram.DiagramLinks)
+            foreach (int curConnectorID in curDiagramConnectorsID.Keys)
             {
-
-                EA.Connector connector = Context.EARepository.GetConnectorByID(diagramLink.ConnectorID);
-
-                ConnectorData connectorData = null;
-                if (Context.ConnectorData.Keys.Contains(diagramLink.ConnectorID))
-                    connectorData = Context.ConnectorData[diagramLink.ConnectorID];
-                else
+                ConnectorData connectorData;
+                if (Context.ConnectorData.ContainsKey(curConnectorID))
                 {
+                    connectorData = Context.ConnectorData[curConnectorID];
+                }
+                else // небиблиотечный коннектор, его нет в списке 
+                {
+                    EA.Connector connector = Context.EARepository.GetConnectorByID(curConnectorID);
                     connectorData = new ConnectorData(connector);
                 }
 
                 if (!AllowByFilter(connectorData)) continue; // Проверяем, что показ этого коннектора в списке разрешён фильтрами
 
-                EA.Element sourceElement = Context.EARepository.GetElementByID(connector.ClientID);
-                EA.Element targetElement = Context.EARepository.GetElementByID(connector.SupplierID);
 
                 // Создаём ListViewItem
                 ListViewItem item = new ListViewItem();
                 item.Tag = connectorData;
-                item.Text = (!diagramLink.IsHidden).ToString();
+                item.Text = curDiagramConnectorsID[curConnectorID].ToString();
 
-                item.SubItems.Add(ElementDesignerHelper.ElementDisplayName(sourceElement));
+                item.SubItems.Add(elementDataList[connectorData.SourceElementID].DisplayName);
                 item.SubItems.Add(connectorData.NameForShow());
                 item.SubItems.Add(connectorData.LinkType.ToString());
                 item.SubItems.Add(connectorData.FlowID);
                 item.SubItems.Add(connectorData.SegmentID);
                 item.SubItems.Add("");
-                item.SubItems.Add(ElementDesignerHelper.ElementDisplayName(targetElement));
+                item.SubItems.Add(elementDataList[connectorData.TargetElementID].DisplayName);
 
                 lvConnectors.Items.Add(item);
 
@@ -182,7 +189,7 @@ namespace EADiagramPublisher.Forms
                     return false;
             }
 
-            if(lblSourceElementFilter.Tag != null)
+            if(lblSourceElementFilter.Tag != null && ((int[])lblSourceElementFilter.Tag).Length !=0)
                 if (! ( 
                     ((int[])lblSourceElementFilter.Tag).Contains(connectorData.SourceElementID) 
                     || 
@@ -192,6 +199,41 @@ namespace EADiagramPublisher.Forms
                 {
                     return false;
                 }
+
+            if(lblLinkTypeFilter.Tag != null && ((LinkType[])lblLinkTypeFilter.Tag).Length !=0)
+            {
+                if (!((LinkType[])lblLinkTypeFilter.Tag).Contains(connectorData.LinkType)) {
+                    return false;
+                }
+            }
+
+            if (lblSoftwareClassificationFilter1.Tag != null && ((int[])lblSoftwareClassificationFilter1.Tag).Length != 0)
+            {
+                bool belongsToSoftware = false;
+                foreach(int softwareID in (int[])lblSoftwareClassificationFilter1.Tag)
+                {
+                    ElementData softwareElementData = Context.SoftwareClassification[softwareID].Value;
+
+                    ElementData sourceElementData = Context.ElementData[connectorData.SourceElementID];
+                    if (SoftwareClassificationHelper.ISBelongsToSoftware(sourceElementData, softwareElementData))
+                    {
+                        belongsToSoftware = true;
+                        break;
+                    }
+                    ElementData targetElementData = Context.ElementData[connectorData.TargetElementID];
+                    if (SoftwareClassificationHelper.ISBelongsToSoftware(targetElementData, softwareElementData))
+                    {
+                        belongsToSoftware = true;
+                        break;
+                    }
+
+                }
+
+                if (!belongsToSoftware)
+                {
+                     return false;
+                }
+            }
 
 
 
@@ -211,6 +253,7 @@ namespace EADiagramPublisher.Forms
                 lblFlowIDFilter.Tag = selectFlowIDResult.value;
                 lblFlowIDFilter.Text = String.Join(",",selectFlowIDResult.value);
 
+                SetFilterLabel(tpFlowIDFilter, selectFlowIDResult.value.Length > 0);
                 LoadConnectorList();
             }
             else
@@ -227,21 +270,22 @@ namespace EADiagramPublisher.Forms
             if (selectDiagramObjectsResult.code == 0)
             {
                 lblSourceElementFilter.Tag = selectDiagramObjectsResult.value;
-                lblFlowIDFilter.Text = "";
+                lblSourceElementFilter.Text = "";
                 for (int i=0; i< selectDiagramObjectsResult.value.Length; i++)
                 {
                     int elementID = selectDiagramObjectsResult.value[i];
 
-                    if (lblFlowIDFilter.Text == "")
-                        lblFlowIDFilter.Text += elementID.ToString();
+                    if (lblSourceElementFilter.Text == "")
+                        lblSourceElementFilter.Text += elementID.ToString();
                     else
-                        lblFlowIDFilter.Text += "," + elementID.ToString();
+                        lblSourceElementFilter.Text += "," + elementID.ToString();
 
                     if (i == 5) break;
                 }
-                if (lblFlowIDFilter.Text != "")
-                    lblFlowIDFilter.Text += "...";
+                if (lblSourceElementFilter.Text != "")
+                    lblSourceElementFilter.Text += "...";
 
+                SetFilterLabel(tpSourceElementFilter, selectDiagramObjectsResult.value.Length > 0);
                 LoadConnectorList();
             }
             else
@@ -250,5 +294,143 @@ namespace EADiagramPublisher.Forms
                     throw new Exception(selectDiagramObjectsResult.message);
             }
         }
+
+        private void btnLinkTypeFilter_Click(object sender, EventArgs e)
+        {
+            ExecResult<LinkType[]> selectLinkTypeResult = FSelectLinkType.Execute((LinkType[])lblLinkTypeFilter.Tag);
+            if (selectLinkTypeResult.code == 0)
+            {
+                lblLinkTypeFilter.Tag = selectLinkTypeResult.value;
+                lblLinkTypeFilter.Text = "";
+                for (int i = 0; i < selectLinkTypeResult.value.Length; i++)
+                {
+                    LinkType linkType = selectLinkTypeResult.value[i];
+
+                    if (lblLinkTypeFilter.Text == "")
+                        lblLinkTypeFilter.Text += linkType.ToString();
+                    else
+                        lblLinkTypeFilter.Text += "," + linkType.ToString();
+
+                    if (i == 5) break;
+                }
+                if (lblLinkTypeFilter.Text != "")
+                    lblLinkTypeFilter.Text += "...";
+
+
+                SetFilterLabel(tpLinkTypeFilter, selectLinkTypeResult.value.Length > 0);
+                LoadConnectorList();
+            }
+            else
+            {
+                if (selectLinkTypeResult.code == (int)DialogResult.Cancel)
+                    throw new Exception(selectLinkTypeResult.message);
+            }
+
+        }
+
+        private void btnSelectConnectorObjects_Click(object sender, EventArgs e)
+        {
+            while (Context.CurrentDiagram.SelectedObjects.Count > 0)
+                Context.CurrentDiagram.SelectedObjects.Delete(0);
+
+            foreach(ListViewItem item in lvConnectors.SelectedItems)
+            {
+                ConnectorData connectorData = (ConnectorData)item.Tag;
+                //EA.DiagramObject sourceDiagramObject = Context.CurrentDiagram.GetDiagramObjectByID(connectorData.SourceElementID);
+                Context.CurrentDiagram.SelectedObjects.AddNew(connectorData.SourceElementID.ToString(), "");
+                Context.CurrentDiagram.SelectedObjects.AddNew(connectorData.TargetElementID.ToString(), "");
+            }
+        }
+
+        private void tsbShowInProject_Click(object sender, EventArgs e)
+        {
+            foreach (ListViewItem item in lvConnectors.SelectedItems)
+            {
+                ConnectorData connectorData = (ConnectorData)item.Tag;
+                EA.Element sourceElement = Context.EARepository.GetElementByID(connectorData.SourceElementID);
+
+                Context.EARepository.ShowInProjectView(sourceElement);
+
+                break;
+            }
+
+        }
+
+        private void tsbShowEndInProject_Click(object sender, EventArgs e)
+        {
+            foreach (ListViewItem item in lvConnectors.SelectedItems)
+            {
+                ConnectorData connectorData = (ConnectorData)item.Tag;
+                EA.Element targetElement = Context.EARepository.GetElementByID(connectorData.TargetElementID);
+
+                Context.EARepository.ShowInProjectView(targetElement);
+
+                break;
+            }
+
+        }
+
+        private void tsbSelectConnector_Click(object sender, EventArgs e)
+        {
+            foreach (ListViewItem item in lvConnectors.SelectedItems)
+            {
+                ConnectorData connectorData = (ConnectorData)item.Tag;
+                Context.CurrentDiagram.SelectedConnector = Context.EARepository.GetConnectorByID(connectorData._ConnectorID);
+                break;
+            }
+        }
+
+
+        /// <summary>
+        /// Добавляет/убирает к названию страницы текст с указанием, что фильтр установлен
+        /// </summary>
+        public void SetFilterLabel(TabPage tabPage, bool filterSet)
+        {
+            string filterText = "(Filtered)";
+
+            if (filterSet)
+            {
+                if (!tabPage.Text.Contains(filterText))
+                    tabPage.Text += filterText;
+            }
+            else
+            {
+                tabPage.Text = tabPage.Text.Replace(filterText, "");
+            }
+
+        }
+
+        private void btnSoftwareClassificationFilter_Click(object sender, EventArgs e)
+        {
+            ExecResult<int[]> selectSoftwareClassificationResult = FSelectSoftwareClassification.Execute((int[])lblSoftwareClassificationFilter1.Tag);
+            if (selectSoftwareClassificationResult.code == 0)
+            {
+                lblSoftwareClassificationFilter1.Tag = selectSoftwareClassificationResult.value;
+                lblSoftwareClassificationFilter1.Text = "";
+                for (int i = 0; i < selectSoftwareClassificationResult.value.Length; i++)
+                {
+                    int elementDataID = selectSoftwareClassificationResult.value[i];
+
+                    if (lblSoftwareClassificationFilter1.Text == "")
+                        lblSoftwareClassificationFilter1.Text += elementDataID.ToString();
+                    else
+                        lblSoftwareClassificationFilter1.Text += "," + elementDataID.ToString();
+
+                    if (i == 5) break;
+                }
+                if (lblSoftwareClassificationFilter1.Text != "")
+                    lblSoftwareClassificationFilter1.Text += "...";
+
+
+                SetFilterLabel(tpLinkTypeFilter, selectSoftwareClassificationResult.value.Length > 0);
+                LoadConnectorList();
+            }
+            else
+            {
+                if (selectSoftwareClassificationResult.code != (int)DialogResult.Cancel)
+                    throw new Exception(selectSoftwareClassificationResult.message);
+            }
+        }
+
     }
 }

@@ -9,7 +9,7 @@ namespace EADiagramPublisher.Contracts
     /// <summary>
     /// Класс со свойдной информацией об элементе, для верменного хранения без необходимости лазать по медленным COM-объектам
     /// </summary>
-    class ElementData
+    public class ElementData : IDPContractWithID
     {
         public int _ElementID = 0;
         public EA.Element Element
@@ -52,6 +52,15 @@ namespace EADiagramPublisher.Contracts
                 return result;
             }
         }
+
+        public int ID
+        {
+            get
+            {
+                return this.ID;
+            }
+        }
+
 
     }
 }

@@ -1,5 +1,4 @@
-﻿
-select 
+﻿select 
  t_diagramobjects.diagram_id,
  t_object.name,
  t_object.object_type,

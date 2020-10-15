@@ -189,7 +189,7 @@ namespace EADiagramPublisher
                         LinkType connectorlinkType = LTHelper.GetConnectorType(connector);
                         if (linkType == connectorlinkType)
                         {
-                            EA.DiagramLink connectorLink = EAHelper.GetConnectorLink(connector);
+                            EA.DiagramLink connectorLink = DiagramLinkHelper.GetDLForConnector(connector);
                             if (connectorLink == null)
                             {
                                 connectorLink = DiagramLinkHelper.CreateDiagramLink(connector);
@@ -250,7 +250,7 @@ namespace EADiagramPublisher
                     if (secondElementDA == null) continue;
 
                     // Получаем линк коннектора на диаграмме
-                    EA.DiagramLink connectorLink = EAHelper.GetConnectorLink(connector);
+                    EA.DiagramLink connectorLink = DiagramLinkHelper.GetDLForConnector(connector);
                     if (connectorLink == null) continue;
 
                     // Устанавливаем видимость 

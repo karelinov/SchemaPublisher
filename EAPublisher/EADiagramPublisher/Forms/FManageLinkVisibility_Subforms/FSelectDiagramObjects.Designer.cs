@@ -29,7 +29,6 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FSelectDiagramObjects));
-            this.btnOk = new System.Windows.Forms.Button();
             this.lvDiagramObjects = new System.Windows.Forms.ListView();
             this.chID = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.chName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -37,21 +36,11 @@
             this.chComponentType = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.chNotes = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
-            this.tsbShow = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
-            this.tsbHide = new System.Windows.Forms.ToolStripButton();
+            this.tsbSelect = new System.Windows.Forms.ToolStripButton();
+            this.tsbClearSelection = new System.Windows.Forms.ToolStripButton();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // btnOk
-            // 
-            this.btnOk.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.btnOk.Location = new System.Drawing.Point(1106, 586);
-            this.btnOk.Name = "btnOk";
-            this.btnOk.Size = new System.Drawing.Size(104, 35);
-            this.btnOk.TabIndex = 0;
-            this.btnOk.Text = "OK";
-            this.btnOk.UseVisualStyleBackColor = true;
             // 
             // lvDiagramObjects
             // 
@@ -61,10 +50,11 @@
             this.chEAType,
             this.chComponentType,
             this.chNotes});
+            this.lvDiagramObjects.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lvDiagramObjects.FullRowSelect = true;
-            this.lvDiagramObjects.Location = new System.Drawing.Point(13, 96);
+            this.lvDiagramObjects.Location = new System.Drawing.Point(0, 55);
             this.lvDiagramObjects.Name = "lvDiagramObjects";
-            this.lvDiagramObjects.Size = new System.Drawing.Size(1197, 473);
+            this.lvDiagramObjects.Size = new System.Drawing.Size(1222, 578);
             this.lvDiagramObjects.TabIndex = 1;
             this.lvDiagramObjects.UseCompatibleStateImageBehavior = false;
             this.lvDiagramObjects.View = System.Windows.Forms.View.Details;
@@ -99,47 +89,47 @@
             // 
             this.toolStrip1.ImageScalingSize = new System.Drawing.Size(48, 48);
             this.toolStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.tsbShow,
             this.toolStripSeparator1,
-            this.tsbHide});
+            this.tsbSelect,
+            this.tsbClearSelection});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
             this.toolStrip1.Size = new System.Drawing.Size(1222, 55);
             this.toolStrip1.TabIndex = 2;
             this.toolStrip1.Text = "toolStrip1";
             // 
-            // tsbShow
-            // 
-            this.tsbShow.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.tsbShow.Image = ((System.Drawing.Image)(resources.GetObject("tsbShow.Image")));
-            this.tsbShow.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbShow.Name = "tsbShow";
-            this.tsbShow.Size = new System.Drawing.Size(52, 52);
-            this.tsbShow.Text = "Показать коннекторы";
-            // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
             this.toolStripSeparator1.Size = new System.Drawing.Size(6, 55);
             // 
-            // tsbHide
+            // tsbSelect
             // 
-            this.tsbHide.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.tsbHide.Image = ((System.Drawing.Image)(resources.GetObject("tsbHide.Image")));
-            this.tsbHide.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbHide.Name = "tsbHide";
-            this.tsbHide.Size = new System.Drawing.Size(52, 52);
-            this.tsbHide.Text = "Скрыть коннекторы";
+            this.tsbSelect.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.tsbSelect.Image = ((System.Drawing.Image)(resources.GetObject("tsbSelect.Image")));
+            this.tsbSelect.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbSelect.Name = "tsbSelect";
+            this.tsbSelect.Size = new System.Drawing.Size(52, 52);
+            this.tsbSelect.Text = "Выбрать";
+            this.tsbSelect.Click += new System.EventHandler(this.tsbSelect_Click);
+            // 
+            // tsbClearSelection
+            // 
+            this.tsbClearSelection.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.tsbClearSelection.Image = ((System.Drawing.Image)(resources.GetObject("tsbClearSelection.Image")));
+            this.tsbClearSelection.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbClearSelection.Name = "tsbClearSelection";
+            this.tsbClearSelection.Size = new System.Drawing.Size(52, 52);
+            this.tsbClearSelection.Text = "Сбросить выделение";
+            this.tsbClearSelection.Click += new System.EventHandler(this.tsbClearSelection_Click);
             // 
             // FSelectDiagramObjects
             // 
-            this.AcceptButton = this.btnOk;
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1222, 633);
-            this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.lvDiagramObjects);
-            this.Controls.Add(this.btnOk);
+            this.Controls.Add(this.toolStrip1);
             this.Name = "FSelectDiagramObjects";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "FSelectDiagramObjects";
@@ -151,8 +141,6 @@
         }
 
         #endregion
-
-        private System.Windows.Forms.Button btnOk;
         private System.Windows.Forms.ListView lvDiagramObjects;
         private System.Windows.Forms.ColumnHeader chID;
         private System.Windows.Forms.ColumnHeader chName;
@@ -160,8 +148,8 @@
         private System.Windows.Forms.ColumnHeader chComponentType;
         private System.Windows.Forms.ColumnHeader chNotes;
         private System.Windows.Forms.ToolStrip toolStrip1;
-        private System.Windows.Forms.ToolStripButton tsbShow;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
-        private System.Windows.Forms.ToolStripButton tsbHide;
+        private System.Windows.Forms.ToolStripButton tsbSelect;
+        private System.Windows.Forms.ToolStripButton tsbClearSelection;
     }
 }

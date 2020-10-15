@@ -1,6 +1,6 @@
 ﻿SELECT t_connectortag.*
 FROM t_connectortag
-WHERE t_connectortag.`ElementID` IN
+WHERE t_connectortag.ElementID IN
 (
 SELECT
 	t_connector.Connector_ID
@@ -41,7 +41,7 @@ LEFT outer JOIN t_package as t_package6 ON t_package6.Parent_ID = t_package5.Pac
 LEFT outer JOIN t_package as t_package7 ON t_package7.Parent_ID = t_package6.Package_ID)
 LEFT outer JOIN t_package as t_package8 ON t_package8.Parent_ID = t_package7.Package_ID)
 LEFT outer JOIN t_package as t_package9 ON t_package9.Parent_ID = t_package8.Package_ID)
-WHERE lib_package.ea_guid="#PARAM0#"; 
+WHERE lib_package.ea_guid="#PARAM0#" 
 
 )
 

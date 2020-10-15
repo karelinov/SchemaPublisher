@@ -9,6 +9,9 @@ using EADiagramPublisher.Contracts;
 using EADiagramPublisher.Enums;
 
 using System.Windows.Forms;
+using System.Xml.Linq;
+using EADiagramPublisher.SQL;
+using System.Xml.XPath;
 
 namespace EADiagramPublisher
 
@@ -69,28 +72,6 @@ namespace EADiagramPublisher
 
             return result;
         }
-
-        /// <summary>
-        /// Ищет линк коннектора на текущей диаграмме
-        /// </summary>
-        /// <param name="connector"></param>
-        /// <returns></returns>
-        public static EA.DiagramLink GetConnectorLink(EA.Connector connector)
-        {
-            EA.DiagramLink result = null;
-
-            foreach (EA.DiagramLink diagramLink in Context.CurrentDiagram.DiagramLinks)
-            {
-                if (diagramLink.ConnectorID == connector.ConnectorID)
-                {
-                    result = diagramLink;
-                    break;
-                }
-            }
-
-            return result;
-        }
-
 
         /// <summary>
         ///  Возыращает список выделенных в диаграмме коннекторов
@@ -162,6 +143,147 @@ namespace EADiagramPublisher
         {
             return EARepository.SQLQuery(queryText);
         }
+
+
+        /// <summary>
+        /// Возвращает список элементов ElementData для текущей диаграммы
+        /// </summary>
+        /// <returns></returns>
+        public static Dictionary<int, ElementData> GetCurDiagramElementData()
+        {
+            Dictionary<int, ElementData> result = new Dictionary<int, ElementData>();
+
+
+            string[] args = new string[] { Context.CurrentDiagram.DiagramGUID };
+            XDocument sqlResultSet = SQLHelper.RunSQL("CurDiagramObjects.sql", args);
+
+            IEnumerable<XElement> rowNodes = sqlResultSet.Root.XPathSelectElements("/EADATA/Dataset_0/Data/Row");
+            foreach (XElement rowNode in rowNodes)
+            {
+                ElementData elementData;
+
+                int object_id = int.Parse(rowNode.Descendants("object_id").First().Value);
+
+                if (result.ContainsKey(object_id))
+                {
+                    elementData = result[object_id];
+                }
+                else
+                {
+                    elementData = new ElementData();
+                    elementData._ElementID = object_id;
+                    elementData.Name = rowNode.Descendants("name").First().Value;
+                    elementData.EAType = rowNode.Descendants("object_type").First().Value;
+                    elementData.Note = rowNode.Descendants("note").First().Value;
+                    string sClassifierID = rowNode.Descendants("classifier_id").First().Value;
+                    if (sClassifierID != "")
+                    {
+                        elementData.ClassifierID = int.Parse(rowNode.Descendants("classifier_id").First().Value);
+                        elementData.ClassifierName = rowNode.Descendants("classifier_name").First().Value;
+                        elementData.ClassifierEAType = rowNode.Descendants("classifier_type").First().Value;
+                    }
+
+                    result.Add(object_id, elementData);
+                }
+
+                string tagName = rowNode.Descendants("property").First().Value;
+                string tagValue = rowNode.Descendants("value").First().Value;
+
+                if (tagName == DAConst.DP_LibraryTag)
+                    elementData.IsLibrary = true;
+                if (tagName == DAConst.DP_ComponentLevelTag)
+                    elementData.ComponentLevel = Enum.Parse(typeof(ComponentLevel), tagValue) as ComponentLevel?;
+                if (tagName == DAConst.DP_NodeGroupsTag)
+                    elementData.NodeGroups = tagValue.Split(',');
+
+
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Возвращает список элементов ElementData для текущей библиотеки
+        /// </summary>
+        /// <returns></returns>
+        public static Dictionary<int, ElementData> GetCurLibElementData()
+        {
+            Dictionary<int, ElementData> result = new Dictionary<int, ElementData>();
+
+
+            string[] args = new string[] { String.Join(",", Context.CurLibPackageIDs)};
+            XDocument sqlResultSet = SQLHelper.RunSQL("CurLibObjects.sql", args);
+
+            IEnumerable<XElement> rowNodes = sqlResultSet.Root.XPathSelectElements("/EADATA/Dataset_0/Data/Row");
+            foreach (XElement rowNode in rowNodes)
+            {
+                ElementData elementData;
+
+                int object_id = int.Parse(rowNode.Descendants("object_id").First().Value);
+
+                if (result.ContainsKey(object_id))
+                {
+                    elementData = result[object_id];
+                }
+                else
+                {
+                    elementData = new ElementData();
+                    elementData._ElementID = object_id;
+                    elementData.Name = rowNode.Descendants("name").First().Value;
+                    elementData.EAType = rowNode.Descendants("object_type").First().Value;
+                    elementData.Note = rowNode.Descendants("note").First().Value;
+                    string sClassifierID = rowNode.Descendants("classifier_id").First().Value;
+                    if (sClassifierID != "")
+                    {
+                        elementData.ClassifierID = int.Parse(rowNode.Descendants("classifier_id").First().Value);
+                        elementData.ClassifierName = rowNode.Descendants("classifier_name").First().Value;
+                        elementData.ClassifierEAType = rowNode.Descendants("classifier_type").First().Value;
+                    }
+
+                    result.Add(object_id, elementData);
+                }
+
+                string tagName = rowNode.Descendants("property").First().Value;
+                string tagValue = rowNode.Descendants("value").First().Value;
+
+                if (tagName == DAConst.DP_LibraryTag)
+                    elementData.IsLibrary = true;
+                if (tagName == DAConst.DP_ComponentLevelTag)
+                    elementData.ComponentLevel = Enum.Parse(typeof(ComponentLevel), tagValue) as ComponentLevel?;
+                if (tagName == DAConst.DP_NodeGroupsTag)
+                    elementData.NodeGroups = tagValue.Split(',');
+
+
+            }
+
+            return result;
+        }
+
+
+
+        /// <summary>
+        /// Возвращает список ID коннекторов для элементов текущей диаграммы
+        /// </summary>
+        /// <returns></returns>
+        public static Dictionary<int,bool> GetCurDiagramConnectorsID()
+        {
+            Dictionary<int, bool> result = new Dictionary<int, bool>();
+
+            string[] args = new string[] { Context.CurrentDiagram.DiagramGUID };
+            XDocument sqlResultSet = SQLHelper.RunSQL("CurDiagramConnectorsID.sql", args);
+
+            IEnumerable<XElement> rowNodes = sqlResultSet.Root.XPathSelectElements("/EADATA/Dataset_0/Data/Row");
+            foreach (XElement rowNode in rowNodes)
+            {
+                int connector_id = int.Parse(rowNode.Descendants("connector_id").First().Value);
+                bool hidden = bool.Parse(rowNode.Descendants("hidden").First().Value);
+                result.Add(connector_id, hidden);
+            }
+
+            return result;
+        }
+
+
 
     }
 }

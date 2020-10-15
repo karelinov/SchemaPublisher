@@ -50,7 +50,7 @@ namespace EADiagramPublisher.Forms
                     foreach (ListViewItem item in form.lvDiagramObjects.SelectedItems)
                     {
 
-                        selectedObjIDs.Add((int)item.Tag);
+                        selectedObjIDs.Add(((ElementData)item.Tag)._ElementID);
                     }
 
                     result.value = selectedObjIDs.ToArray();
@@ -71,51 +71,8 @@ namespace EADiagramPublisher.Forms
         {
             lvDiagramObjects.Items.Clear();
 
-            string[] args = new string[] { Context.CurrentDiagram.DiagramGUID };
-            XDocument sqlResultSet = SQLHelper.RunSQL("CurDiagramObjects.sql", args);
-
-            Dictionary<int, ElementData> elementDataList = new Dictionary<int, ElementData>();
-            IEnumerable<XElement> rowNodes = sqlResultSet.Root.XPathSelectElements("/EADATA/Dataset_0/Data/Row");
-            foreach (XElement rowNode in rowNodes)
-            {
-                ElementData elementData;
-                
-                int object_id = int.Parse(rowNode.Descendants("object_id").First().Value);
-
-                if(elementDataList.ContainsKey(object_id))
-                {
-                    elementData = elementDataList[object_id];
-                }
-                else
-                {
-                    elementData = new ElementData();
-                    elementData._ElementID = object_id;
-                    elementData.Name = rowNode.Descendants("name").First().Value;
-                    elementData.EAType = rowNode.Descendants("object_type").First().Value;
-                    elementData.Note = rowNode.Descendants("note").First().Value;
-                    string sClassifierID = rowNode.Descendants("classifier_id").First().Value;
-                    if (sClassifierID !="")
-                    {
-                        elementData.ClassifierID = int.Parse(rowNode.Descendants("classifier_id").First().Value);
-                       elementData.ClassifierName = rowNode.Descendants("classifier_name").First().Value;
-                       elementData.ClassifierEAType = rowNode.Descendants("classifier_type").First().Value;
-                    }
-
-                    elementDataList.Add(object_id,elementData);
-                }
-
-                string tagName = rowNode.Descendants("property").First().Value;
-                string tagValue = rowNode.Descendants("value").First().Value;
-
-                if(tagName == DAConst.DP_LibraryTag)
-                    elementData.IsLibrary = true;
-                if (tagName == DAConst.DP_ComponentLevelTag)
-                    elementData.ComponentLevel = Enum.Parse(typeof(ComponentLevel),tagValue) as ComponentLevel?;
-                if (tagName == DAConst.DP_NodeGroupsTag)
-                    elementData.NodeGroups = tagValue.Split(',');
-
-
-            }
+            // получаем список объектов ElementData для текущей диаграммы
+            Dictionary<int, ElementData> elementDataList = EAHelper.GetCurDiagramElementData();
 
             foreach (ElementData elementData in elementDataList.Values)
             {
@@ -147,7 +104,7 @@ namespace EADiagramPublisher.Forms
         {
             foreach (ListViewItem item in lvDiagramObjects.Items)
             {
-                int curElementID = (int)item.Tag;
+                int curElementID = ((ElementData)item.Tag)._ElementID;
 
                 if(alreadySelectedObjects.Contains(curElementID))
                 {
@@ -181,6 +138,16 @@ namespace EADiagramPublisher.Forms
 
             // Perform the sort with these new sort options.
             this.lvDiagramObjects.Sort();
+        }
+
+        private void tsbSelect_Click(object sender, EventArgs e)
+        {
+            this.DialogResult = DialogResult.OK;
+        }
+
+        private void tsbClearSelection_Click(object sender, EventArgs e)
+        {
+            lvDiagramObjects.SelectedItems.Clear();
         }
     }
 }

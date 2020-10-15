@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text;
-
+using System.Xml.Linq;
+using System.Xml.XPath;
 using EADiagramPublisher.Contracts;
 using EADiagramPublisher.Enums;
+using EADiagramPublisher.SQL;
 
 namespace EADiagramPublisher
 {
@@ -769,6 +771,30 @@ namespace EADiagramPublisher
 
             return result;
         }
+
+
+        /// <summary>
+        /// Возвращает список идентификаторов пакетов текущей библиотеки
+        /// </summary>
+        /// <returns></returns>
+        public static int[] GetCurrentLibPackageIDs()
+        {
+            List<int> result = new List<int>();
+
+            string[] args = new string[] { Context.CurrentLibrary.PackageGUID };
+            XDocument sqlResultSet = SQLHelper.RunSQL("PackageHierarchy.sql", args);
+
+            IEnumerable<XElement> rowNodes = sqlResultSet.Root.XPathSelectElements("/EADATA/Dataset_0/Data/Row");
+            foreach (XElement rowNode in rowNodes)
+            {
+                int package_id = int.Parse(rowNode.Descendants("package_id").First().Value);
+                result.Add(package_id);
+            }
+
+            return result.ToArray();
+
+        }
+
 
 
     }

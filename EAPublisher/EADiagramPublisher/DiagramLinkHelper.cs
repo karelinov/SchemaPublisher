@@ -92,5 +92,26 @@ namespace EADiagramPublisher
             return result;
         }
 
+        /// <summary>
+        /// Ищет линк коннектора на текущей диаграмме
+        /// </summary>
+        /// <param name="connector"></param>
+        /// <returns></returns>
+        public static EA.DiagramLink GetDLForConnector(EA.Connector connector)
+        {
+            EA.DiagramLink result = null;
+
+            foreach (EA.DiagramLink diagramLink in Context.CurrentDiagram.DiagramLinks)
+            {
+                if (diagramLink.ConnectorID == connector.ConnectorID)
+                {
+                    result = diagramLink;
+                    break;
+                }
+            }
+
+            return result;
+        }
+
     }
 }

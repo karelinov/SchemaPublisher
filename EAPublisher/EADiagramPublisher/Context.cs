@@ -85,16 +85,18 @@ namespace EADiagramPublisher
             set
             {
                 CurrentLibraryID = value.PackageID;
+
+                // Зависимые от библиотеки списки сбрасываются
+                ConnectorData = null;
+                ElementData = null;
+                SoftwareClassification = null;
+                CurLibPackageIDs = null;
             }
         }
 
 
         /// <summary>
-        /// Список данных библиотечных коннекторов
-        /// Структура:
-        /// - LinkType
-        ///  - FlowID
-        ///   - Список ConnectorData
+        /// Данные коннекторов текущей библиотеки
         /// </summary>
         private static Dictionary<int, ConnectorData> _ConnectorData = null;
         public static Dictionary<int, ConnectorData> ConnectorData
@@ -109,6 +111,25 @@ namespace EADiagramPublisher
             set
             {
                 _ConnectorData = value;
+            }
+        }
+
+        /// <summary>
+        /// Данные элементов текущей библиотеки
+        /// </summary>
+        private static Dictionary<int, ElementData> _ElementData = null;
+        public static Dictionary<int, ElementData> ElementData
+        {
+            get
+            {
+                if (_ElementData == null)
+                    _ElementData = EAHelper.GetCurLibElementData();
+
+                return _ElementData;
+            }
+            set
+            {
+                _ElementData = value;
             }
         }
 
@@ -165,6 +186,44 @@ namespace EADiagramPublisher
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Данные классификатора ПО текущей библиотеки
+        /// </summary>
+        private static DPTreeNode<ElementData> _SoftwareClassification = null;
+        public static DPTreeNode<ElementData> SoftwareClassification
+        {
+            get
+            {
+                if (_SoftwareClassification == null)
+                    _SoftwareClassification = SoftwareClassificationHelper.GetSoftwareClassification();
+
+                return _SoftwareClassification;
+            }
+            set
+            {
+                _SoftwareClassification = value;
+            }
+        }
+
+        /// <summary>
+        /// Список ID пакетов текущей библиотеки
+        /// </summary>
+        private static int[] _CurLibPackageIDs = null;
+        public static int[] CurLibPackageIDs
+        {
+            get
+            {
+                if (_CurLibPackageIDs == null)
+                    _CurLibPackageIDs = LibraryHelper.GetCurrentLibPackageIDs();
+
+                return _CurLibPackageIDs;
+            }
+            set
+            {
+                _CurLibPackageIDs = value;
+            }
         }
 
 

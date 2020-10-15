@@ -40,16 +40,6 @@ namespace EADiagramPublisher.Contracts
                 result = LinkType.ToString();
             }
 
-
-            if (SourceElementID != 0)
-            {
-                result += " " + Logger.DumpObject(Context.EARepository.GetElementByID(SourceElementID));
-            }
-            if (TargetElementID != 0)
-            {
-                result += "-" + Logger.DumpObject(Context.EARepository.GetElementByID(TargetElementID));
-            }
-
             return result;
         }
 
