@@ -82,7 +82,7 @@ namespace EADiagramPublisher
             return txtSavepath;
         }
 
-        private static string ExportPNG(EA.Diagram curDiagram)
+        public static string ExportPNG(EA.Diagram curDiagram)
         {
             // Сохраняем на диск метафайл
             string savePath = Path.Combine(DPConfig.AppSettings["exchangePath"].Value, curDiagram.DiagramGUID.Replace("{", "").Replace("}", "") + ".emf");

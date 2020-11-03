@@ -1,5 +1,5 @@
 ﻿SELECT
-lib_package.Package_ID
+lib_package.package_id
 FROM t_package lib_package
 WHERE lib_package.ea_guid="#PARAM0#"
 UNION 

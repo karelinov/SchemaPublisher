@@ -96,6 +96,7 @@
             this.lvConnectors.UseCompatibleStateImageBehavior = false;
             this.lvConnectors.View = System.Windows.Forms.View.Details;
             this.lvConnectors.ColumnClick += new System.Windows.Forms.ColumnClickEventHandler(this.lvConnectors_ColumnClick);
+            this.lvConnectors.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.lvConnectors_MouseDoubleClick);
             // 
             // colShown
             // 

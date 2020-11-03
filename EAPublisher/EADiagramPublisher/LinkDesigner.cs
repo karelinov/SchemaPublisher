@@ -265,6 +265,11 @@ namespace EADiagramPublisher
         /// <returns></returns>
         public ExecResult<Boolean> SetConnectorTags(string location)
         {
+
+            if (!Context.CheckCurrentDiagram())
+                throw new Exception("Не установлена или не открыта текущая диаграмма");
+
+
             ExecResult<Boolean> result = new ExecResult<bool>();
             try
             {

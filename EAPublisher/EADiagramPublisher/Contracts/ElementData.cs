@@ -11,7 +11,15 @@ namespace EADiagramPublisher.Contracts
     /// </summary>
     public class ElementData : IDPContractWithID
     {
-        public int _ElementID = 0;
+        public ElementData()
+        {
+            _ElementID = 0;
+            ComponentLevel = null;
+            NodeGroups = null;
+        }
+
+
+        public int _ElementID { get; set; }
         public EA.Element Element
         {
             get
@@ -25,27 +33,27 @@ namespace EADiagramPublisher.Contracts
                 _ElementID = value.ElementID;
             }
         }
-        public string Name;
-        public string EAType;
-        public string Note;
+        public string Name { get; set; }
+        public string EAType { get; set; }
+        public string Note { get; set; }
         public int? ClassifierID = null;
-        public string ClassifierName;
-        public string ClassifierEAType;
+        public string ClassifierName { get; set; }
+        public string ClassifierEAType { get; set; }
 
 
         // тэги
-        public bool IsLibrary;
-        public ComponentLevel? ComponentLevel = null;
-        public string[] NodeGroups = null;
+        public bool IsLibrary { get; set; }
+        public ComponentLevel? ComponentLevel { get; set; }
+        public string[] NodeGroups { get; set; }
 
         public string DisplayName
         {
             get
             {
                 string result = Name;
-                if (ClassifierID != 0)
+                if (ClassifierID != null)
                 {
-                    result = ":" + ClassifierName;
+                    result += ":" + ClassifierName;
                 }
 
 
@@ -57,7 +65,7 @@ namespace EADiagramPublisher.Contracts
         {
             get
             {
-                return this.ID;
+                return this._ElementID;
             }
         }
 

@@ -156,6 +156,9 @@ namespace EADiagramPublisher
         {
             ExecResult<Boolean> result = new ExecResult<bool>();
 
+            if (!Context.CheckCurrentDiagram())
+                throw new Exception("Не установлена или не открыта текущая диаграмма");
+
             try
             {
                 switch (location)

@@ -130,11 +130,6 @@ namespace EADiagramPublisher.Forms
 
         }
 
-        private void btnSuggestFromSource_Click(object sender, EventArgs e)
-        {
-            cbFlowID.Text = LibraryHelper.SuggestFlowIDName((EA.Element)tbSource.Tag);
-        }
-
         private void cbFlowID_TextUpdate(object sender, EventArgs e)
         {
             if (tbFlowName.Text == "")
@@ -142,12 +137,6 @@ namespace EADiagramPublisher.Forms
                 tbFlowName.Text = cbFlowID.Text;
             }
         }
-
-        private void btnSuggestFromDest_Click(object sender, EventArgs e)
-        {
-            cbFlowID.Text = LibraryHelper.SuggestFlowIDName((EA.Element)tbDestination.Tag);
-        }
-
 
     }
 

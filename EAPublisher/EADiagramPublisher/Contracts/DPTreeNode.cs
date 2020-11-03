@@ -36,27 +36,35 @@ namespace EADiagramPublisher.Contracts
 
         }
         
-        private void AddToAllNodes(DPTreeNode<T> value)
+        private void AddToAllNodes(DPTreeNode<T> node)
         {
-            object uniqueID;
-            if (value is IDPContractWithID)
-                uniqueID = (value as IDPContractWithID).ID;
+            if(AllNodes == null)
+            {
+                Parent.AddToAllNodes(node);
+            }
             else
-                uniqueID = AllNodes.Values.Count + 1;
+            {
+                object uniqueID;
+                if (node.Value is IDPContractWithID)
+                    uniqueID = (node.Value as IDPContractWithID).ID;
+                else
+                    uniqueID = AllNodes.Values.Count + 1;
 
-            AllNodes.Add(uniqueID, value);
+                AllNodes.Add(uniqueID, node);
+            }
+            
         }
 
-        private void RemoveFromAllNodes(DPTreeNode<T> value)
+        private void RemoveFromAllNodes(DPTreeNode<T> node)
         {
             object uniqueID;
-            if (value is IDPContractWithID)
-                AllNodes.Remove((value as IDPContractWithID).ID);
+            if (node.Value is IDPContractWithID)
+                AllNodes.Remove((node.Value as IDPContractWithID).ID);
             else
             {
                 for(int i=0; i< AllNodes.Count; i++)
                 {
-                    if (AllNodes[i] as object == value as object)
+                    if (AllNodes[i] as object == node as object)
                     {
                         AllNodes.Remove(i);
                         break;

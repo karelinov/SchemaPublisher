@@ -40,7 +40,7 @@ namespace EADiagramPublisher.Forms
                     form.Show();
                     form.BringToFront();
                 }
-                    
+
 
             }
             catch (Exception ex)
@@ -85,11 +85,11 @@ namespace EADiagramPublisher.Forms
                 return;
 
             // Проходимся по списку выделенных коннекторов
-            foreach(ListViewItem item in lvConnectors.SelectedItems)
+            foreach (ListViewItem item in lvConnectors.SelectedItems)
             {
-                ConnectorData connectorData =  (ConnectorData)item.Tag;
+                ConnectorData connectorData = (ConnectorData)item.Tag;
 
-                EA.DiagramLink diagramLink = DiagramLinkHelper.GetDLFromConnector(connectorData._ConnectorID);
+                EA.DiagramLink diagramLink = DiagramLinkHelper.GetDLFromConnector(connectorData.ConnectorID);
                 if (diagramLink == null)
                 {
                     diagramLink = DiagramLinkHelper.CreateDiagramLink(connectorData.Connector);
@@ -103,7 +103,7 @@ namespace EADiagramPublisher.Forms
                     DiagramLinkHelper.ApplyStyleToDL(diagramLink, setLinkStyleResult.value);
                 }
 
-                
+
             }
         }
 
@@ -114,7 +114,7 @@ namespace EADiagramPublisher.Forms
             {
                 ConnectorData connectorData = (ConnectorData)item.Tag;
 
-                EA.DiagramLink diagramLink = DiagramLinkHelper.GetDLFromConnector(connectorData._ConnectorID);
+                EA.DiagramLink diagramLink = DiagramLinkHelper.GetDLFromConnector(connectorData.ConnectorID);
                 if (diagramLink == null)
                 {
                     diagramLink = DiagramLinkHelper.CreateDiagramLink(connectorData.Connector);
@@ -165,9 +165,9 @@ namespace EADiagramPublisher.Forms
 
                 item.SubItems.Add(elementDataList[connectorData.SourceElementID].DisplayName);
                 item.SubItems.Add(connectorData.NameForShow());
-                item.SubItems.Add(connectorData.LinkType.ToString());
-                item.SubItems.Add(connectorData.FlowID);
-                item.SubItems.Add(connectorData.SegmentID);
+                item.SubItems.Add(connectorData.IsLibrary?connectorData.LinkType.ToString():"");
+                item.SubItems.Add(connectorData.IsLibrary ? connectorData.FlowID:"");
+                item.SubItems.Add(connectorData.IsLibrary ? connectorData.SegmentID:"");
                 item.SubItems.Add("");
                 item.SubItems.Add(elementDataList[connectorData.TargetElementID].DisplayName);
 
@@ -189,10 +189,10 @@ namespace EADiagramPublisher.Forms
                     return false;
             }
 
-            if(lblSourceElementFilter.Tag != null && ((int[])lblSourceElementFilter.Tag).Length !=0)
-                if (! ( 
-                    ((int[])lblSourceElementFilter.Tag).Contains(connectorData.SourceElementID) 
-                    || 
+            if (lblSourceElementFilter.Tag != null && ((int[])lblSourceElementFilter.Tag).Length != 0)
+                if (!(
+                    ((int[])lblSourceElementFilter.Tag).Contains(connectorData.SourceElementID)
+                    ||
                     ((int[])lblSourceElementFilter.Tag).Contains(connectorData.TargetElementID)
                     )
                    )
@@ -200,9 +200,10 @@ namespace EADiagramPublisher.Forms
                     return false;
                 }
 
-            if(lblLinkTypeFilter.Tag != null && ((LinkType[])lblLinkTypeFilter.Tag).Length !=0)
+            if (lblLinkTypeFilter.Tag != null && ((LinkType[])lblLinkTypeFilter.Tag).Length != 0)
             {
-                if (!((LinkType[])lblLinkTypeFilter.Tag).Contains(connectorData.LinkType)) {
+                if (!((LinkType[])lblLinkTypeFilter.Tag).Contains(connectorData.LinkType))
+                {
                     return false;
                 }
             }
@@ -210,9 +211,9 @@ namespace EADiagramPublisher.Forms
             if (lblSoftwareClassificationFilter1.Tag != null && ((int[])lblSoftwareClassificationFilter1.Tag).Length != 0)
             {
                 bool belongsToSoftware = false;
-                foreach(int softwareID in (int[])lblSoftwareClassificationFilter1.Tag)
+                foreach (int softwareID in (int[])lblSoftwareClassificationFilter1.Tag)
                 {
-                    ElementData softwareElementData = Context.SoftwareClassification[softwareID].Value;
+                    ElementData softwareElementData = Context.SoftwareClassification.AllNodes[softwareID].Value;
 
                     ElementData sourceElementData = Context.ElementData[connectorData.SourceElementID];
                     if (SoftwareClassificationHelper.ISBelongsToSoftware(sourceElementData, softwareElementData))
@@ -231,7 +232,7 @@ namespace EADiagramPublisher.Forms
 
                 if (!belongsToSoftware)
                 {
-                     return false;
+                    return false;
                 }
             }
 
@@ -251,7 +252,7 @@ namespace EADiagramPublisher.Forms
             if (selectFlowIDResult.code == 0)
             {
                 lblFlowIDFilter.Tag = selectFlowIDResult.value;
-                lblFlowIDFilter.Text = String.Join(",",selectFlowIDResult.value);
+                lblFlowIDFilter.Text = String.Join(",", selectFlowIDResult.value);
 
                 SetFilterLabel(tpFlowIDFilter, selectFlowIDResult.value.Length > 0);
                 LoadConnectorList();
@@ -271,7 +272,7 @@ namespace EADiagramPublisher.Forms
             {
                 lblSourceElementFilter.Tag = selectDiagramObjectsResult.value;
                 lblSourceElementFilter.Text = "";
-                for (int i=0; i< selectDiagramObjectsResult.value.Length; i++)
+                for (int i = 0; i < selectDiagramObjectsResult.value.Length; i++)
                 {
                     int elementID = selectDiagramObjectsResult.value[i];
 
@@ -333,7 +334,7 @@ namespace EADiagramPublisher.Forms
             while (Context.CurrentDiagram.SelectedObjects.Count > 0)
                 Context.CurrentDiagram.SelectedObjects.Delete(0);
 
-            foreach(ListViewItem item in lvConnectors.SelectedItems)
+            foreach (ListViewItem item in lvConnectors.SelectedItems)
             {
                 ConnectorData connectorData = (ConnectorData)item.Tag;
                 //EA.DiagramObject sourceDiagramObject = Context.CurrentDiagram.GetDiagramObjectByID(connectorData.SourceElementID);
@@ -375,7 +376,7 @@ namespace EADiagramPublisher.Forms
             foreach (ListViewItem item in lvConnectors.SelectedItems)
             {
                 ConnectorData connectorData = (ConnectorData)item.Tag;
-                Context.CurrentDiagram.SelectedConnector = Context.EARepository.GetConnectorByID(connectorData._ConnectorID);
+                Context.CurrentDiagram.SelectedConnector = Context.EARepository.GetConnectorByID(connectorData.ConnectorID);
                 break;
             }
         }
@@ -432,5 +433,12 @@ namespace EADiagramPublisher.Forms
             }
         }
 
+        private void lvConnectors_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            if (lvConnectors.SelectedItems.Count > 0)
+            {
+                FConnectorProperties.Execute(lvConnectors.SelectedItems[0].Tag as ConnectorData);
+            }
+        }
     }
 }

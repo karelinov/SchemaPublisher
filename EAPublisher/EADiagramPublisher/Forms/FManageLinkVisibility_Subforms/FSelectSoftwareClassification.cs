@@ -26,7 +26,7 @@ namespace EADiagramPublisher.Forms
                 var form = new FSelectSoftwareClassification();
                 form.LoadSoftwareClassification();
                 if (alreadySelectedObjects != null)
-                    form.SelectSoftwareClassification(alreadySelectedObjects);
+                    form.SelectSoftwareClassification(form.tvSoftwareClassification.Nodes[0],alreadySelectedObjects);
 
 
                 DialogResult res = form.ShowDialog();
@@ -37,7 +37,7 @@ namespace EADiagramPublisher.Forms
                 else
                 {
                     List<int> selectedObjects = new List<int>();
-                    foreach (TreeNode checkedNode in form.GetCheckedNodes(form.tvSoftwareClassification.TopNode))
+                    foreach (TreeNode checkedNode in form.GetCheckedNodes(form.tvSoftwareClassification.Nodes[0]))
                     {
                         selectedObjects.Add(((ElementData)checkedNode.Tag)._ElementID);
                     }
@@ -56,7 +56,10 @@ namespace EADiagramPublisher.Forms
         public List<TreeNode> GetCheckedNodes(TreeNode node)
         {
             List<TreeNode> result = new List<TreeNode>();
-            result.Add(node);
+
+            if (node.Checked)
+                result.Add(node);
+
             foreach(TreeNode childNode in node.Nodes)
             {
                 result.AddRange(GetCheckedNodes(childNode));
@@ -72,7 +75,7 @@ namespace EADiagramPublisher.Forms
         {
             DPTreeNode<ElementData> dpTreeNode = Context.SoftwareClassification;
 
-            TreeNode node = new TreeNode() { Tag = dpTreeNode.Value };
+            TreeNode node = new TreeNode(dpTreeNode.Value.DisplayName) { Tag = dpTreeNode.Value };
             tvSoftwareClassification.Nodes.Add(node);
 
             SetTreeView(node, dpTreeNode.Children.ToList());
@@ -82,7 +85,7 @@ namespace EADiagramPublisher.Forms
         {
             foreach (var curDPTreeNode in dpTreeNodeList)
             {
-                TreeNode node = new TreeNode() { Tag = curDPTreeNode.Value };
+                TreeNode node = new TreeNode(curDPTreeNode.Value.DisplayName) { Tag = curDPTreeNode.Value };
                 parentNode.Nodes.Add(node);
 
                 SetTreeView(node, curDPTreeNode.Children.ToList());
@@ -94,38 +97,26 @@ namespace EADiagramPublisher.Forms
         /// Функция выделения узлов ПО в дереве по списку
         /// </summary>
         /// <param name="alreadySelectedObjects"></param>
-        public void SelectSoftwareClassification(int[] alreadySelectedObjects)
+        public void SelectSoftwareClassification(TreeNode node, int[] alreadySelectedObjects)
         {
+            node.Checked = (alreadySelectedObjects.Contains(((ElementData)node.Tag)._ElementID));
 
-            int _level = 0;
-            TreeNode _currentNode = tvSoftwareClassification.Nodes[0];
-            do
+            foreach (TreeNode subNode in node.Nodes)
             {
-                // Собсвенно установка checked
-                _currentNode.Checked = (alreadySelectedObjects.Contains(((ElementData)_currentNode.Tag)._ElementID));
-
-                // альше хитрый код обхода дерева по уровням без рекурсии (с SO, интересно, работает?)
-                if (_currentNode.Nodes.Count > 0)
-                {
-                    _currentNode = _currentNode.Nodes[0];
-                    _level++;
-                }
-                else
-                {
-                    if (_currentNode.NextNode != null)
-                        _currentNode = _currentNode.NextNode;
-                    else
-                    {
-                        _currentNode = _currentNode.Parent.NextNode;
-                        _level--;
-                    }
-                }
+                SelectSoftwareClassification(subNode, alreadySelectedObjects);
             }
-            while (_level > 0);
-
-
         }
 
+
+        private void tsbExpandAll_Click(object sender, EventArgs e)
+        {
+            tvSoftwareClassification.ExpandAll();
+        }
+
+        private void tsbCollapseAll_Click(object sender, EventArgs e)
+        {
+            tvSoftwareClassification.CollapseAll();
+        }
 
 
     }

@@ -26,7 +26,14 @@ namespace EADiagramPublisher
 
             // в конце в списке должен остаться только один корневой элемент, если это не так - ошибка метаданных (или бага плагина)
             if (result.Count > 1)
-                throw new Exception("В классификации ПО обнаружено несколько корневых узлов");
+            {
+                string rootElements = "";
+                foreach(var node in result)
+                {
+                    rootElements += node.Value._ElementID.ToString() + " " + node.Value.DisplayName +"("+ node.AllNodes.Count() +"), ";
+                }
+                throw new Exception("В классификации ПО обнаружено несколько корневых узлов: "+ rootElements);
+            }
 
 
             return result[0];
@@ -50,7 +57,7 @@ namespace EADiagramPublisher
                 }
                 if (curNode.AllNodes.ContainsKey(targetElementData.ID))
                 {
-                    targetElementNode = curNode.AllNodes[sourceElementData.ID];
+                    targetElementNode = curNode.AllNodes[targetElementData.ID];
                     targetElementNodeRoot = curNode;
                 }
 
@@ -88,7 +95,7 @@ namespace EADiagramPublisher
                 targetElementNode.AddChildNode(sourceElementNode);
             }
             // оба не найдены - создаём оба узла в новой ветке
-            else if (sourceElementNode == null && targetElementNode != null)
+            else if (sourceElementNode == null && targetElementNode == null)
             {
                 sourceElementNode = new DPTreeNode<ElementData>(sourceElementData, false);
                 targetElementNode = new DPTreeNode<ElementData>(targetElementData, true);

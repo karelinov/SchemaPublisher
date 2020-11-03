@@ -9,43 +9,52 @@ namespace EADiagramPublisher.Contracts
 {
     public class ConnectorData
     {
-        public int _ConnectorID = 0;
+        public ConnectorData()
+        {
+            ConnectorID = 0;
+            IsLibrary = false;
+        }
+
+
+
+        public int ConnectorID { get; set; }
         public EA.Connector Connector
         {
             get
             {
-                if (_ConnectorID != 0)
-                    return Context.EARepository.GetConnectorByID(_ConnectorID);
+                if (ConnectorID != 0)
+                    return Context.EARepository.GetConnectorByID(ConnectorID);
                 else return null;
             }
             set
             {
-                _ConnectorID = value.ConnectorID;
+                ConnectorID = value.ConnectorID;
             }
         }
-        public bool IsLibrary = false;
-        public string Name;
-        public LinkType LinkType;
-        public string FlowID;
-        public string SegmentID;
+        public bool IsLibrary { get; set; }
+        public string Name { get; set; }
+        public LinkType LinkType { get; set; }
+        public string FlowID { get; set; }
+        public string SegmentID { get; set; }
 
-        public int SourceElementID;
-        public int TargetElementID;
+        public int SourceElementID { get; set; }
+        public int TargetElementID { get; set; }
 
         public string NameForShow()
         {
             string result = Name;
-            if (result == "")
+            /*
+            if (result == "" && IsLibrary)
             {
-                result = LinkType.ToString();
+                result = "("+ LinkType.ToString()+")";
             }
-
+            */
             return result;
         }
 
-        public ConnectorData(EA.DiagramLink diagramLink)
+        public ConnectorData(EA.DiagramLink diagramLink): base()
         {
-            _ConnectorID = diagramLink.ConnectorID;
+            ConnectorID = diagramLink.ConnectorID;
 
             Name = Connector.Name;
             LinkType = LTHelper.GetConnectorType(Connector);
@@ -67,11 +76,6 @@ namespace EADiagramPublisher.Contracts
 
             SourceElementID = connector.ClientID;
             TargetElementID = connector.SupplierID;
-        }
-
-        public ConnectorData()
-        {
-
         }
 
     }

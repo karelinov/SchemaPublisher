@@ -39,7 +39,7 @@ namespace EADiagramPublisher
         }
 
         /// <summary>
-        /// Вспомопгтельная функция определяет, предназанчен ли библиотечный элемнет для размещения на диаграмме
+        /// Вспомогательная функция определяет, предназанчен ли библиотечный элемнет для размещения на диаграмме
         /// Правила: Контуры = разрешён Classifier, остальные компоненты - только Instance
         /// </summary>
         /// <param name=""></param>
@@ -441,10 +441,19 @@ namespace EADiagramPublisher
             {
 
                 EA.Collection taggedValues = EATVHelper.GetTaggedValues(element);
-                if (taggedValues != null && taggedValues.GetByName(DAConst.DP_LibraryTag) != null)
+                try
                 {
-                    result = true;
+
+                    if (taggedValues != null && taggedValues.GetByName(DAConst.DP_LibraryTag) != null)
+                    {
+                        result = true;
+                    }
                 }
+                catch
+                {
+                    result = false; // ибо обращение к несуществующему тэгу раизит ошибку, а проверить наличие можно только перебором тэгов, что неудобно
+                }
+
             }
 
             return result;
@@ -459,10 +468,19 @@ namespace EADiagramPublisher
         {
             bool result = false;
 
-            if (connector.TaggedValues.GetByName(DAConst.DP_LibraryTag) != null)
+            try
             {
-                result = true;
+
+                if (connector.TaggedValues.GetByName(DAConst.DP_LibraryTag) != null)
+                {
+                    result = true;
+                }
             }
+            catch
+            {
+                result = false; // ибо обращение к несуществующему тэгу раизит ошибку, а проверить наличие можно только перебором тэгов, что неудобно
+            }
+
             return result;
         }
 
@@ -470,13 +488,23 @@ namespace EADiagramPublisher
         /// Устанавливает текущую библиотеку
         /// </summary>
         /// <returns></returns>
-        public static ExecResult<Boolean> SetCurrentLibrary()
+        public static ExecResult<Boolean> SetCurrentLibrary(string location)
         {
             ExecResult<Boolean> result = new ExecResult<bool>();
-
             try
             {
-                EA.Package libRoot = GetLibraryRootFromTreeSelection();
+                EA.Package libRoot = null;
+
+                switch (location)
+                {
+                    case "Diagram":
+                        libRoot = GetLibraryRootFromPackage(EARepository.GetPackageByID(EARepository.GetCurrentDiagram().PackageID));
+                        break;
+                    case "TreeView":
+                    case "MainMenu":
+                        libRoot = GetLibraryRootFromTreeSelection();
+                        break;
+                }
                 if (libRoot == null)
                     throw new Exception("Не обнаружена библиотека ");
 
@@ -564,12 +592,12 @@ namespace EADiagramPublisher
 
                 if (IsLibrary(curElement))
                 {
-                    return GetRootLibPackage(EARepository.GetPackageByID(curElement.PackageID));
+                    return GetLibraryRootFromPackage(EARepository.GetPackageByID(curElement.PackageID));
                 }
             }
 
             // Если через библиотечные элементы на диаграмме не получчилось, пытаемся найти от пакета диаграммы
-            return GetRootLibPackage(EARepository.GetPackageByID(CurrentDiagram.PackageID));
+            return GetLibraryRootFromPackage(EARepository.GetPackageByID(CurrentDiagram.PackageID));
 
         }
 
@@ -610,7 +638,7 @@ namespace EADiagramPublisher
                 libPackage = EARepository.GetPackageByID(libElement.PackageID);
             }
 
-            return GetRootLibPackage(libPackage);
+            return GetLibraryRootFromPackage(libPackage);
         }
 
 
@@ -622,7 +650,7 @@ namespace EADiagramPublisher
         /// </summary>
         /// <param name="startPackage"></param>
         /// <returns>Корень библиотеки если найден</returns>
-        private static EA.Package GetRootLibPackage(EA.Package startPackage)
+        public static EA.Package GetLibraryRootFromPackage(EA.Package startPackage)
         {
             EA.Package result = null;
 

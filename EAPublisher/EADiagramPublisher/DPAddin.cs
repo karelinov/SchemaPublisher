@@ -42,6 +42,10 @@ namespace EADiagramPublisher
         const string menuDoOnConnectActions = "&DoOnConnectActions";
         const string menuRunSQLQuery = "&RunSQLQuery";
 
+        const string menuReports = "-&Reports";
+        const string menuDiagramElementsReport = "&DiagramElementsReport";
+
+
         const string menuTest = "-&Test";
         const string menuTest1 = "&Test1";
         const string menuTest2 = "&Test2";
@@ -61,6 +65,8 @@ namespace EADiagramPublisher
             Context.Designer = new ElementDesigner();
             Context.LinkDesigner = new LinkDesigner();
             logpath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "EADiagramPublisher.log");
+
+            AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolve;
 
             return "";
         }
@@ -86,7 +92,7 @@ namespace EADiagramPublisher
                 case "":
                     return menuDPAddin;
                 case menuDPAddin:
-                    subMenus = new string[] { menuExportDiagram, menuDesign, menuDesignLinks, menuUtils, menuTest };
+                    subMenus = new string[] { menuExportDiagram, menuDesign, menuDesignLinks, menuUtils, menuReports, menuTest };
                     return subMenus;
 
                 case menuDesign:
@@ -104,6 +110,12 @@ namespace EADiagramPublisher
                 case menuUtils:
                     subMenus = new string[] { menuSetCurrentDiagram, menuSetCurrentLibrary, menuSetDPLibratyTag, menuReloadConnectorData, menuDoOnConnectActions, menuRunSQLQuery};
                     return subMenus;
+
+                case menuReports:
+                    subMenus = new string[] { menuDiagramElementsReport };
+                    return subMenus;
+
+
                 case menuTest:
                     subMenus = new string[] { menuTest1 , menuTest2, menuTest3 };
                     return subMenus;
@@ -175,6 +187,12 @@ namespace EADiagramPublisher
                     case menuRunSQLQuery:
                         isEnabled = true;
                         break;
+
+                    case menuReports:
+                    case menuDiagramElementsReport:
+                        isEnabled = true;
+                        break;
+
 
                     case menuTest:
                     case menuTest1:
@@ -277,7 +295,7 @@ namespace EADiagramPublisher
                     break;
 
                 case menuSetCurrentLibrary:
-                    var setCurrentLibraryResult = LibraryHelper.SetCurrentLibrary();
+                    var setCurrentLibraryResult = LibraryHelper.SetCurrentLibrary(location);
                     OutExecResult(setCurrentLibraryResult);
                     break;
 
@@ -300,6 +318,14 @@ namespace EADiagramPublisher
                     var fRunSQLQueryResult = FRunSQLQuery.Execute();
                     OutExecResult(fRunSQLQueryResult);
                     break;
+
+                // --------- REPORTS ------------------------------------------------------------
+                case menuDiagramElementsReport:
+                    var fDiagramElementsReportResult = ReportsHelper.DiagramElementsReport(location);
+                    OutExecResult(fDiagramElementsReportResult);
+                    break;
+
+
 
 
                 // ------ EXPORT --------------------------------------------------------------
@@ -476,6 +502,22 @@ namespace EADiagramPublisher
             }
 
             
+        }
+
+        static Assembly AssemblyResolve(object source, ResolveEventArgs e)
+        {
+            string[] fields = e.Name.Split(',');
+            string name = fields[0];
+            string culture = fields[2];
+            if (name.EndsWith(".resources") && !culture.EndsWith("neutral")) return null;
+
+            string projectOutDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
+            string folderPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string assemblyPath = Path.Combine(projectOutDirectory, new AssemblyName(e.Name).Name + ".dll");
+            if (!File.Exists(assemblyPath)) return null;
+            Assembly assembly = Assembly.LoadFrom(assemblyPath);
+            return assembly;
         }
 
     }

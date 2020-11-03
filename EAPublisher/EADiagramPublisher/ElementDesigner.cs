@@ -155,7 +155,7 @@ namespace EADiagramPublisher
                         levelEndPoint = new Point(newLevelRight, newLevelBottom);
                     }
 
-                    // коллекуионируем список узлов уровнем ниже
+                    // коллекционируем список узлов уровнем ниже
                     List<DPTreeNode<EA.Element>> grandchildLevelNodes = new List<DPTreeNode<EA.Element>>();
                     foreach (DPTreeNode<EA.Element> childlevelNode in childLevelNodes)
                     {

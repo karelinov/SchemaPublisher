@@ -80,9 +80,7 @@ namespace EADiagramPublisher
             newConnector.ClientID = firstElement.ElementID;
             newConnector.SupplierID = secondElement.ElementID;
 
-            newConnector.Name = createNewLinkData.LinkType.ToString();
-            if (createNewLinkData.FlowID == null)
-                newConnector.Name += " " + createNewLinkData.FlowID + " " + ((createNewLinkData.SegmentID == null) ? "" : createNewLinkData.SegmentID);
+            newConnector.Name = createNewLinkData.Name;
 
             newConnector.Update();
 
@@ -98,7 +96,7 @@ namespace EADiagramPublisher
             newConnector.TaggedValues.Refresh();
 
             // Добавляем коннектор к кэш информации о коннекторах
-            Context.ConnectorData.Add(createNewLinkData._ConnectorID, createNewLinkData);
+            Context.ConnectorData.Add(createNewLinkData.ConnectorID, createNewLinkData);
 
             if (putOnDiagram)
             {
@@ -289,9 +287,7 @@ namespace EADiagramPublisher
         {
             var result = new Dictionary<int, ConnectorData>();
 
-            string[] args = new string[] { Context.CurrentLibrary.PackageGUID };
-
-
+            string[] args = new string[] { String.Join(",", Context.CurLibPackageIDs)};
             XDocument sqlResultSet = SQLHelper.RunSQL("GetConnectors.sql", args);
 
             // Коннекторы
@@ -299,13 +295,13 @@ namespace EADiagramPublisher
             foreach(XElement rowNode in rowNodes)
             {
                 ConnectorData connectorData = new ConnectorData();
-                connectorData.Name = rowNode.Descendants("Name").First().Value;
-                connectorData._ConnectorID = int.Parse(rowNode.Descendants("Connector_ID").First().Value);
+                connectorData.ConnectorID = int.Parse(rowNode.Descendants("connector_id").First().Value);
+                connectorData.Name = rowNode.Descendants("name").First().Value;
 
-                connectorData.SourceElementID = int.Parse(rowNode.Descendants("Start_Object_ID").First().Value);
-                connectorData.TargetElementID = int.Parse(rowNode.Descendants("End_Object_ID").First().Value);
+                connectorData.SourceElementID = int.Parse(rowNode.Descendants("start_object_id").First().Value);
+                connectorData.TargetElementID = int.Parse(rowNode.Descendants("end_object_id").First().Value);
 
-                result.Add(connectorData._ConnectorID, connectorData);
+                result.Add(connectorData.ConnectorID, connectorData);
             }
 
             // Тэги коннекторов
@@ -313,20 +309,28 @@ namespace EADiagramPublisher
             rowNodes = sqlResultSet.Root.XPathSelectElements("/EADATA/Dataset_0/Data/Row");
             foreach (XElement rowNode in rowNodes)
             {
-                int elementID = int.Parse(rowNode.Descendants("ElementID").First().Value);
-                string property = rowNode.Descendants("Property").First().Value;
-                string value = rowNode.Descendants("VALUE").First().Value;
+                int elementID = int.Parse(rowNode.Descendants("elementid").First().Value);
+                string property = rowNode.Descendants("property").First().Value;
+                string value = rowNode.Descendants("value").First().Value;
 
-                ConnectorData connectorData = result[elementID]; // получаем уже созданных объект ConnectorData
+                if (result.ContainsKey(elementID))
+                {
+                    ConnectorData connectorData = result[elementID]; // получаем уже созданный объект ConnectorData
 
-                if(property == DAConst.DP_LibraryTag)
-                    connectorData.IsLibrary = true;
-                if (property == DAConst.DP_LinkTypeTag)
-                    connectorData.LinkType = (LinkType)Enum.Parse(typeof(LinkType), value) ;
-                if (property == DAConst.DP_FlowIDTag)
-                    connectorData.FlowID = value;
-                if (property == DAConst.DP_SegmentIDTag)
-                    connectorData.SegmentID = value;
+                    if (property == DAConst.DP_LibraryTag)
+                        connectorData.IsLibrary = true;
+                    if (property == DAConst.DP_LinkTypeTag)
+                        connectorData.LinkType = (LinkType)Enum.Parse(typeof(LinkType), value);
+                    if (property == DAConst.DP_FlowIDTag)
+                        connectorData.FlowID = value;
+                    if (property == DAConst.DP_SegmentIDTag)
+                        connectorData.SegmentID = value;
+                }
+                else
+                {
+                    throw new Exception("рассогласование набора коннекторов при загрузке");
+
+                }
             }
 
             return result;
