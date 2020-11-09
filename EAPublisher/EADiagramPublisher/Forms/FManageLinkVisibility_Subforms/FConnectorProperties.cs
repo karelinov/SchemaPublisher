@@ -29,6 +29,7 @@ namespace EADiagramPublisher.Forms
             form.tbType.Text = connector.Type;
             form.tbClientID.Text = connector.ClientID.ToString();
             form.tbSupplierID.Text = connector.SupplierID.ToString();
+            form.tbNotes.Text = connector.Notes;
 
             form.lvTaggedValues.Items.Clear();
             foreach(EA.ConnectorTag connectorTag in connector.TaggedValues)

@@ -65,6 +65,7 @@ namespace EADiagramPublisher.Forms
                     else
                     {
                         result.value.Name = fCreateNewLink.tbFlowName.Text;
+                        result.value.Notes = fCreateNewLink.tbNotes.Text;
                         result.value.LinkType = ((LinkType)fCreateNewLink.clbLinkType.CheckedItems[0]);
                         result.value.FlowID = fCreateNewLink.cbFlowID.Text;
                         result.value.SegmentID = fCreateNewLink.cbSegmentID.Text;
@@ -138,6 +139,13 @@ namespace EADiagramPublisher.Forms
             }
         }
 
+        private void btnOK_Click(object sender, EventArgs e)
+        {
+            if (clbLinkType.CheckedItems.Count >0)
+            {
+                DialogResult = DialogResult.OK;
+            }
+        }
     }
 
 }

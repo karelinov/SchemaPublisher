@@ -164,6 +164,62 @@ namespace EADiagramPublisher
         }
 
         /// <summary>
+        /// Возвращает если есть родительский элемент размещения
+        /// </summary>
+        public static ElementData GetDeployParent(ElementData elementData)
+        {
+            ElementData result = null;
+
+            // Инициируем обращение к спискам элементов и коннекторов, чтобы связать списки (если они ещё не инициированы и не связаны)
+            var ed = Context.ElementData;
+            var cd = Context.ConnectorData;
+
+            foreach (ConnectorData connectorData in elementData.ConnectorsData)
+            {
+                if (connectorData.LinkType == LinkType.Deploy && connectorData.SourceElementID == elementData._ElementID)
+                {
+                    result = Context.ElementData[connectorData.TargetElementID];
+                    break;
+                }
+            }
+
+
+            return result;
+        }
+
+        /// <summary>
+        /// Возвращает для элемента родительский элемент Componentlevel = Node/Device (если есть)
+        /// То есть Узел, в котором он размещён
+        /// Ограничение: считаем, что узлы внутри узлов не располагаются
+        /// </summary>
+        public static int? GetDeployComponentNode(int eaElementID)
+        {
+            int? result = null;
+
+            ElementData elementData = Context.ElementData[eaElementID];
+
+            // Узел ищем только для компонентов и сред исполнения
+            if (elementData.ComponentLevel == ComponentLevel.ExecutionEnv || elementData.ComponentLevel == ComponentLevel.Component)
+            {
+                ElementData parentElementData = GetDeployParent(elementData); 
+
+                while (parentElementData != null)
+                {
+                    if (parentElementData.ComponentLevel == ComponentLevel.Device || parentElementData.ComponentLevel == ComponentLevel.Node)
+                    {
+                        result = parentElementData._ElementID;
+                        break;
+                    }
+
+                    parentElementData = GetDeployParent(parentElementData);
+                }
+            }
+
+
+            return result;
+        }
+
+        /// <summary>
         /// Возвращает Список элементов диаграммы, являющихся для него родительскими
         /// </summary>
         /// <param name="element"></param>

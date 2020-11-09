@@ -18,8 +18,33 @@ namespace EADiagramPublisher.Contracts
             NodeGroups = null;
         }
 
+        public ElementData(EA.Element element)
+        {
+            _ElementID = element.ElementID;
+            Name = element.Name;
+            EAType = element.Type;
 
-        public int _ElementID { get; set; }
+            if (element.ClassifierID != 0)
+            {
+                ClassifierID = element.ClassifierID;
+                EA.Element classifier = Context.EARepository.GetElementByID((int)ClassifierID);
+                ClassifierName = classifier.Name;
+                ClassifierEAType = classifier.Type;
+            }
+
+            IsLibrary = LibraryHelper.IsLibrary(element);
+            if (IsLibrary)
+            {
+
+                ComponentLevel =  CLHelper.GetComponentLevel(element);
+                string ngTag = EATVHelper.GetTaggedValue(element, DAConst.DP_NodeGroupsTag);
+                if (ngTag != null)
+                    NodeGroups = ngTag.Split(',');
+            }
+        }
+
+
+        public int _ElementID;
         public EA.Element Element
         {
             get
@@ -68,6 +93,33 @@ namespace EADiagramPublisher.Contracts
                 return this._ElementID;
             }
         }
+
+        /// <summary>
+        /// Список идентификаторов коннекторов элемента
+        /// </summary>
+        public List<int> _ConnectorDataIDs = null;
+        public ConnectorData[] ConnectorsData
+        {
+            get
+            {
+                if (_ConnectorDataIDs == null)
+                    return null;
+                else
+                {
+                    return Context.ConnectorData.Where(cd => _ConnectorDataIDs.Contains(cd.Key)).Select(cd => cd.Value).ToArray();
+                }
+
+            }
+
+        }
+
+        // Свойства для отчётов
+
+        /// <summary>
+        /// ID узла, в котором размещён компонент (для группировки компонентов в узлах)
+        /// </summary>
+        public int? RootDeployNodeID { get; set; }
+
 
 
     }

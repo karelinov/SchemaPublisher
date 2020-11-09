@@ -33,6 +33,7 @@ namespace EADiagramPublisher.Contracts
         }
         public bool IsLibrary { get; set; }
         public string Name { get; set; }
+        public string Notes { get; set; }
         public LinkType LinkType { get; set; }
         public string FlowID { get; set; }
         public string SegmentID { get; set; }
@@ -52,11 +53,12 @@ namespace EADiagramPublisher.Contracts
             return result;
         }
 
-        public ConnectorData(EA.DiagramLink diagramLink): base()
+        public ConnectorData(EA.DiagramLink diagramLink) : base()
         {
             ConnectorID = diagramLink.ConnectorID;
 
             Name = Connector.Name;
+            Notes = Connector.Notes;
             LinkType = LTHelper.GetConnectorType(Connector);
             FlowID = EATVHelper.GetTaggedValue(Connector, DAConst.DP_FlowIDTag);
             SegmentID = EATVHelper.GetTaggedValue(Connector, DAConst.DP_SegmentIDTag);
@@ -70,6 +72,7 @@ namespace EADiagramPublisher.Contracts
             Connector = connector;
 
             Name = Connector.Name;
+            Notes = Connector.Notes;
             LinkType = LTHelper.GetConnectorType(connector);
             FlowID = EATVHelper.GetTaggedValue(connector, DAConst.DP_FlowIDTag);
             SegmentID = EATVHelper.GetTaggedValue(connector, DAConst.DP_SegmentIDTag);

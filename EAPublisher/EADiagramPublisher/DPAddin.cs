@@ -29,8 +29,8 @@ namespace EADiagramPublisher
 
         const string menuDesignLinks = "-&DesignLinks";
         const string menuCreateLink = "&CreateLink";
+        const string menuManageLinks = "&ManageLinks";
         const string menuManageLinkVisibility = "&ManageLinkVisibility";
-        const string menuSetLinkVisibility = "&SetLinkVisibility";
         const string menuSetConnectorTags = "&SetConnectorTags";
         const string menuSetSimilarLinksTags = "&SetSimilarLinksTags";
 
@@ -104,7 +104,7 @@ namespace EADiagramPublisher
                     return subMenus;
 
                 case menuDesignLinks:
-                    subMenus = new string[] { menuCreateLink, menuManageLinkVisibility, menuSetLinkVisibility, menuSetConnectorTags, menuSetSimilarLinksTags};
+                    subMenus = new string[] { menuCreateLink, menuManageLinks, menuManageLinkVisibility, menuSetConnectorTags, menuSetSimilarLinksTags};
                     return subMenus;
 
                 case menuUtils:
@@ -171,8 +171,8 @@ namespace EADiagramPublisher
                     
                     case menuDesignLinks:
                     case menuCreateLink:
+                    case menuManageLinks:
                     case menuManageLinkVisibility:
-                    case menuSetLinkVisibility:
                     case menuSetConnectorTags:
                     case menuSetSimilarLinksTags:
                         isEnabled = true;
@@ -267,16 +267,17 @@ namespace EADiagramPublisher
                     OutExecResult(createCommunicationResult);
                     break;
 
+                case menuManageLinks:
+                    var ManageLinksResult = Context.LinkDesigner.ManageLinks();
+                    OutExecResult(ManageLinksResult);
+                    break;
+
+
                 case menuManageLinkVisibility:
                     var ManageLinkVisibilityResult = Context.LinkDesigner.ManageLinkVisibility();
                     OutExecResult(ManageLinkVisibilityResult);
                     break;
 
-
-                case menuSetLinkVisibility:
-                    var setLinkVisibilityResult = Context.LinkDesigner.SetConnectorVisibility();
-                    OutExecResult(setLinkVisibilityResult);
-                    break;
 
                 case menuSetConnectorTags:
                     var setConnectorTagsResult = Context.LinkDesigner.SetConnectorTags(location);

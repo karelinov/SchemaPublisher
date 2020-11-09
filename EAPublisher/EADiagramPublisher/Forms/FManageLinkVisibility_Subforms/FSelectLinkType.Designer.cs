@@ -32,8 +32,8 @@
             this.clbLinkTypes = new System.Windows.Forms.CheckedListBox();
             this.btnOk = new System.Windows.Forms.Button();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();
-            this.tsbClearSelection = new System.Windows.Forms.ToolStripButton();
             this.tsbCheckAll = new System.Windows.Forms.ToolStripButton();
+            this.tsbClearSelection = new System.Windows.Forms.ToolStripButton();
             this.toolStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -68,16 +68,6 @@
             this.toolStrip1.TabIndex = 2;
             this.toolStrip1.Text = "toolStrip1";
             // 
-            // tsbClearSelection
-            // 
-            this.tsbClearSelection.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.tsbClearSelection.Image = ((System.Drawing.Image)(resources.GetObject("tsbClearSelection.Image")));
-            this.tsbClearSelection.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbClearSelection.Name = "tsbClearSelection";
-            this.tsbClearSelection.Size = new System.Drawing.Size(52, 52);
-            this.tsbClearSelection.Text = "ClearAll";
-            this.tsbClearSelection.Click += new System.EventHandler(this.tsbClearSelection_Click);
-            // 
             // tsbCheckAll
             // 
             this.tsbCheckAll.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
@@ -87,6 +77,16 @@
             this.tsbCheckAll.Size = new System.Drawing.Size(52, 52);
             this.tsbCheckAll.Text = "CheckAll";
             this.tsbCheckAll.Click += new System.EventHandler(this.tsbCheckAll_Click);
+            // 
+            // tsbClearSelection
+            // 
+            this.tsbClearSelection.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.tsbClearSelection.Image = ((System.Drawing.Image)(resources.GetObject("tsbClearSelection.Image")));
+            this.tsbClearSelection.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbClearSelection.Name = "tsbClearSelection";
+            this.tsbClearSelection.Size = new System.Drawing.Size(52, 52);
+            this.tsbClearSelection.Text = "ClearAll";
+            this.tsbClearSelection.Click += new System.EventHandler(this.tsbClearSelection_Click);
             // 
             // FSelectLinkType
             // 
@@ -98,6 +98,7 @@
             this.Controls.Add(this.btnOk);
             this.Controls.Add(this.clbLinkTypes);
             this.Name = "FSelectLinkType";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "FSelectLinkType";
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();

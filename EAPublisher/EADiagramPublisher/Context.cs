@@ -104,7 +104,13 @@ namespace EADiagramPublisher
             get
             {
                 if (_ConnectorData == null)
+                {
                     _ConnectorData = ConnectorHelper.LoadConnectorData2();
+                    if (_ElementData != null)
+                    {
+                        SyncElementConnectorData();
+                    }
+                }
 
                 return _ConnectorData;
             }
@@ -123,7 +129,14 @@ namespace EADiagramPublisher
             get
             {
                 if (_ElementData == null)
+                {
                     _ElementData = EAHelper.GetCurLibElementData();
+                    if (_ConnectorData != null)
+                    {
+                        SyncElementConnectorData();
+                    }
+                }
+
 
                 return _ElementData;
             }
@@ -132,6 +145,48 @@ namespace EADiagramPublisher
                 _ElementData = value;
             }
         }
+
+        /// <summary>
+        /// Функция записывает в эанные ElementData идентификаторы коннекторов (на основе обработки ConnectorData)
+        /// </summary>
+        private static void SyncElementConnectorData()
+        {
+            foreach (ElementData elementData in ElementData.Values)
+                elementData._ConnectorDataIDs = null;
+
+            foreach (ConnectorData connectorData  in ConnectorData.Values)
+            {
+                ElementData sourceElementData;
+                if (ElementData.ContainsKey(connectorData.SourceElementID))
+                {
+                    sourceElementData = ElementData[connectorData.SourceElementID];
+                }
+                else // небиблиотечный элемент
+                {
+                    EA.Element element = EARepository.GetElementByID(connectorData.SourceElementID);
+                    sourceElementData = new ElementData(element);
+                }
+                if (sourceElementData._ConnectorDataIDs == null)
+                    sourceElementData._ConnectorDataIDs = new List<int>();
+                sourceElementData._ConnectorDataIDs.Add(connectorData.ConnectorID);
+
+
+                ElementData targetElementData;
+                if(ElementData.ContainsKey(connectorData.TargetElementID)) {
+                    targetElementData = ElementData[connectorData.TargetElementID];
+                }
+                else
+                {
+                    EA.Element element = EARepository.GetElementByID(connectorData.TargetElementID);
+                    targetElementData = new ElementData(element);
+                }
+                if (targetElementData._ConnectorDataIDs == null)
+                    targetElementData._ConnectorDataIDs = new List<int>();
+                targetElementData._ConnectorDataIDs.Add(connectorData.ConnectorID);
+            }
+        }
+
+
 
         /// <summary>
         /// Функция проверки, что текущая диаграмма установлена

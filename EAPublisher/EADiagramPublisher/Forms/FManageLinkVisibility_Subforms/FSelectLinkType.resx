@@ -121,16 +121,6 @@
     <value>17, 17</value>
   </metadata>
   <assembly alias="System.Drawing" name="System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-  <data name="tsbClearSelection.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-    <value>
-        iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
-        YQUAAAAJcEhZcwAAFiUAABYlAUlSJPAAAADhSURBVEhL7dSxDcIwFARQDwHMQAEbIISooKIjMwLbQEEF
-        BRQIloA7JEc/8cVgR+ly0lMi+9uYnyiuT27mcIV3C3dYQ5ARvEAtSnWDIAdQxbkqKUAVtVFmAE9QRWdY
-        wMOMeWznEo5mzCqzB1VA3ICZgH0+vOcYwxq7xvtmC2rS40ZTYMbAf6LG1Fo3BHuqJva0vNr72Ppoa+rs
-        qZnYyb3uf6DzFjEbUJOePXnyQ/bp9DVlYq06ATdQ8xzjHGvqc1TJr1blCLIDVZgrCFvV9E1KJT/XzAwu
-        oBb9i5uvoE8szn0AIwBJymfo/AAAAAAASUVORK5CYII=
-</value>
-  </data>
   <data name="tsbCheckAll.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
     <value>
         iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
@@ -139,6 +129,16 @@
         NxwrACuuLFWDrPhb/OITBaCvZYlWvIkvaIIZDqPdgwpusBrtnGvjCf3J5/h18i7qJE3XV5CwQuV7LCuA
         UrIGTe4zQp18xYECKOAWlR/Q7iR48mdCmtTwp+KGXp4u1uPqKYAi7lD5OVmDHssn/Cb2n/GbpCpuqIl9
         ioaarDF18Yy/wrk7IvxO/BG3SaIAAAAASUVORK5CYII=
+</value>
+  </data>
+  <data name="tsbClearSelection.Image" type="System.Drawing.Bitmap, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+    <value>
+        iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAYAAADgdz34AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
+        YQUAAAAJcEhZcwAAFiUAABYlAUlSJPAAAADhSURBVEhL7dSxDcIwFARQDwHMQAEbIISooKIjMwLbQEEF
+        BRQIloA7JEc/8cVgR+ly0lMi+9uYnyiuT27mcIV3C3dYQ5ARvEAtSnWDIAdQxbkqKUAVtVFmAE9QRWdY
+        wMOMeWznEo5mzCqzB1VA3ICZgH0+vOcYwxq7xvtmC2rS40ZTYMbAf6LG1Fo3BHuqJva0vNr72Ppoa+rs
+        qZnYyb3uf6DzFjEbUJOePXnyQ/bp9DVlYq06ATdQ8xzjHGvqc1TJr1blCLIDVZgrCFvV9E1KJT/XzAwu
+        oBb9i5uvoE8szn0AIwBJymfo/AAAAAAASUVORK5CYII=
 </value>
   </data>
 </root>

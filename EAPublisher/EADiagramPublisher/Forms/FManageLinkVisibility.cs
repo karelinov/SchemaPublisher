@@ -161,19 +161,20 @@ namespace EADiagramPublisher.Forms
                 // Создаём ListViewItem
                 ListViewItem item = new ListViewItem();
                 item.Tag = connectorData;
-                item.Text = curDiagramConnectorsID[curConnectorID].ToString();
+                item.Text = (!curDiagramConnectorsID[curConnectorID]).ToString();
 
                 item.SubItems.Add(elementDataList[connectorData.SourceElementID].DisplayName);
                 item.SubItems.Add(connectorData.NameForShow());
                 item.SubItems.Add(connectorData.IsLibrary?connectorData.LinkType.ToString():"");
                 item.SubItems.Add(connectorData.IsLibrary ? connectorData.FlowID:"");
                 item.SubItems.Add(connectorData.IsLibrary ? connectorData.SegmentID:"");
-                item.SubItems.Add("");
+                item.SubItems.Add(connectorData.Notes);
                 item.SubItems.Add(elementDataList[connectorData.TargetElementID].DisplayName);
 
                 lvConnectors.Items.Add(item);
 
             }
+
         }
 
         /// <summary>
@@ -257,12 +258,6 @@ namespace EADiagramPublisher.Forms
                 SetFilterLabel(tpFlowIDFilter, selectFlowIDResult.value.Length > 0);
                 LoadConnectorList();
             }
-            else
-            {
-                if (selectFlowIDResult.code == (int)DialogResult.Cancel)
-                    throw new Exception(selectFlowIDResult.message);
-            }
-
         }
 
         private void btnSourceElementFilter_Click(object sender, EventArgs e)
@@ -288,11 +283,6 @@ namespace EADiagramPublisher.Forms
 
                 SetFilterLabel(tpSourceElementFilter, selectDiagramObjectsResult.value.Length > 0);
                 LoadConnectorList();
-            }
-            else
-            {
-                if (selectDiagramObjectsResult.code != (int)DialogResult.Cancel)
-                    throw new Exception(selectDiagramObjectsResult.message);
             }
         }
 
@@ -320,11 +310,6 @@ namespace EADiagramPublisher.Forms
 
                 SetFilterLabel(tpLinkTypeFilter, selectLinkTypeResult.value.Length > 0);
                 LoadConnectorList();
-            }
-            else
-            {
-                if (selectLinkTypeResult.code == (int)DialogResult.Cancel)
-                    throw new Exception(selectLinkTypeResult.message);
             }
 
         }
@@ -423,13 +408,8 @@ namespace EADiagramPublisher.Forms
                     lblSoftwareClassificationFilter1.Text += "...";
 
 
-                SetFilterLabel(tpLinkTypeFilter, selectSoftwareClassificationResult.value.Length > 0);
+                SetFilterLabel(tpSoftwareClassificationFilter, selectSoftwareClassificationResult.value.Length > 0);
                 LoadConnectorList();
-            }
-            else
-            {
-                if (selectSoftwareClassificationResult.code != (int)DialogResult.Cancel)
-                    throw new Exception(selectSoftwareClassificationResult.message);
             }
         }
 

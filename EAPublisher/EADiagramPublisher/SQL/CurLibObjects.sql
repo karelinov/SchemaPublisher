@@ -35,3 +35,4 @@ FROM
 left outer join t_object as t_classifier1 on(t_classifier1.object_id = t_object.classifier))
 left outer join t_objectproperties on (t_objectproperties.object_id=t_classifier1.object_id))
 WHERE t_object.Package_ID IN (#PARAM0#)
+

@@ -42,6 +42,8 @@
             this.btnSwitchSourceDestination = new System.Windows.Forms.Button();
             this.label5 = new System.Windows.Forms.Label();
             this.tbFlowName = new System.Windows.Forms.TextBox();
+            this.label6 = new System.Windows.Forms.Label();
+            this.tbNotes = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // clbLinkType
@@ -78,11 +80,12 @@
             this.btnOK.TabIndex = 2;
             this.btnOK.Text = "OK";
             this.btnOK.UseVisualStyleBackColor = true;
+            this.btnOK.Click += new System.EventHandler(this.btnOK_Click);
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(386, 211);
+            this.label1.Location = new System.Drawing.Point(386, 307);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(83, 20);
             this.label1.TabIndex = 5;
@@ -91,7 +94,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(386, 248);
+            this.label2.Location = new System.Drawing.Point(386, 344);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(171, 20);
             this.label2.TabIndex = 6;
@@ -100,7 +103,7 @@
             // cbFlowID
             // 
             this.cbFlowID.FormattingEnabled = true;
-            this.cbFlowID.Location = new System.Drawing.Point(475, 203);
+            this.cbFlowID.Location = new System.Drawing.Point(475, 299);
             this.cbFlowID.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.cbFlowID.Name = "cbFlowID";
             this.cbFlowID.Size = new System.Drawing.Size(427, 28);
@@ -111,7 +114,7 @@
             // cbSegmentID
             // 
             this.cbSegmentID.FormattingEnabled = true;
-            this.cbSegmentID.Location = new System.Drawing.Point(563, 240);
+            this.cbSegmentID.Location = new System.Drawing.Point(563, 336);
             this.cbSegmentID.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.cbSegmentID.Name = "cbSegmentID";
             this.cbSegmentID.Size = new System.Drawing.Size(339, 28);
@@ -155,7 +158,7 @@
             // 
             // btnSwitchSourceDestination
             // 
-            this.btnSwitchSourceDestination.Location = new System.Drawing.Point(725, 32);
+            this.btnSwitchSourceDestination.Location = new System.Drawing.Point(740, 34);
             this.btnSwitchSourceDestination.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.btnSwitchSourceDestination.Name = "btnSwitchSourceDestination";
             this.btnSwitchSourceDestination.Size = new System.Drawing.Size(162, 29);
@@ -167,7 +170,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(386, 171);
+            this.label5.Location = new System.Drawing.Point(386, 98);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(83, 20);
             this.label5.TabIndex = 5;
@@ -175,15 +178,32 @@
             // 
             // tbFlowName
             // 
-            this.tbFlowName.Location = new System.Drawing.Point(475, 171);
+            this.tbFlowName.Location = new System.Drawing.Point(475, 98);
             this.tbFlowName.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.tbFlowName.Name = "tbFlowName";
             this.tbFlowName.Size = new System.Drawing.Size(427, 26);
             this.tbFlowName.TabIndex = 4;
             // 
+            // label6
+            // 
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(386, 132);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(83, 20);
+            this.label6.TabIndex = 6;
+            this.label6.Text = "Описание";
+            // 
+            // tbNotes
+            // 
+            this.tbNotes.Location = new System.Drawing.Point(475, 132);
+            this.tbNotes.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.tbNotes.Multiline = true;
+            this.tbNotes.Name = "tbNotes";
+            this.tbNotes.Size = new System.Drawing.Size(427, 161);
+            this.tbNotes.TabIndex = 4;
+            // 
             // FCreateNewLink
             // 
-            this.AcceptButton = this.btnOK;
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(928, 449);
@@ -192,9 +212,11 @@
             this.Controls.Add(this.btnSwitchSourceDestination);
             this.Controls.Add(this.cbSegmentID);
             this.Controls.Add(this.cbFlowID);
+            this.Controls.Add(this.label6);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.label1);
+            this.Controls.Add(this.tbNotes);
             this.Controls.Add(this.tbFlowName);
             this.Controls.Add(this.tbDestination);
             this.Controls.Add(this.tbSource);
@@ -203,8 +225,8 @@
             this.Controls.Add(this.clbLinkType);
             this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.Name = "FCreateNewLink";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "Выберите тип создаваемой связи";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.Text = "Создание коннектора";
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -225,5 +247,7 @@
         private System.Windows.Forms.Button btnSwitchSourceDestination;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.TextBox tbFlowName;
+        private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.TextBox tbNotes;
     }
 }

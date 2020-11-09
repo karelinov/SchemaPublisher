@@ -40,6 +40,7 @@ namespace EADiagramPublisher.Forms
 
                 // Запускаем отчёт
                 form.reportViewer1.RefreshReport();
+                form.reportViewer1.ZoomMode = ZoomMode.PageWidth;
 
                 DialogResult dr = form.ShowDialog();
                 result.code = 0;

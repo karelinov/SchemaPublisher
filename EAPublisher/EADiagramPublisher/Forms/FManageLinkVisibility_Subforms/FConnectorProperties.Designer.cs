@@ -45,6 +45,8 @@
             this.label6 = new System.Windows.Forms.Label();
             this.tbSupplierID = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
+            this.tbNotes = new System.Windows.Forms.TextBox();
+            this.label8 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // tbID
@@ -114,7 +116,7 @@
             // btnOk
             // 
             this.btnOk.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.btnOk.Location = new System.Drawing.Point(662, 489);
+            this.btnOk.Location = new System.Drawing.Point(662, 623);
             this.btnOk.Name = "btnOk";
             this.btnOk.Size = new System.Drawing.Size(126, 37);
             this.btnOk.TabIndex = 2;
@@ -126,7 +128,7 @@
             this.lvTaggedValues.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.colProperty,
             this.colValue});
-            this.lvTaggedValues.Location = new System.Drawing.Point(29, 272);
+            this.lvTaggedValues.Location = new System.Drawing.Point(29, 406);
             this.lvTaggedValues.Name = "lvTaggedValues";
             this.lvTaggedValues.Size = new System.Drawing.Size(759, 211);
             this.lvTaggedValues.TabIndex = 3;
@@ -146,7 +148,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(25, 249);
+            this.label5.Location = new System.Drawing.Point(25, 374);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(112, 20);
             this.label5.TabIndex = 1;
@@ -183,24 +185,43 @@
             this.label7.TabIndex = 1;
             this.label7.Text = "SupplierID";
             // 
+            // tbNotes
+            // 
+            this.tbNotes.Location = new System.Drawing.Point(159, 204);
+            this.tbNotes.Multiline = true;
+            this.tbNotes.Name = "tbNotes";
+            this.tbNotes.Size = new System.Drawing.Size(629, 161);
+            this.tbNotes.TabIndex = 0;
+            // 
+            // label8
+            // 
+            this.label8.AutoSize = true;
+            this.label8.Location = new System.Drawing.Point(25, 210);
+            this.label8.Name = "label8";
+            this.label8.Size = new System.Drawing.Size(51, 20);
+            this.label8.TabIndex = 1;
+            this.label8.Text = "Notes";
+            // 
             // FConnectorProperties
             // 
             this.AcceptButton = this.btnOk;
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 532);
+            this.ClientSize = new System.Drawing.Size(805, 668);
             this.Controls.Add(this.lvTaggedValues);
             this.Controls.Add(this.btnOk);
             this.Controls.Add(this.label5);
             this.Controls.Add(this.label7);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.label4);
+            this.Controls.Add(this.label8);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.tbSupplierID);
             this.Controls.Add(this.tbClientID);
             this.Controls.Add(this.tbType);
+            this.Controls.Add(this.tbNotes);
             this.Controls.Add(this.tbName);
             this.Controls.Add(this.tbGUID);
             this.Controls.Add(this.tbID);
@@ -230,5 +251,7 @@
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.TextBox tbSupplierID;
         private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.TextBox tbNotes;
+        private System.Windows.Forms.Label label8;
     }
 }

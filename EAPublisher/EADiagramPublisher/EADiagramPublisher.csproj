@@ -70,6 +70,7 @@
   <ItemGroup>
     <Compile Include="Archive\Designer_Archive.cs" />
     <Compile Include="Archive\EAHelper_Archive.cs" />
+    <Compile Include="Archive\LinkDesigner_Archive.cs" />
     <Compile Include="Context.cs" />
     <Compile Include="Contracts\ConnectorData.cs" />
     <Compile Include="Contracts\ElementData.cs" />
@@ -109,11 +110,35 @@
     <Compile Include="Archive\FInputString.Designer.cs">
       <DependentUpon>FInputString.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\FManageLinks_Subforms\FEditConnectors.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FManageLinks_Subforms\FEditConnectors.Designer.cs">
+      <DependentUpon>FEditConnectors.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\FManageLinks_Subforms\FEditConnector.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FManageLinks_Subforms\FEditConnector.Designer.cs">
+      <DependentUpon>FEditConnector.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\FLinkStyle.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\FLinkStyle.Designer.cs">
       <DependentUpon>FLinkStyle.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\FManageLinks.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FManageLinks.Designer.cs">
+      <DependentUpon>FManageLinks.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\FManageLinks_Subforms\FSelectObject.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FManageLinks_Subforms\FSelectObject.Designer.cs">
+      <DependentUpon>FSelectObject.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\FManageLinkVisibility.cs">
       <SubType>Form</SubType>
@@ -222,7 +247,6 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="packages.config" />
-    <None Include="Properties\DataSources\Context.datasource" />
     <None Include="Properties\DataSources\EADiagramPublisher.Contracts.ConnectorData.datasource" />
     <None Include="Properties\DataSources\EADiagramPublisher.Contracts.ElementData.datasource" />
     <None Include="Properties\Settings.settings">
@@ -241,8 +265,20 @@
     <EmbeddedResource Include="Archive\FInputString.resx">
       <DependentUpon>FInputString.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Forms\FManageLinks_Subforms\FEditConnectors.resx">
+      <DependentUpon>FEditConnectors.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\FManageLinks_Subforms\FEditConnector.resx">
+      <DependentUpon>FEditConnector.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\FLinkStyle.resx">
       <DependentUpon>FLinkStyle.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\FManageLinks.resx">
+      <DependentUpon>FManageLinks.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\FManageLinks_Subforms\FSelectObject.resx">
+      <DependentUpon>FSelectObject.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\FManageLinkVisibility.resx">
       <DependentUpon>FManageLinkVisibility.cs</DependentUpon>

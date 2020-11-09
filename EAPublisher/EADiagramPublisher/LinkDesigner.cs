@@ -107,48 +107,6 @@ namespace EADiagramPublisher
             return result;
         }
 
-
-        public ExecResult<Boolean> SetConnectorVisibility()
-        {
-            ExecResult<Boolean> result = new ExecResult<bool>();
-
-            Logger.Out("");
-
-            try
-            {
-
-                if (!Context.CheckCurrentDiagram())
-                    throw new Exception("Не установлена или не открыта текущая диаграмма");
-
-                // запускаем форму
-                ExecResult<LinkVisibilityData> selectLVResult = FSetLinkVisibility.Execute();
-                if (selectLVResult.code != 0) return result;
-
-                // Обрабатываем результаты
-                foreach (var curLinkType in selectLVResult.value.showLinkType)
-                {
-                    SetConnectorVisibility(curLinkType, true);
-                }
-
-                foreach (var curLinkType in selectLVResult.value.hideLinkType)
-                {
-                    SetConnectorVisibility(curLinkType, false);
-                }
-
-                SetConnectorVisibility_Untyped(selectLVResult.value.showNotLibElements);
-
-            }
-            catch (Exception ex)
-            {
-                result.setException(ex);
-            }
-
-            CurrentDiagram.DiagramLinks.Refresh();
-            EARepository.ReloadDiagram(CurrentDiagram.DiagramID);
-
-            return result;
-        }
-
         /// <summary>
         /// Включает/выключает показ коннекторов указанного типа на диаграмме
         /// </summary>
@@ -436,6 +394,34 @@ namespace EADiagramPublisher
             return result;
         }
 
+        /// <summary>
+        /// Функция запуска формы управления коннекторами
+        /// </summary>
+        /// <returns></returns>
+        public ExecResult<Boolean> ManageLinks()
+        {
+            ExecResult<Boolean> result = new ExecResult<bool>();
+
+            Logger.Out("");
+
+            try
+            {
+                if (Context.CurrentLibrary == null)
+                {
+                    EA.Package libPackage  = LibraryHelper.GetLibraryRoot();
+                    Context.CurrentLibrary = libPackage;
+                }
+
+                result = FManageLinks.Execute();
+
+            }
+            catch (Exception ex)
+            {
+                result.setException(ex);
+            }
+
+            return result;
+        }
 
 
     }

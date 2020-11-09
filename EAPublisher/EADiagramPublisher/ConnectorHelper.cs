@@ -81,6 +81,7 @@ namespace EADiagramPublisher
             newConnector.SupplierID = secondElement.ElementID;
 
             newConnector.Name = createNewLinkData.Name;
+            newConnector.Notes = createNewLinkData.Notes;
 
             newConnector.Update();
 
@@ -96,6 +97,7 @@ namespace EADiagramPublisher
             newConnector.TaggedValues.Refresh();
 
             // Добавляем коннектор к кэш информации о коннекторах
+            createNewLinkData.ConnectorID = newConnector.ConnectorID;
             Context.ConnectorData.Add(createNewLinkData.ConnectorID, createNewLinkData);
 
             if (putOnDiagram)
@@ -297,7 +299,7 @@ namespace EADiagramPublisher
                 ConnectorData connectorData = new ConnectorData();
                 connectorData.ConnectorID = int.Parse(rowNode.Descendants("connector_id").First().Value);
                 connectorData.Name = rowNode.Descendants("name").First().Value;
-
+                connectorData.Notes = rowNode.Descendants("notes").First().Value;
                 connectorData.SourceElementID = int.Parse(rowNode.Descendants("start_object_id").First().Value);
                 connectorData.TargetElementID = int.Parse(rowNode.Descendants("end_object_id").First().Value);
 
@@ -355,6 +357,31 @@ namespace EADiagramPublisher
                 result = true;
 
             return result;
+        }
+
+
+        /// <summary>
+        /// Функция обновляет данные коннектора пор данным переданного ConnectorData
+        /// </summary>
+        /// <param name="connectorData"></param>
+        public static void UpdateConnectorByData(ConnectorData connectorData)
+        {
+            EA.Connector connector = connectorData.Connector;
+
+            connector.Name = connectorData.Name;
+            connector.Notes = connectorData.Notes;
+            connector.ClientID = connectorData.SourceElementID;
+            connector.SupplierID = connectorData.TargetElementID;
+            connector.Update();
+
+            if (connectorData.IsLibrary ) {
+                EATVHelper.TaggedValueSet(connector, DAConst.DP_LibraryTag, "");
+                EATVHelper.TaggedValueSet(connector, DAConst.DP_LinkTypeTag, connectorData.LinkType.ToString());
+                EATVHelper.TaggedValueSet(connector, DAConst.DP_FlowIDTag, connectorData.FlowID);
+                EATVHelper.TaggedValueSet(connector, DAConst.DP_SegmentIDTag, connectorData.SegmentID);
+            }
+
+            Context.ConnectorData[connectorData.ConnectorID] = connectorData;
         }
 
 

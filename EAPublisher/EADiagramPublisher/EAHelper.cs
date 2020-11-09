@@ -283,7 +283,32 @@ namespace EADiagramPublisher
             return result;
         }
 
+        /// <summary>
+        /// Возвращает список коннекторов для элементов текущей диаграммы
+        /// </summary>
+        /// <returns></returns>
+        public static List<ConnectorData> GetCurDiagramConnectors()
+        {
+            List<ConnectorData> result = new List<ConnectorData>();
 
+            string[] args = new string[] { Context.CurrentDiagram.DiagramGUID };
+            XDocument sqlResultSet = SQLHelper.RunSQL("CurDiagramConnectorsID.sql", args);
+
+            IEnumerable<XElement> rowNodes = sqlResultSet.Root.XPathSelectElements("/EADATA/Dataset_0/Data/Row");
+            foreach (XElement rowNode in rowNodes)
+            {
+                int connector_id = int.Parse(rowNode.Descendants("connector_id").First().Value);
+                bool hidden = bool.Parse(rowNode.Descendants("hidden").First().Value);
+
+                if (!hidden)
+                {
+                    ConnectorData connectorData = Context.ConnectorData[connector_id];
+                    result.Add(connectorData);
+                }
+            }
+
+            return result;
+        }
 
     }
 }

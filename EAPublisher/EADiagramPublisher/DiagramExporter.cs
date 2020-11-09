@@ -107,6 +107,15 @@ namespace EADiagramPublisher
             return pngSavePath;
         }
 
+        public static string ExportEMF(EA.Diagram curDiagram)
+        {
+            // Сохраняем на диск метафайл
+            string savePath = Path.Combine(DPConfig.AppSettings["exchangePath"].Value, curDiagram.DiagramGUID.Replace("{", "").Replace("}", "") + ".emf.legal");
+            if (File.Exists(savePath)) File.Delete(savePath);
+            Context.EARepository.GetProjectInterface().PutDiagramImageToFile(curDiagram.DiagramGUID, savePath, 0);
+
+            return savePath;
+        }
 
         private static Size CalculateScale(Size originalSize)
         {
@@ -121,9 +130,13 @@ namespace EADiagramPublisher
             {
                 scalefactor = (decimal)1000 / originalSize.Width;
             }
-            else
+            else if (originalSize.Width >= 800 && originalSize.Width <= 2000)
             {
                 scalefactor = (decimal)2000 /originalSize.Width;
+            }
+            else
+            {
+                scalefactor = (decimal)4000 / originalSize.Width;
             }
 
             return new Size(Decimal.ToInt32(Math.Round(originalSize.Width * scalefactor)), Decimal.ToInt32(Math.Round(originalSize.Height * scalefactor)));

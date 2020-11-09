@@ -65,15 +65,27 @@ namespace EADiagramPublisher
                 List<ReportDataSource> reportDataSources = new List<ReportDataSource>();
 
                 List<ElementData> elementDataList = EAHelper.GetCurDiagramElementData().Values.ToList<ElementData>();
+                foreach (var elementData in elementDataList) // Дообогащаем информацию об элементах данными узла размещения
+                {
+                    int? rootDeployNodeID = LibraryHelper.GetDeployComponentNode(elementData._ElementID);
+                    if (rootDeployNodeID != null)
+                        elementData.RootDeployNodeID = rootDeployNodeID;
+                }
+
                 ReportDataSource reportDataSource = new ReportDataSource("DS_ElementData", elementDataList);
                 reportDataSources.Add(reportDataSource);
+
+                List<ConnectorData> connectorDataList = EAHelper.GetCurDiagramConnectors();
+                ReportDataSource reportDataSource1 = new ReportDataSource("DS_ConnectorData", connectorDataList);
+                reportDataSources.Add(reportDataSource1);
+
 
                 // Подготавливаем параметры отчёта
                 List<ReportParameter> reportParameters = new List<ReportParameter>();
                 // Картинка диаграммы
                 string SavedDiagramImagePath = DiagramExporter.ExportPNG(reportDiagram);
                 //string base64Image = Convert.ToBase64String(File.ReadAllBytes(SavedDiagramImagePath));
-                reportParameters.Add(new ReportParameter("paramDiagramImage", SavedDiagramImagePath));
+                reportParameters.Add(new ReportParameter("paramDiagramImage", "file:///" + SavedDiagramImagePath));
 
 
                 // запускаем форму
