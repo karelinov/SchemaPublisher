@@ -10,9 +10,9 @@ using System.Windows.Forms;
 
 namespace EADiagramPublisher.Forms
 {
-    public partial class FSelectLinkType : Form
+    public partial class FSelectComponentLevel : Form
     {
-        public FSelectLinkType()
+        public FSelectComponentLevel()
         {
             InitializeComponent();
         }
@@ -22,7 +22,7 @@ namespace EADiagramPublisher.Forms
             var result = new ExecResult<LinkType[]>();
             try
             {
-                var form = new FSelectLinkType();
+                var form = new FSelectComponentLevel();
                 form.LoadLinkTypes();
                 if (alreadySelectedObjects != null)
                     form.SelectLinkTypes(alreadySelectedObjects);

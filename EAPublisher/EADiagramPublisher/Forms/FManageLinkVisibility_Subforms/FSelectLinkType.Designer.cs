@@ -1,6 +1,6 @@
 ﻿namespace EADiagramPublisher.Forms
 {
-    partial class FSelectLinkType
+    partial class FSelectComponentLevel
     {
         /// <summary>
         /// Required designer variable.
@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FSelectLinkType));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FSelectComponentLevel));
             this.clbLinkTypes = new System.Windows.Forms.CheckedListBox();
             this.btnOk = new System.Windows.Forms.Button();
             this.toolStrip1 = new System.Windows.Forms.ToolStrip();

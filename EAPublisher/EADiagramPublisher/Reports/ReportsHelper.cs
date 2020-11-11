@@ -1,4 +1,5 @@
 ﻿using EADiagramPublisher.Contracts;
+using EADiagramPublisher.Enums;
 using EADiagramPublisher.Forms;
 using Microsoft.Reporting.WinForms;
 using System;
@@ -56,6 +57,10 @@ namespace EADiagramPublisher
                 // Устанавливаем текущую диаграмму
                 Context.CurrentDiagram = reportDiagram;
 
+                // запрашиваем параметры показа
+                ExecResult<List<ComponentLevel>> displayLevelsResult = FSelectHierarcyLevels.Execute();
+                if (displayLevelsResult.code != 0) return result;
+
 
                 // Подготавливаем имя RDLC - файла отчёта
                 string fullReportName = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "Reports", "LibDiagram.rdlc");
@@ -86,6 +91,7 @@ namespace EADiagramPublisher
                 string SavedDiagramImagePath = DiagramExporter.ExportPNG(reportDiagram);
                 //string base64Image = Convert.ToBase64String(File.ReadAllBytes(SavedDiagramImagePath));
                 reportParameters.Add(new ReportParameter("paramDiagramImage", "file:///" + SavedDiagramImagePath));
+                reportParameters.Add(new ReportParameter("paramComponentLevels", string.Join(",", displayLevelsResult.value.Select(cl => ((int)cl).ToString()))));
 
 
                 // запускаем форму

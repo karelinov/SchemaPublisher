@@ -29,12 +29,13 @@ namespace EADiagramPublisher.Forms
             this.clbHierarchyLevels.Items.Add(ComponentLevel.Component, true);
         }
 
-        public ExecResult<List<ComponentLevel>> Execute()
+        public static ExecResult<List<ComponentLevel>> Execute()
         {
             ExecResult<List<ComponentLevel>> result = new ExecResult<List<ComponentLevel>>();
             try
             {
-                DialogResult res = this.ShowDialog();
+                var form = new FSelectHierarcyLevels();
+                DialogResult res = form.ShowDialog();
                 if (res != DialogResult.OK)
                 {
                     result.code = (int)res;
@@ -42,7 +43,7 @@ namespace EADiagramPublisher.Forms
                 else
                 {
                     result.value = new List<ComponentLevel>();
-                    foreach (object checkedListObject in clbHierarchyLevels.CheckedItems)
+                    foreach (object checkedListObject in form.clbHierarchyLevels.CheckedItems)
                     {
                         result.value.Add((ComponentLevel)checkedListObject);
                     }

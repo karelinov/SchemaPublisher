@@ -119,7 +119,13 @@ namespace EADiagramPublisher.Contracts
         /// ID узла, в котором размещён компонент (для группировки компонентов в узлах)
         /// </summary>
         public int? RootDeployNodeID { get; set; }
-
+        public int? ComponentLevelInt
+        {
+            get
+            {
+                return (int?)ComponentLevel;
+            }
+        }
 
 
     }

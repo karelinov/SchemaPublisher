@@ -124,17 +124,24 @@ namespace EADiagramPublisher.Forms
                 {
                     ElementData softwareElementData = Context.SoftwareClassification.AllNodes[softwareID].Value;
 
-                    ElementData sourceElementData = Context.ElementData[connectorData.SourceElementID];
-                    if (SoftwareClassificationHelper.ISBelongsToSoftware(sourceElementData, softwareElementData))
+                    if (Context.ElementData.ContainsKey(connectorData.SourceElementID))
                     {
-                        belongsToSoftware = true;
-                        break;
+                        ElementData sourceElementData = Context.ElementData[connectorData.SourceElementID];
+                        if (SoftwareClassificationHelper.ISBelongsToSoftware(sourceElementData, softwareElementData))
+                        {
+                            belongsToSoftware = true;
+                            break;
+                        }
                     }
-                    ElementData targetElementData = Context.ElementData[connectorData.TargetElementID];
-                    if (SoftwareClassificationHelper.ISBelongsToSoftware(targetElementData, softwareElementData))
+
+                    if (Context.ElementData.ContainsKey(connectorData.TargetElementID))
                     {
-                        belongsToSoftware = true;
-                        break;
+                        ElementData targetElementData = Context.ElementData[connectorData.TargetElementID];
+                        if (SoftwareClassificationHelper.ISBelongsToSoftware(targetElementData, softwareElementData))
+                        {
+                            belongsToSoftware = true;
+                            break;
+                        }
                     }
 
                 }
@@ -189,7 +196,7 @@ namespace EADiagramPublisher.Forms
 
         private void btnLinkTypeFilter_Click(object sender, EventArgs e)
         {
-            ExecResult<LinkType[]> selectLinkTypeResult = FSelectLinkType.Execute((LinkType[])lblLinkTypeFilter.Tag);
+            ExecResult<LinkType[]> selectLinkTypeResult = FSelectComponentLevel.Execute((LinkType[])lblLinkTypeFilter.Tag);
             if (selectLinkTypeResult.code == 0)
             {
                 lblLinkTypeFilter.Tag = selectLinkTypeResult.value;

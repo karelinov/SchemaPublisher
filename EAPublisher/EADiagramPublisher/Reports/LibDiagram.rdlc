@@ -36,6 +36,10 @@
           <DataField>ComponentLevel</DataField>
           <rd:TypeName>System.Nullable`1[[EADiagramPublisher.Enums.ComponentLevel, EADiagramPublisher, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]</rd:TypeName>
         </Field>
+        <Field Name="ComponentLevelInt">
+          <DataField>ComponentLevelInt</DataField>
+          <rd:TypeName>System.Nullable`1[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]</rd:TypeName>
+        </Field>
         <Field Name="DisplayName">
           <DataField>DisplayName</DataField>
           <rd:TypeName>System.String</rd:TypeName>
@@ -109,6 +113,10 @@
           <DataField>Name</DataField>
           <rd:TypeName>System.String</rd:TypeName>
         </Field>
+        <Field Name="Notes">
+          <DataField>Notes</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
         <Field Name="SegmentID">
           <DataField>SegmentID</DataField>
           <rd:TypeName>System.String</rd:TypeName>
@@ -151,7 +159,7 @@
             <TablixBody>
               <TablixColumns>
                 <TablixColumn>
-                  <Width>3.34701cm</Width>
+                  <Width>2.71803cm</Width>
                 </TablixColumn>
                 <TablixColumn>
                   <Width>2.5cm</Width>
@@ -166,7 +174,7 @@
                   <Width>3.54198cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>18.15673cm</Width>
+                  <Width>14.43978cm</Width>
                 </TablixColumn>
                 <TablixColumn>
                   <Width>5.37869cm</Width>
@@ -400,6 +408,49 @@
                   <TablixCells>
                     <TablixCell>
                       <CellContents>
+                        <Textbox Name="Textbox32">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value />
+                                  <Style />
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>Textbox32</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <BackgroundColor>LightBlue</BackgroundColor>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                        <ColSpan>7</ColSpan>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell />
+                    <TablixCell />
+                    <TablixCell />
+                    <TablixCell />
+                    <TablixCell />
+                    <TablixCell />
+                  </TablixCells>
+                </TablixRow>
+                <TablixRow>
+                  <Height>0.6cm</Height>
+                  <TablixCells>
+                    <TablixCell>
+                      <CellContents>
                         <Textbox Name="ID">
                           <CanGrow>true</CanGrow>
                           <KeepTogether>true</KeepTogether>
@@ -535,7 +586,16 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>=Fields!ComponentLevel.Value</Value>
+                                  <Value>=Switch(
+Fields!ComponentLevel.Value=1,"SystemContour",
+Fields!ComponentLevel.Value=2,"SystemComponent",
+Fields!ComponentLevel.Value=3,"ContourContour",
+Fields!ComponentLevel.Value=4,"ContourComponent",
+Fields!ComponentLevel.Value=5,"Node",
+Fields!ComponentLevel.Value=6,"Device",
+Fields!ComponentLevel.Value=7,"ExecutionEnv",
+Fields!ComponentLevel.Value=8,"Component"
+)</Value>
                                   <Style />
                                 </TextRun>
                               </TextRuns>
@@ -595,7 +655,7 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>=Fields!NodeGroups.Value</Value>
+                                  <Value>=Join(Fields!NodeGroups.Value,",")</Value>
                                   <Style />
                                 </TextRun>
                               </TextRuns>
@@ -634,26 +694,117 @@
             <TablixRowHierarchy>
               <TablixMembers>
                 <TablixMember>
-                  <KeepWithGroup>After</KeepWithGroup>
+                  <TablixHeader>
+                    <Size>1.56642cm</Size>
+                    <CellContents>
+                      <Textbox Name="Textbox29">
+                        <CanGrow>true</CanGrow>
+                        <KeepTogether>true</KeepTogether>
+                        <Paragraphs>
+                          <Paragraph>
+                            <TextRuns>
+                              <TextRun>
+                                <Value>Узлы</Value>
+                                <Style />
+                              </TextRun>
+                            </TextRuns>
+                            <Style />
+                          </Paragraph>
+                        </Paragraphs>
+                        <rd:DefaultName>Textbox29</rd:DefaultName>
+                        <Style>
+                          <Border>
+                            <Color>LightGrey</Color>
+                            <Style>Solid</Style>
+                          </Border>
+                          <BackgroundColor>LightGrey</BackgroundColor>
+                          <PaddingLeft>2pt</PaddingLeft>
+                          <PaddingRight>2pt</PaddingRight>
+                          <PaddingTop>2pt</PaddingTop>
+                          <PaddingBottom>2pt</PaddingBottom>
+                        </Style>
+                      </Textbox>
+                    </CellContents>
+                  </TablixHeader>
+                  <TablixMembers>
+                    <TablixMember />
+                  </TablixMembers>
                 </TablixMember>
                 <TablixMember>
-                  <Group Name="Details" />
+                  <Group Name="Group1">
+                    <GroupExpressions>
+                      <GroupExpression>=IIf(IsNothing(Fields!RootDeployNodeID.Value),Fields!ID.Value,Fields!RootDeployNodeID.Value)</GroupExpression>
+                    </GroupExpressions>
+                  </Group>
+                  <SortExpressions>
+                    <SortExpression>
+                      <Value>=IIf(IsNothing(Fields!RootDeployNodeID.Value),Fields!ID.Value,Fields!RootDeployNodeID.Value)</Value>
+                    </SortExpression>
+                  </SortExpressions>
+                  <TablixHeader>
+                    <Size>1.56642cm</Size>
+                    <CellContents>
+                      <Textbox Name="Group1">
+                        <CanGrow>true</CanGrow>
+                        <KeepTogether>true</KeepTogether>
+                        <Paragraphs>
+                          <Paragraph>
+                            <TextRuns>
+                              <TextRun>
+                                <Value>=IIf(IsNothing(Fields!RootDeployNodeID.Value),Fields!ID.Value,Fields!RootDeployNodeID.Value)</Value>
+                                <Style />
+                              </TextRun>
+                            </TextRuns>
+                            <Style />
+                          </Paragraph>
+                        </Paragraphs>
+                        <rd:DefaultName>Group1</rd:DefaultName>
+                        <Style>
+                          <Border>
+                            <Color>LightGrey</Color>
+                            <Style>Solid</Style>
+                          </Border>
+                          <PaddingLeft>2pt</PaddingLeft>
+                          <PaddingRight>2pt</PaddingRight>
+                          <PaddingTop>2pt</PaddingTop>
+                          <PaddingBottom>2pt</PaddingBottom>
+                        </Style>
+                      </Textbox>
+                    </CellContents>
+                  </TablixHeader>
+                  <TablixMembers>
+                    <TablixMember>
+                      <KeepWithGroup>After</KeepWithGroup>
+                    </TablixMember>
+                    <TablixMember>
+                      <Group Name="Details" />
+                      <SortExpressions>
+                        <SortExpression>
+                          <Value>=Fields!ComponentLevel.Value</Value>
+                        </SortExpression>
+                      </SortExpressions>
+                      <TablixMembers>
+                        <TablixMember />
+                      </TablixMembers>
+                    </TablixMember>
+                  </TablixMembers>
                 </TablixMember>
               </TablixMembers>
             </TablixRowHierarchy>
             <RepeatRowHeaders>true</RepeatRowHeaders>
             <DataSetName>DS_ElementData</DataSetName>
-            <SortExpressions>
-              <SortExpression>
-                <Value>=Fields!RootDeployNodeID.Value</Value>
-              </SortExpression>
-              <SortExpression>
-                <Value>=Fields!ID.Value</Value>
-              </SortExpression>
-            </SortExpressions>
+            <Filters>
+              <Filter>
+                <FilterExpression>=Cstr(IIf(IsNothing(Fields!ComponentLevelInt.Value), 0, Fields!ComponentLevelInt.Value))</FilterExpression>
+                <Operator>In</Operator>
+                <FilterValues>
+                  <FilterValue>=Split(Parameters!paramComponentLevels.Value,",")</FilterValue>
+                </FilterValues>
+              </Filter>
+            </Filters>
             <Top>30.50655cm</Top>
-            <Height>1.2cm</Height>
-            <Width>43.19606cm</Width>
+            <Height>1.8cm</Height>
+            <Width>40.41655cm</Width>
             <ZIndex>1</ZIndex>
             <Style>
               <Border>
@@ -731,38 +882,44 @@
             <TablixBody>
               <TablixColumns>
                 <TablixColumn>
-                  <Width>3.24044cm</Width>
+                  <Width>2.3585cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>3.43515cm</Width>
+                  <Width>2.12785cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>3.2205cm</Width>
+                  <Width>2.18924cm</Width>
                 </TablixColumn>
                 <TablixColumn>
                   <Width>7.18385cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>2.5268cm</Width>
+                  <Width>1.52138cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>5.26984cm</Width>
+                  <Width>3.55887cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>13.21261cm</Width>
+                  <Width>8.83817cm</Width>
                 </TablixColumn>
                 <TablixColumn>
                   <Width>2.49802cm</Width>
                 </TablixColumn>
+                <TablixColumn>
+                  <Width>10.03181cm</Width>
+                </TablixColumn>
               </TablixColumns>
               <TablixRows>
                 <TablixRow>
-                  <Height>0.6cm</Height>
+                  <Height>0.95278cm</Height>
                   <TablixCells>
                     <TablixCell>
                       <CellContents>
                         <Textbox Name="Textbox2">
                           <CanGrow>true</CanGrow>
+                          <UserSort>
+                            <SortExpression>=Fields!ConnectorID.Value</SortExpression>
+                          </UserSort>
                           <KeepTogether>true</KeepTogether>
                           <Paragraphs>
                             <Paragraph>
@@ -799,7 +956,8 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>Source Element ID</Value>
+                                  <Value>Source 
+Element ID</Value>
                                   <Style />
                                 </TextRun>
                               </TextRuns>
@@ -830,7 +988,8 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>Target Element ID</Value>
+                                  <Value>Target 
+Element ID</Value>
                                   <Style />
                                 </TextRun>
                               </TextRuns>
@@ -927,6 +1086,9 @@
                       <CellContents>
                         <Textbox Name="Textbox16">
                           <CanGrow>true</CanGrow>
+                          <UserSort>
+                            <SortExpression>=Fields!LinkType.Value</SortExpression>
+                          </UserSort>
                           <KeepTogether>true</KeepTogether>
                           <Paragraphs>
                             <Paragraph>
@@ -958,6 +1120,9 @@
                       <CellContents>
                         <Textbox Name="Textbox18">
                           <CanGrow>true</CanGrow>
+                          <UserSort>
+                            <SortExpression>=Fields!FlowID.Value</SortExpression>
+                          </UserSort>
                           <KeepTogether>true</KeepTogether>
                           <Paragraphs>
                             <Paragraph>
@@ -1002,6 +1167,37 @@
                             </Paragraph>
                           </Paragraphs>
                           <rd:DefaultName>Textbox20</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <BackgroundColor>LightGrey</BackgroundColor>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox4">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>Notes</Value>
+                                  <Style />
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>Textbox4</rd:DefaultName>
                           <Style>
                             <Border>
                               <Color>LightGrey</Color>
@@ -1200,7 +1396,12 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>=Fields!LinkType.Value</Value>
+                                  <Value>=Switch(
+Fields!LinkType.Value = 0,"Deploy",
+Fields!LinkType.Value = 1,"Communication",
+Fields!LinkType.Value = 2,"InformationFlow",
+Fields!LinkType.Value = 3,"SoftwareClassification"
+)</Value>
                                   <Style />
                                 </TextRun>
                               </TextRuns>
@@ -1281,12 +1482,43 @@
                         </Textbox>
                       </CellContents>
                     </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Notes">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!Notes.Value</Value>
+                                  <Style />
+                                </TextRun>
+                              </TextRuns>
+                              <Style />
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>Notes</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
                   </TablixCells>
                 </TablixRow>
               </TablixRows>
             </TablixBody>
             <TablixColumnHierarchy>
               <TablixMembers>
+                <TablixMember />
                 <TablixMember />
                 <TablixMember />
                 <TablixMember />
@@ -1309,10 +1541,18 @@
             </TablixRowHierarchy>
             <RepeatRowHeaders>true</RepeatRowHeaders>
             <DataSetName>DS_ConnectorData</DataSetName>
+            <SortExpressions>
+              <SortExpression>
+                <Value>=Fields!FlowID.Value</Value>
+              </SortExpression>
+              <SortExpression>
+                <Value>=Fields!SegmentID.Value</Value>
+              </SortExpression>
+            </SortExpressions>
             <Top>33.06646cm</Top>
             <Left>0.10886cm</Left>
-            <Height>1.2cm</Height>
-            <Width>40.58721cm</Width>
+            <Height>1.55278cm</Height>
+            <Width>40.30769cm</Width>
             <ZIndex>4</ZIndex>
             <Style>
               <Border>
@@ -1321,14 +1561,14 @@
             </Style>
           </Tablix>
         </ReportItems>
-        <Height>13.49073in</Height>
+        <Height>13.62962in</Height>
         <Style>
           <Border>
             <Style>None</Style>
           </Border>
         </Style>
       </Body>
-      <Width>17.00632in</Width>
+      <Width>17.00633in</Width>
       <Page>
         <PageHeight>29.7cm</PageHeight>
         <PageWidth>42cm</PageWidth>
@@ -1346,16 +1586,25 @@
       <DataType>String</DataType>
       <Prompt>ReportParameter1</Prompt>
     </ReportParameter>
+    <ReportParameter Name="paramComponentLevels">
+      <DataType>String</DataType>
+      <Prompt>ReportParameter1</Prompt>
+    </ReportParameter>
   </ReportParameters>
   <ReportParametersLayout>
     <GridLayoutDefinition>
       <NumberOfColumns>1</NumberOfColumns>
-      <NumberOfRows>1</NumberOfRows>
+      <NumberOfRows>2</NumberOfRows>
       <CellDefinitions>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>0</RowIndex>
           <ParameterName>paramDiagramImage</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>1</RowIndex>
+          <ParameterName>paramComponentLevels</ParameterName>
         </CellDefinition>
       </CellDefinitions>
     </GridLayoutDefinition>

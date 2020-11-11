@@ -194,7 +194,7 @@ namespace EADiagramPublisher
 
             try
             {
-                ExecResult<List<ComponentLevel>> displayLevelsResult = new FSelectHierarcyLevels().Execute();
+                ExecResult<List<ComponentLevel>> displayLevelsResult = FSelectHierarcyLevels.Execute();
                 if (displayLevelsResult.code != 0) return result;
 
 
@@ -318,7 +318,7 @@ namespace EADiagramPublisher
 
             try
             {
-                ExecResult<List<ComponentLevel>> displayLevelsResult = new FSelectHierarcyLevels().Execute();
+                ExecResult<List<ComponentLevel>> displayLevelsResult = FSelectHierarcyLevels.Execute();
                 if (displayLevelsResult.code != 0) return result;
 
 

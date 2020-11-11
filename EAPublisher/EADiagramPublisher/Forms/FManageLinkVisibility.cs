@@ -288,7 +288,7 @@ namespace EADiagramPublisher.Forms
 
         private void btnLinkTypeFilter_Click(object sender, EventArgs e)
         {
-            ExecResult<LinkType[]> selectLinkTypeResult = FSelectLinkType.Execute((LinkType[])lblLinkTypeFilter.Tag);
+            ExecResult<LinkType[]> selectLinkTypeResult = FSelectComponentLevel.Execute((LinkType[])lblLinkTypeFilter.Tag);
             if (selectLinkTypeResult.code == 0)
             {
                 lblLinkTypeFilter.Tag = selectLinkTypeResult.value;
