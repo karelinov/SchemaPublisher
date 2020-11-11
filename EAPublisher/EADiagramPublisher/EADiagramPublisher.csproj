@@ -194,11 +194,11 @@
     <Compile Include="Forms\FManageLinkVisibility_Subforms\FSelectFlowID.Designer.cs">
       <DependentUpon>FSelectFlowID.cs</DependentUpon>
     </Compile>
-    <Compile Include="Forms\FSelectHierarcyLevels.cs">
+    <Compile Include="Forms\FSelectComponentLevels.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Forms\FSelectHierarcyLevels.Designer.cs">
-      <DependentUpon>FSelectHierarcyLevels.cs</DependentUpon>
+    <Compile Include="Forms\FSelectComponentLevels.Designer.cs">
+      <DependentUpon>FSelectComponentLevels.cs</DependentUpon>
     </Compile>
     <Compile Include="Archive\FSelectNodesAndDevices.cs">
       <SubType>Form</SubType>
@@ -307,8 +307,8 @@
     <EmbeddedResource Include="Forms\FManageLinkVisibility_Subforms\FSelectFlowID.resx">
       <DependentUpon>FSelectFlowID.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Forms\FSelectHierarcyLevels.resx">
-      <DependentUpon>FSelectHierarcyLevels.cs</DependentUpon>
+    <EmbeddedResource Include="Forms\FSelectComponentLevels.resx">
+      <DependentUpon>FSelectComponentLevels.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Archive\FSelectNodesAndDevices.resx">
       <DependentUpon>FSelectNodesAndDevices.cs</DependentUpon>

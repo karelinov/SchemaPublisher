@@ -58,7 +58,7 @@ namespace EADiagramPublisher
                 Context.CurrentDiagram = reportDiagram;
 
                 // запрашиваем параметры показа
-                ExecResult<List<ComponentLevel>> displayLevelsResult = FSelectHierarcyLevels.Execute();
+                ExecResult<List<ComponentLevel>> displayLevelsResult = FSelectComponentLevels.Execute(new List<ComponentLevel>() { ComponentLevel.Node, ComponentLevel.Device, ComponentLevel.ExecutionEnv, ComponentLevel.Component });
                 if (displayLevelsResult.code != 0) return result;
 
 

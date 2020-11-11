@@ -12,29 +12,28 @@ using EADiagramPublisher.Enums;
 
 namespace EADiagramPublisher.Forms
 {
-    public partial class FSelectHierarcyLevels : Form
+    public partial class FSelectComponentLevels : Form
     {
-        public FSelectHierarcyLevels()
+        public FSelectComponentLevels()
         {
             InitializeComponent();
 
-            this.clbHierarchyLevels.Items.Clear();
-            this.clbHierarchyLevels.Items.Add(ComponentLevel.SystemContour, true);
-            this.clbHierarchyLevels.Items.Add(ComponentLevel.SystemComponent, true);
-            this.clbHierarchyLevels.Items.Add(ComponentLevel.ContourContour, true);
-            this.clbHierarchyLevels.Items.Add(ComponentLevel.ContourComponent, true);
-            this.clbHierarchyLevels.Items.Add(ComponentLevel.Node, true);
-            this.clbHierarchyLevels.Items.Add(ComponentLevel.Device, true);
-            this.clbHierarchyLevels.Items.Add(ComponentLevel.ExecutionEnv, true);
-            this.clbHierarchyLevels.Items.Add(ComponentLevel.Component, true);
         }
 
-        public static ExecResult<List<ComponentLevel>> Execute()
+        public static ExecResult<List<ComponentLevel>> Execute(List<ComponentLevel> defaultSelected = null)
         {
             ExecResult<List<ComponentLevel>> result = new ExecResult<List<ComponentLevel>>();
             try
             {
-                var form = new FSelectHierarcyLevels();
+                var form = new FSelectComponentLevels();
+
+                // заполняем и отмечаем список элементов
+                form.clbHierarchyLevels.Items.Clear();
+                foreach (ComponentLevel componentLevel in Enum.GetValues(typeof(ComponentLevel))) {
+                    bool componentLevelChecked = defaultSelected !=null? defaultSelected.Contains(componentLevel): true;
+                    form.clbHierarchyLevels.Items.Add(componentLevel, componentLevelChecked);
+                }
+
                 DialogResult res = form.ShowDialog();
                 if (res != DialogResult.OK)
                 {
@@ -63,6 +62,22 @@ namespace EADiagramPublisher.Forms
             if (!new DialogResult[] { DialogResult.Cancel, DialogResult.OK }.Contains(this.DialogResult))
             {
                 this.DialogResult = DialogResult.Cancel;
+            }
+        }
+
+        private void tsbCheckAll_Click(object sender, EventArgs e)
+        {
+            for (int i = 0; i < clbHierarchyLevels.Items.Count; i++)
+            {
+                clbHierarchyLevels.SetItemChecked(i, true);
+            }
+        }
+
+        private void tsbClearSelection_Click(object sender, EventArgs e)
+        {
+            for (int i = 0; i < clbHierarchyLevels.Items.Count; i++)
+            {
+                clbHierarchyLevels.SetItemChecked(i, false);
             }
         }
     }
