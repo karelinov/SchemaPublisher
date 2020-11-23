@@ -183,6 +183,13 @@ namespace EADiagramPublisher
                         elementData.ClassifierEAType = rowNode.Descendants("classifier_type").First().Value;
                     }
 
+                    if (elementData.EAType == "Boundary") // тэги для Boundary лежат отдельно, поэтому Boundary инициируем неэкономно и сразу - через COM
+                    {
+                        EA.Element element = EARepository.GetElementByID(elementData._ElementID);
+                        elementData = new ElementData(element);
+
+                    }
+
                     result.Add(object_id, elementData);
                 }
 
@@ -240,6 +247,14 @@ namespace EADiagramPublisher
                         elementData.ClassifierEAType = rowNode.Descendants("classifier_type").First().Value;
                     }
 
+
+                    if (elementData.EAType == "Boundary") // тэги для Boundary лежат отдельно, поэтому Boundary инициируем неэкономно и сразу - через COM
+                    {
+                        EA.Element element = EARepository.GetElementByID(elementData._ElementID);
+                        elementData = new ElementData(element);
+
+                    }
+
                     result.Add(object_id, elementData);
                 }
 
@@ -252,8 +267,6 @@ namespace EADiagramPublisher
                     elementData.ComponentLevel = Enum.Parse(typeof(ComponentLevel), tagValue) as ComponentLevel?;
                 if (tagName == DAConst.DP_NodeGroupsTag)
                     elementData.NodeGroups = tagValue.Split(',');
-
-
             }
 
             return result;
