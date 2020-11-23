@@ -196,7 +196,11 @@ namespace EADiagramPublisher
         {
             int? result = null;
 
-            ElementData elementData = Context.ElementData[eaElementID];
+            ElementData elementData;
+            if (Context.ElementData.ContainsKey(eaElementID))
+                elementData = Context.ElementData[eaElementID];
+            else // не библиотечный элемент
+                return result;
 
             // Узел ищем только для компонентов и сред исполнения
             if (elementData.ComponentLevel == ComponentLevel.ExecutionEnv || elementData.ComponentLevel == ComponentLevel.Component)

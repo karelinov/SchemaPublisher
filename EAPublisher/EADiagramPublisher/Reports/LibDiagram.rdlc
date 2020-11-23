@@ -1510,6 +1510,7 @@ Fields!LinkType.Value = 3,"SoftwareClassification"
                             <PaddingBottom>2pt</PaddingBottom>
                           </Style>
                         </Textbox>
+                        <rd:Selected>true</rd:Selected>
                       </CellContents>
                     </TablixCell>
                   </TablixCells>
