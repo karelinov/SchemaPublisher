@@ -4,6 +4,9 @@ using EADiagramPublisher.Enums;
 
 namespace EADiagramPublisher
 {
+    /// <summary>
+    /// Класс содержит утилитарные методы для работы с TaggedValues
+    /// </summary>
     public class EATVHelper
     {
         /// <summary>
