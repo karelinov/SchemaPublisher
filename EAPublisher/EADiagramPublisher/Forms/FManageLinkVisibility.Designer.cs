@@ -62,11 +62,14 @@
             this.tsbShow = new System.Windows.Forms.ToolStripButton();
             this.tsbHide = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.tsbSelectedComponentsLinks = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.tsbSelectConnector = new System.Windows.Forms.ToolStripButton();
             this.btnSelectConnectorObjects = new System.Windows.Forms.ToolStripButton();
             this.tsbShowStartInProject = new System.Windows.Forms.ToolStripButton();
             this.tsbShowEndInProject = new System.Windows.Forms.ToolStripButton();
             this.btnSoftwareClassificationFilter = new System.Windows.Forms.Button();
+            this.tsbHideAll = new System.Windows.Forms.ToolStripButton();
             this.panFilters.SuspendLayout();
             this.tcFilters.SuspendLayout();
             this.tpFlowIDFilter.SuspendLayout();
@@ -89,9 +92,11 @@
             this.colhEndElement});
             this.lvConnectors.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lvConnectors.FullRowSelect = true;
-            this.lvConnectors.Location = new System.Drawing.Point(0, 201);
+            this.lvConnectors.HideSelection = false;
+            this.lvConnectors.Location = new System.Drawing.Point(0, 172);
+            this.lvConnectors.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.lvConnectors.Name = "lvConnectors";
-            this.lvConnectors.Size = new System.Drawing.Size(1739, 566);
+            this.lvConnectors.Size = new System.Drawing.Size(1546, 442);
             this.lvConnectors.TabIndex = 0;
             this.lvConnectors.UseCompatibleStateImageBehavior = false;
             this.lvConnectors.View = System.Windows.Forms.View.Details;
@@ -142,8 +147,9 @@
             this.panFilters.Controls.Add(this.tcFilters);
             this.panFilters.Dock = System.Windows.Forms.DockStyle.Top;
             this.panFilters.Location = new System.Drawing.Point(0, 55);
+            this.panFilters.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.panFilters.Name = "panFilters";
-            this.panFilters.Size = new System.Drawing.Size(1739, 146);
+            this.panFilters.Size = new System.Drawing.Size(1546, 117);
             this.panFilters.TabIndex = 1;
             // 
             // tcFilters
@@ -154,9 +160,10 @@
             this.tcFilters.Controls.Add(this.tpSoftwareClassificationFilter);
             this.tcFilters.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tcFilters.Location = new System.Drawing.Point(0, 0);
+            this.tcFilters.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.tcFilters.Name = "tcFilters";
             this.tcFilters.SelectedIndex = 0;
-            this.tcFilters.Size = new System.Drawing.Size(1739, 146);
+            this.tcFilters.Size = new System.Drawing.Size(1546, 117);
             this.tcFilters.TabIndex = 2;
             // 
             // tpFlowIDFilter
@@ -164,19 +171,21 @@
             this.tpFlowIDFilter.Controls.Add(this.btnSelectFlowID);
             this.tpFlowIDFilter.Controls.Add(this.lblFlowIDFilter);
             this.tpFlowIDFilter.Controls.Add(this.label1);
-            this.tpFlowIDFilter.Location = new System.Drawing.Point(4, 29);
+            this.tpFlowIDFilter.Location = new System.Drawing.Point(4, 25);
+            this.tpFlowIDFilter.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.tpFlowIDFilter.Name = "tpFlowIDFilter";
-            this.tpFlowIDFilter.Padding = new System.Windows.Forms.Padding(3);
-            this.tpFlowIDFilter.Size = new System.Drawing.Size(1731, 113);
+            this.tpFlowIDFilter.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.tpFlowIDFilter.Size = new System.Drawing.Size(1538, 88);
             this.tpFlowIDFilter.TabIndex = 0;
             this.tpFlowIDFilter.Text = "FlowIDFilter";
             this.tpFlowIDFilter.UseVisualStyleBackColor = true;
             // 
             // btnSelectFlowID
             // 
-            this.btnSelectFlowID.Location = new System.Drawing.Point(319, 40);
+            this.btnSelectFlowID.Location = new System.Drawing.Point(284, 32);
+            this.btnSelectFlowID.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.btnSelectFlowID.Name = "btnSelectFlowID";
-            this.btnSelectFlowID.Size = new System.Drawing.Size(68, 28);
+            this.btnSelectFlowID.Size = new System.Drawing.Size(60, 22);
             this.btnSelectFlowID.TabIndex = 2;
             this.btnSelectFlowID.Text = "...";
             this.btnSelectFlowID.UseVisualStyleBackColor = true;
@@ -185,17 +194,17 @@
             // lblFlowIDFilter
             // 
             this.lblFlowIDFilter.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.lblFlowIDFilter.Location = new System.Drawing.Point(10, 43);
+            this.lblFlowIDFilter.Location = new System.Drawing.Point(9, 34);
             this.lblFlowIDFilter.Name = "lblFlowIDFilter";
-            this.lblFlowIDFilter.Size = new System.Drawing.Size(303, 27);
+            this.lblFlowIDFilter.Size = new System.Drawing.Size(270, 22);
             this.lblFlowIDFilter.TabIndex = 3;
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(6, 14);
+            this.label1.Location = new System.Drawing.Point(5, 11);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(297, 20);
+            this.label1.Size = new System.Drawing.Size(256, 17);
             this.label1.TabIndex = 1;
             this.label1.Text = "Показывать только указанные FlowID";
             // 
@@ -204,10 +213,11 @@
             this.tpLinkTypeFilter.Controls.Add(this.lblLinkTypeFilter);
             this.tpLinkTypeFilter.Controls.Add(this.btnLinkTypeFilter);
             this.tpLinkTypeFilter.Controls.Add(this.label4);
-            this.tpLinkTypeFilter.Location = new System.Drawing.Point(4, 29);
+            this.tpLinkTypeFilter.Location = new System.Drawing.Point(4, 25);
+            this.tpLinkTypeFilter.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.tpLinkTypeFilter.Name = "tpLinkTypeFilter";
-            this.tpLinkTypeFilter.Padding = new System.Windows.Forms.Padding(3);
-            this.tpLinkTypeFilter.Size = new System.Drawing.Size(1731, 113);
+            this.tpLinkTypeFilter.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.tpLinkTypeFilter.Size = new System.Drawing.Size(1538, 88);
             this.tpLinkTypeFilter.TabIndex = 1;
             this.tpLinkTypeFilter.Text = "LinkTypeFilter";
             this.tpLinkTypeFilter.UseVisualStyleBackColor = true;
@@ -215,16 +225,17 @@
             // lblLinkTypeFilter
             // 
             this.lblLinkTypeFilter.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.lblLinkTypeFilter.Location = new System.Drawing.Point(10, 53);
+            this.lblLinkTypeFilter.Location = new System.Drawing.Point(9, 42);
             this.lblLinkTypeFilter.Name = "lblLinkTypeFilter";
-            this.lblLinkTypeFilter.Size = new System.Drawing.Size(221, 26);
+            this.lblLinkTypeFilter.Size = new System.Drawing.Size(197, 21);
             this.lblLinkTypeFilter.TabIndex = 5;
             // 
             // btnLinkTypeFilter
             // 
-            this.btnLinkTypeFilter.Location = new System.Drawing.Point(237, 53);
+            this.btnLinkTypeFilter.Location = new System.Drawing.Point(211, 42);
+            this.btnLinkTypeFilter.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.btnLinkTypeFilter.Name = "btnLinkTypeFilter";
-            this.btnLinkTypeFilter.Size = new System.Drawing.Size(54, 26);
+            this.btnLinkTypeFilter.Size = new System.Drawing.Size(48, 21);
             this.btnLinkTypeFilter.TabIndex = 4;
             this.btnLinkTypeFilter.Text = "...";
             this.btnLinkTypeFilter.UseVisualStyleBackColor = true;
@@ -233,9 +244,9 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(6, 22);
+            this.label4.Location = new System.Drawing.Point(5, 18);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(260, 20);
+            this.label4.Size = new System.Drawing.Size(223, 17);
             this.label4.TabIndex = 2;
             this.label4.Text = "Показывать только типы линков";
             // 
@@ -244,19 +255,21 @@
             this.tpSourceElementFilter.Controls.Add(this.btnSourceElementFilter);
             this.tpSourceElementFilter.Controls.Add(this.lblSourceElementFilter);
             this.tpSourceElementFilter.Controls.Add(this.label2);
-            this.tpSourceElementFilter.Location = new System.Drawing.Point(4, 29);
+            this.tpSourceElementFilter.Location = new System.Drawing.Point(4, 25);
+            this.tpSourceElementFilter.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.tpSourceElementFilter.Name = "tpSourceElementFilter";
-            this.tpSourceElementFilter.Padding = new System.Windows.Forms.Padding(3);
-            this.tpSourceElementFilter.Size = new System.Drawing.Size(1731, 113);
+            this.tpSourceElementFilter.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.tpSourceElementFilter.Size = new System.Drawing.Size(1538, 88);
             this.tpSourceElementFilter.TabIndex = 2;
             this.tpSourceElementFilter.Text = "SourceElementFilter";
             this.tpSourceElementFilter.UseVisualStyleBackColor = true;
             // 
             // btnSourceElementFilter
             // 
-            this.btnSourceElementFilter.Location = new System.Drawing.Point(234, 48);
+            this.btnSourceElementFilter.Location = new System.Drawing.Point(208, 38);
+            this.btnSourceElementFilter.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.btnSourceElementFilter.Name = "btnSourceElementFilter";
-            this.btnSourceElementFilter.Size = new System.Drawing.Size(54, 26);
+            this.btnSourceElementFilter.Size = new System.Drawing.Size(48, 21);
             this.btnSourceElementFilter.TabIndex = 4;
             this.btnSourceElementFilter.Text = "...";
             this.btnSourceElementFilter.UseVisualStyleBackColor = true;
@@ -265,17 +278,17 @@
             // lblSourceElementFilter
             // 
             this.lblSourceElementFilter.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.lblSourceElementFilter.Location = new System.Drawing.Point(6, 48);
+            this.lblSourceElementFilter.Location = new System.Drawing.Point(5, 38);
             this.lblSourceElementFilter.Name = "lblSourceElementFilter";
-            this.lblSourceElementFilter.Size = new System.Drawing.Size(221, 25);
+            this.lblSourceElementFilter.Size = new System.Drawing.Size(197, 20);
             this.lblSourceElementFilter.TabIndex = 3;
             // 
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(6, 19);
+            this.label2.Location = new System.Drawing.Point(5, 15);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(282, 20);
+            this.label2.Size = new System.Drawing.Size(238, 17);
             this.label2.TabIndex = 2;
             this.label2.Text = "Показывать только для элементов";
             // 
@@ -284,10 +297,11 @@
             this.tpSoftwareClassificationFilter.Controls.Add(this.lblSoftwareClassificationFilter1);
             this.tpSoftwareClassificationFilter.Controls.Add(this.btnSoftwareClassificationFilter1);
             this.tpSoftwareClassificationFilter.Controls.Add(this.label3);
-            this.tpSoftwareClassificationFilter.Location = new System.Drawing.Point(4, 29);
+            this.tpSoftwareClassificationFilter.Location = new System.Drawing.Point(4, 25);
+            this.tpSoftwareClassificationFilter.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.tpSoftwareClassificationFilter.Name = "tpSoftwareClassificationFilter";
-            this.tpSoftwareClassificationFilter.Padding = new System.Windows.Forms.Padding(3);
-            this.tpSoftwareClassificationFilter.Size = new System.Drawing.Size(1731, 113);
+            this.tpSoftwareClassificationFilter.Padding = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.tpSoftwareClassificationFilter.Size = new System.Drawing.Size(1538, 88);
             this.tpSoftwareClassificationFilter.TabIndex = 3;
             this.tpSoftwareClassificationFilter.Text = "SoftwareClassificationFilter";
             this.tpSoftwareClassificationFilter.UseVisualStyleBackColor = true;
@@ -295,16 +309,17 @@
             // lblSoftwareClassificationFilter1
             // 
             this.lblSoftwareClassificationFilter1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.lblSoftwareClassificationFilter1.Location = new System.Drawing.Point(22, 62);
+            this.lblSoftwareClassificationFilter1.Location = new System.Drawing.Point(20, 50);
             this.lblSoftwareClassificationFilter1.Name = "lblSoftwareClassificationFilter1";
-            this.lblSoftwareClassificationFilter1.Size = new System.Drawing.Size(421, 23);
+            this.lblSoftwareClassificationFilter1.Size = new System.Drawing.Size(374, 19);
             this.lblSoftwareClassificationFilter1.TabIndex = 2;
             // 
             // btnSoftwareClassificationFilter1
             // 
-            this.btnSoftwareClassificationFilter1.Location = new System.Drawing.Point(449, 50);
+            this.btnSoftwareClassificationFilter1.Location = new System.Drawing.Point(399, 40);
+            this.btnSoftwareClassificationFilter1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.btnSoftwareClassificationFilter1.Name = "btnSoftwareClassificationFilter1";
-            this.btnSoftwareClassificationFilter1.Size = new System.Drawing.Size(75, 35);
+            this.btnSoftwareClassificationFilter1.Size = new System.Drawing.Size(67, 28);
             this.btnSoftwareClassificationFilter1.TabIndex = 1;
             this.btnSoftwareClassificationFilter1.Text = "...";
             this.btnSoftwareClassificationFilter1.UseVisualStyleBackColor = true;
@@ -313,9 +328,9 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(18, 22);
+            this.label3.Location = new System.Drawing.Point(16, 18);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(403, 20);
+            this.label3.Size = new System.Drawing.Size(351, 17);
             this.label3.TabIndex = 0;
             this.label3.Text = "Показывать только коннекторы, относящиеся к ПО";
             // 
@@ -327,14 +342,17 @@
             this.toolStripSeparator1,
             this.tsbShow,
             this.tsbHide,
+            this.tsbHideAll,
             this.toolStripSeparator2,
+            this.tsbSelectedComponentsLinks,
+            this.toolStripSeparator3,
             this.tsbSelectConnector,
             this.btnSelectConnectorObjects,
             this.tsbShowStartInProject,
             this.tsbShowEndInProject});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(1739, 55);
+            this.toolStrip1.Size = new System.Drawing.Size(1546, 55);
             this.toolStrip1.TabIndex = 1;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -377,6 +395,22 @@
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
             this.toolStripSeparator2.Size = new System.Drawing.Size(6, 55);
+            // 
+            // tsbSelectedComponentsLinks
+            // 
+            this.tsbSelectedComponentsLinks.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.tsbSelectedComponentsLinks.Image = ((System.Drawing.Image)(resources.GetObject("tsbSelectedComponentsLinks.Image")));
+            this.tsbSelectedComponentsLinks.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbSelectedComponentsLinks.Name = "tsbSelectedComponentsLinks";
+            this.tsbSelectedComponentsLinks.Size = new System.Drawing.Size(52, 52);
+            this.tsbSelectedComponentsLinks.Text = "SelectedComponentsLinks";
+            this.tsbSelectedComponentsLinks.ToolTipText = "Показать для выделенных на диаграмме компонентов";
+            this.tsbSelectedComponentsLinks.Click += new System.EventHandler(this.tsbSelectedComponentsLinks_Click);
+            // 
+            // toolStripSeparator3
+            // 
+            this.toolStripSeparator3.Name = "toolStripSeparator3";
+            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 55);
             // 
             // tsbSelectConnector
             // 
@@ -428,14 +462,26 @@
             this.btnSoftwareClassificationFilter.UseVisualStyleBackColor = true;
             this.btnSoftwareClassificationFilter.Click += new System.EventHandler(this.btnSoftwareClassificationFilter_Click);
             // 
+            // tsbHideAll
+            // 
+            this.tsbHideAll.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.tsbHideAll.Image = ((System.Drawing.Image)(resources.GetObject("tsbHideAll.Image")));
+            this.tsbHideAll.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbHideAll.Name = "tsbHideAll";
+            this.tsbHideAll.Size = new System.Drawing.Size(52, 52);
+            this.tsbHideAll.Text = "HideAll";
+            this.tsbHideAll.ToolTipText = "Скрыть все коннекторы на диаграмме";
+            this.tsbHideAll.Click += new System.EventHandler(this.tsbHideAll_Click);
+            // 
             // FManageLinkVisibility
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1739, 767);
+            this.ClientSize = new System.Drawing.Size(1546, 614);
             this.Controls.Add(this.lvConnectors);
             this.Controls.Add(this.panFilters);
             this.Controls.Add(this.toolStrip1);
+            this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.Name = "FManageLinkVisibility";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "FManageLinkVisibility";
@@ -496,5 +542,8 @@
         private System.Windows.Forms.Label lblLinkTypeFilter;
         private System.Windows.Forms.Label lblSoftwareClassificationFilter1;
         private System.Windows.Forms.Button btnSoftwareClassificationFilter1;
+        private System.Windows.Forms.ToolStripButton tsbSelectedComponentsLinks;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
+        private System.Windows.Forms.ToolStripButton tsbHideAll;
     }
 }

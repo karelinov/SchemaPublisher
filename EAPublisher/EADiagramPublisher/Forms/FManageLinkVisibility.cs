@@ -1,6 +1,7 @@
 ﻿using EADiagramPublisher.Contracts;
 using EADiagramPublisher.Enums;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -165,9 +166,9 @@ namespace EADiagramPublisher.Forms
 
                 item.SubItems.Add(elementDataList[connectorData.SourceElementID].DisplayName);
                 item.SubItems.Add(connectorData.NameForShow());
-                item.SubItems.Add(connectorData.IsLibrary?connectorData.LinkType.ToString():"");
-                item.SubItems.Add(connectorData.IsLibrary ? connectorData.FlowID:"");
-                item.SubItems.Add(connectorData.IsLibrary ? connectorData.SegmentID:"");
+                item.SubItems.Add(connectorData.IsLibrary ? connectorData.LinkType.ToString() : "");
+                item.SubItems.Add(connectorData.IsLibrary ? connectorData.FlowID : "");
+                item.SubItems.Add(connectorData.IsLibrary ? connectorData.SegmentID : "");
                 item.SubItems.Add(connectorData.Notes);
                 item.SubItems.Add(elementDataList[connectorData.TargetElementID].DisplayName);
 
@@ -420,5 +421,44 @@ namespace EADiagramPublisher.Forms
                 FConnectorProperties.Execute(lvConnectors.SelectedItems[0].Tag as ConnectorData);
             }
         }
+
+        /// <summary>
+        /// Выделение в списке линков, связанных с выделенными на диаграмме элементами
+        /// Производится заполеннием фильтра по компонентам
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void tsbSelectedComponentsLinks_Click(object sender, EventArgs e)
+        {
+            // Получаем список выделенных на диаграмме элемнетов
+            List<EA.Element> selectedElements = EAHelper.GetSelectedLibElement_Diagram();
+
+            List<int> filteredElements = new List<int> { };
+            if (lblSourceElementFilter.Tag != null)
+            {
+                filteredElements.AddRange((int[])lblSourceElementFilter.Tag);
+            }
+            filteredElements.AddRange(selectedElements.Select((se, index) => se.ElementID));
+
+            if (filteredElements.Count > 0)
+            {
+                lblSourceElementFilter.Tag = filteredElements.ToArray();
+            }
+
+            LoadConnectorList();
+
+        }
+
+        private void tsbHideAll_Click(object sender, EventArgs e)
+        {
+            // Проходимся по списку выделенных коннекторов
+            foreach (EA.DiagramLink diagramLink in Context.EARepository.GetCurrentDiagram().DiagramLinks) 
+            { 
+                DiagramLinkHelper.SetDiagramLinkVisibility(diagramLink, false); // устанавливаем видимость
+                //item.Text = (!diagramLink.IsHidden).ToString();
+            }
+        }
     }
+
 }
+

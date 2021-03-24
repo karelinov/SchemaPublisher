@@ -41,17 +41,19 @@
             // 
             this.clbFlowIDs.CheckOnClick = true;
             this.clbFlowIDs.FormattingEnabled = true;
-            this.clbFlowIDs.Location = new System.Drawing.Point(12, 54);
+            this.clbFlowIDs.Location = new System.Drawing.Point(11, 43);
+            this.clbFlowIDs.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.clbFlowIDs.Name = "clbFlowIDs";
-            this.clbFlowIDs.Size = new System.Drawing.Size(554, 319);
+            this.clbFlowIDs.Size = new System.Drawing.Size(493, 242);
             this.clbFlowIDs.TabIndex = 0;
             // 
             // btnOk
             // 
             this.btnOk.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.btnOk.Location = new System.Drawing.Point(414, 379);
+            this.btnOk.Location = new System.Drawing.Point(368, 303);
+            this.btnOk.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.btnOk.Name = "btnOk";
-            this.btnOk.Size = new System.Drawing.Size(152, 41);
+            this.btnOk.Size = new System.Drawing.Size(135, 33);
             this.btnOk.TabIndex = 1;
             this.btnOk.Text = "OK";
             this.btnOk.UseVisualStyleBackColor = true;
@@ -64,7 +66,7 @@
             this.tsbClearSelection});
             this.toolStrip1.Location = new System.Drawing.Point(0, 0);
             this.toolStrip1.Name = "toolStrip1";
-            this.toolStrip1.Size = new System.Drawing.Size(578, 55);
+            this.toolStrip1.Size = new System.Drawing.Size(514, 55);
             this.toolStrip1.TabIndex = 3;
             this.toolStrip1.Text = "toolStrip1";
             // 
@@ -91,12 +93,13 @@
             // FSelectFlowID
             // 
             this.AcceptButton = this.btnOk;
-            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(578, 428);
+            this.ClientSize = new System.Drawing.Size(514, 342);
+            this.Controls.Add(this.clbFlowIDs);
             this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.btnOk);
-            this.Controls.Add(this.clbFlowIDs);
+            this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.Name = "FSelectFlowID";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "FSelectFlowID";
