@@ -91,7 +91,7 @@ namespace EADiagramPublisher
 
 
                 // Создаём
-                EA.Connector newConnector = LinkDesignerHelper.CreateConnector(createNewLinkData.value, true);
+                EA.Connector newConnector = ConnectorHelper.CreateConnector(createNewLinkData.value, true);
 
                 CurrentDiagram.DiagramLinks.Refresh();
                 EARepository.ReloadDiagram(CurrentDiagram.DiagramID);
@@ -103,48 +103,6 @@ namespace EADiagramPublisher
             {
                 result.setException(ex);
             }
-
-            return result;
-        }
-
-
-        public ExecResult<Boolean> SetConnectorVisibility()
-        {
-            ExecResult<Boolean> result = new ExecResult<bool>();
-
-            Logger.Out("");
-
-            try
-            {
-
-                if (!Context.CheckCurrentDiagram())
-                    throw new Exception("Не установлена или не открыта текущая диаграмма");
-
-                // запускаем форму
-                ExecResult<LinkVisibilityData> selectLVResult = FSetLinkVisibility.Execute();
-                if (selectLVResult.code != 0) return result;
-
-                // Обрабатываем результаты
-                foreach (var curLinkType in selectLVResult.value.showLinkType)
-                {
-                    SetConnectorVisibility(curLinkType, true);
-                }
-
-                foreach (var curLinkType in selectLVResult.value.hideLinkType)
-                {
-                    SetConnectorVisibility(curLinkType, false);
-                }
-
-                SetConnectorVisibility_Untyped(selectLVResult.value.showNotLibElements);
-
-            }
-            catch (Exception ex)
-            {
-                result.setException(ex);
-            }
-
-            CurrentDiagram.DiagramLinks.Refresh();
-            EARepository.ReloadDiagram(CurrentDiagram.DiagramID);
 
             return result;
         }
@@ -189,14 +147,14 @@ namespace EADiagramPublisher
                         LinkType connectorlinkType = LTHelper.GetConnectorType(connector);
                         if (linkType == connectorlinkType)
                         {
-                            EA.DiagramLink connectorLink = EAHelper.GetConnectorLink(connector);
+                            EA.DiagramLink connectorLink = DiagramLinkHelper.GetDLForConnector(connector);
                             if (connectorLink == null)
                             {
-                                connectorLink = LinkDesignerHelper.CreateLink(connector);
+                                connectorLink = DiagramLinkHelper.CreateDiagramLink(connector);
                                 connectorLink.Update();
                             }
 
-                            EAHelper.SetDiagramLinkVisibility(connectorLink, visibility);
+                            DiagramLinkHelper.SetDiagramLinkVisibility(connectorLink, visibility);
                         }
                     }
                 }
@@ -220,7 +178,7 @@ namespace EADiagramPublisher
 
                         if (connectorLinkType == LinkType.Deploy)
                         {
-                            EAHelper.SetDiagramLinkVisibility(diagramLink, visibility);
+                            DiagramLinkHelper.SetDiagramLinkVisibility(diagramLink, visibility);
                         }
                         break;
                 }
@@ -250,11 +208,11 @@ namespace EADiagramPublisher
                     if (secondElementDA == null) continue;
 
                     // Получаем линк коннектора на диаграмме
-                    EA.DiagramLink connectorLink = EAHelper.GetConnectorLink(connector);
+                    EA.DiagramLink connectorLink = DiagramLinkHelper.GetDLForConnector(connector);
                     if (connectorLink == null) continue;
 
                     // Устанавливаем видимость 
-                    EAHelper.SetDiagramLinkVisibility(connectorLink, visibility);
+                    DiagramLinkHelper.SetDiagramLinkVisibility(connectorLink, visibility);
                 }
             }
         }
@@ -265,6 +223,11 @@ namespace EADiagramPublisher
         /// <returns></returns>
         public ExecResult<Boolean> SetConnectorTags(string location)
         {
+
+            if (!Context.CheckCurrentDiagram())
+                throw new Exception("Не установлена или не открыта текущая диаграмма");
+
+
             ExecResult<Boolean> result = new ExecResult<bool>();
             try
             {
@@ -401,72 +364,63 @@ namespace EADiagramPublisher
             return result;
         }
 
-
         /// <summary>
-        /// Установка Выделения цветом, толщиной... указанных коннекторов
+        /// Функция запуска формы показа линков
         /// </summary>
         /// <returns></returns>
-        public ExecResult<Boolean> LinksSelection(string location)
+        public ExecResult<Boolean> ManageLinkVisibility()
         {
-
             ExecResult<Boolean> result = new ExecResult<bool>();
+
+            Logger.Out("");
 
             try
             {
-                List<ConnectorData> connectordataList = new List<ConnectorData>();
-                foreach (EA.DiagramLink diagramLink in CurrentDiagram.DiagramLinks)
-                {
-                    if(!diagramLink.IsHidden && LibraryHelper.IsLibrary(EARepository.GetConnectorByID(diagramLink.ConnectorID)))
-                    {
-                        connectordataList.Add(new ConnectorData(diagramLink));
-                    }
-                }
+                if (!Context.CheckCurrentDiagram())
+                    throw new Exception("Не установлена или не открыта текущая диаграмма");
+
+                if(Context.CurrentLibrary == null)
+                    throw new Exception("Не установлена текущая библиотека");
 
 
-                // Открываем форму для установки свойств линков
-                ExecResult<LinksOperationData> linksOperationDataResult = new FLinkSelection().Execute(connectordataList);
+                result = FManageLinkVisibility.Execute();
 
-                if (linksOperationDataResult.code == -1)
-                    throw new Exception(linksOperationDataResult.message);
-                if (linksOperationDataResult.code != 0) return result;
-
-                // Выполняем операцию
-                if (linksOperationDataResult.value.Operation == LinkSOperation.ResetAll)
-                {
-                    foreach (ConnectorData connectorData in connectordataList)
-                    {
-                        EA.DiagramLink diagramLink = EAHelper.GetDLFromConnector(connectorData._ConnectorID);
-                        if (diagramLink != null)
-                        {
-                            LinkDesignerHelper.ApplyStyleToDiagramLink(diagramLink, true, 1, true, Color.Black, true, EA.LinkLineStyle.LineStyleOrthogonalRounded);
-                        }
-                    }
-                }
-                else if(linksOperationDataResult.value.Operation == LinkSOperation.SetStyle) {
-                    foreach(ConnectorData connectorData in linksOperationDataResult.value.Connectors)
-                    {
-                        EA.DiagramLink diagramLink = EAHelper.GetDLFromConnector(connectorData._ConnectorID);
-                        if (diagramLink != null)
-                        {
-                            LinkDesignerHelper.ApplyStyleToDiagramLink(diagramLink, linksOperationDataResult.value.SetLineWidth, linksOperationDataResult.value.LineWidth, linksOperationDataResult.value.SetColor, linksOperationDataResult.value.Color, linksOperationDataResult.value.SetLineStyle,  linksOperationDataResult.value.LineStyle);
-                        }
-                    }
-                }
-
-                
-
-                        
-
-
-                CurrentDiagram.DiagramLinks.Refresh();
-                EARepository.ReloadDiagram(CurrentDiagram.DiagramID);
             }
             catch (Exception ex)
             {
                 result.setException(ex);
             }
-            return result;
 
+            return result;
+        }
+
+        /// <summary>
+        /// Функция запуска формы управления коннекторами
+        /// </summary>
+        /// <returns></returns>
+        public ExecResult<Boolean> ManageLinks()
+        {
+            ExecResult<Boolean> result = new ExecResult<bool>();
+
+            Logger.Out("");
+
+            try
+            {
+                if (Context.CurrentLibrary == null)
+                {
+                    EA.Package libPackage  = LibraryHelper.GetLibraryRoot();
+                    Context.CurrentLibrary = libPackage;
+                }
+
+                result = FManageLinks.Execute();
+
+            }
+            catch (Exception ex)
+            {
+                result.setException(ex);
+            }
+
+            return result;
         }
 
 

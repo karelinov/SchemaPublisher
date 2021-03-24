@@ -82,7 +82,7 @@ namespace EADiagramPublisher.Forms
             else if (cbTagName.Text == DAConst.DP_FlowIDTag)
             {
                 cbTagValue.Items.Clear();
-                cbTagValue.Items.AddRange(LinkDesignerHelper.GetCurrentFlowIDs());
+                cbTagValue.Items.AddRange(ConnectorHelper.GetCurrentFlowIDs());
             }
             else
             {

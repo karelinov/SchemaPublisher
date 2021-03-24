@@ -7,3 +7,5 @@ Debug
 /EAPublisher/.vs/EADiagramPublisher/v15/Server/sqlite3
 v16
 v15
+/EAPublisher/packages
+/EAPublisher/EADiagramPublisher/SqlServerTypes

@@ -26,7 +26,7 @@ namespace EADiagramPublisher.Enums
         public static string DP_NameForFlowIDTag = "DP_NameForFlowID"; // Элемент имени (в добавление к, например, имени ПК), которое будет предложено для инфопотока для данного компонента
 
         public static string DP_NodeGroupsTag = "DP_NodeGroups"; // Список групп, в которые входит узел
-        public static string DP_NodeGroupsEnumGUID = "{C30DA53D-A2AC-4b4c-BB20-31681C9E2671}"; // Ижентификатор перечисления, в котором лежит список испольуземых групп
+        public static string DP_NodeGroupsEnumGUID = "{C30DA53D-A2AC-4b4c-BB20-31681C9E2671}"; // Идентификатор перечисления, в котором лежит список испольуземых групп
 
         public static string DP_TempLinkDiagramIDTag = "DP_TempLinkDiagramID"; // Идентификатор диаграммы, на которой следует показать этот линк
         public static string DP_TempLinkTag = "DP_TempLink"; // признак временной связи (созданной чтобы показать инфопоток отсутствующих на диаграмме элементов)

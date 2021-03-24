@@ -2,8 +2,8 @@
   "ExpandedNodes": [
     "",
     "\\EAPublisher",
-    "\\EAPublisher\\EADiagramPublisher",
-    "\\EAPublisher\\EADiagramPublisher\\EADiagramPublisher"
+    "\\EAPublisher\\EADiagramPublisher"
   ],
+  "SelectedNode": "\\EAPublisher\\EADiagramPublisher\\Context.cs",
   "PreviewInSolutionExplorer": false
 }

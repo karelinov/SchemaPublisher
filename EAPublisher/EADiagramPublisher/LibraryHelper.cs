@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
-
+using System.Xml.Linq;
+using System.Xml.XPath;
 using EADiagramPublisher.Contracts;
 using EADiagramPublisher.Enums;
+using EADiagramPublisher.SQL;
 
 namespace EADiagramPublisher
 {
@@ -36,7 +39,7 @@ namespace EADiagramPublisher
         }
 
         /// <summary>
-        /// Вспомопгтельная функция определяет, предназанчен ли библиотечный элемнет для размещения на диаграмме
+        /// Вспомогательная функция определяет, предназанчен ли библиотечный элемнет для размещения на диаграмме
         /// Правила: Контуры = разрешён Classifier, остальные компоненты - только Instance
         /// </summary>
         /// <param name=""></param>
@@ -81,7 +84,7 @@ namespace EADiagramPublisher
 
             foreach (EA.Connector connector in element.Connectors)
             {
-                if (LinkDesignerHelper.IsDeploymentLink(connector) && connector.SupplierID == element.ElementID)
+                if (ConnectorHelper.IsDeploymentLink(connector) && connector.SupplierID == element.ElementID)
                 {
                     result.Add(EARepository.GetElementByID(connector.ClientID));
                 }
@@ -149,10 +152,70 @@ namespace EADiagramPublisher
 
             foreach (EA.Connector connector in eaElement.Connectors)
             {
-                if (LinkDesignerHelper.IsDeploymentLink(connector) && connector.ClientID == eaElement.ElementID)
+                if (ConnectorHelper.IsDeploymentLink(connector) && connector.ClientID == eaElement.ElementID)
                 {
                     result = EARepository.GetElementByID(connector.SupplierID);
                     break;
+                }
+            }
+
+
+            return result;
+        }
+
+        /// <summary>
+        /// Возвращает если есть родительский элемент размещения
+        /// </summary>
+        public static ElementData GetDeployParent(ElementData elementData)
+        {
+            ElementData result = null;
+
+            // Инициируем обращение к спискам элементов и коннекторов, чтобы связать списки (если они ещё не инициированы и не связаны)
+            var ed = Context.ElementData;
+            var cd = Context.ConnectorData;
+
+            foreach (ConnectorData connectorData in elementData.ConnectorsData)
+            {
+                if (connectorData.LinkType == LinkType.Deploy && connectorData.SourceElementID == elementData._ElementID)
+                {
+                    result = Context.ElementData[connectorData.TargetElementID];
+                    break;
+                }
+            }
+
+
+            return result;
+        }
+
+        /// <summary>
+        /// Возвращает для элемента родительский элемент Componentlevel = Node/Device (если есть)
+        /// То есть Узел, в котором он размещён
+        /// Ограничение: считаем, что узлы внутри узлов не располагаются
+        /// </summary>
+        public static int? GetDeployComponentNode(int eaElementID)
+        {
+            int? result = null;
+
+            ElementData elementData;
+            if (Context.ElementData.ContainsKey(eaElementID))
+                elementData = Context.ElementData[eaElementID];
+            else // не библиотечный элемент
+                return result;
+
+            // Узел ищем только для компонентов и сред исполнения
+            if (elementData.ComponentLevel == ComponentLevel.ExecutionEnv || elementData.ComponentLevel == ComponentLevel.Component)
+            {
+                ElementData parentElementData = GetDeployParent(elementData); 
+
+                while (parentElementData != null)
+                {
+                    if (parentElementData.ComponentLevel == ComponentLevel.Device || parentElementData.ComponentLevel == ComponentLevel.Node)
+                    {
+                        result = parentElementData._ElementID;
+                        break;
+                    }
+
+                    parentElementData = GetDeployParent(parentElementData);
                 }
             }
 
@@ -416,7 +479,7 @@ namespace EADiagramPublisher
 
             foreach (EA.Connector connector in childElement.Connectors)
             {
-                if (LinkDesignerHelper.IsDeploymentLink(connector) && connector.ClientID == childElement.ElementID)
+                if (ConnectorHelper.IsDeploymentLink(connector) && connector.ClientID == childElement.ElementID)
                 {
                     result = true;
                     break;
@@ -438,10 +501,19 @@ namespace EADiagramPublisher
             {
 
                 EA.Collection taggedValues = EATVHelper.GetTaggedValues(element);
-                if (taggedValues != null && taggedValues.GetByName(DAConst.DP_LibraryTag) != null)
+                try
                 {
-                    result = true;
+
+                    if (taggedValues != null && taggedValues.GetByName(DAConst.DP_LibraryTag) != null)
+                    {
+                        result = true;
+                    }
                 }
+                catch
+                {
+                    result = false; // ибо обращение к несуществующему тэгу раизит ошибку, а проверить наличие можно только перебором тэгов, что неудобно
+                }
+
             }
 
             return result;
@@ -456,10 +528,19 @@ namespace EADiagramPublisher
         {
             bool result = false;
 
-            if (connector.TaggedValues.GetByName(DAConst.DP_LibraryTag) != null)
+            try
             {
-                result = true;
+
+                if (connector.TaggedValues.GetByName(DAConst.DP_LibraryTag) != null)
+                {
+                    result = true;
+                }
             }
+            catch
+            {
+                result = false; // ибо обращение к несуществующему тэгу раизит ошибку, а проверить наличие можно только перебором тэгов, что неудобно
+            }
+
             return result;
         }
 
@@ -467,13 +548,23 @@ namespace EADiagramPublisher
         /// Устанавливает текущую библиотеку
         /// </summary>
         /// <returns></returns>
-        public static ExecResult<Boolean> SetCurrentLibrary()
+        public static ExecResult<Boolean> SetCurrentLibrary(string location)
         {
             ExecResult<Boolean> result = new ExecResult<bool>();
-
             try
             {
-                EA.Package libRoot = GetLibraryRootFromTreeSelection();
+                EA.Package libRoot = null;
+
+                switch (location)
+                {
+                    case "Diagram":
+                        libRoot = GetLibraryRootFromPackage(EARepository.GetPackageByID(EARepository.GetCurrentDiagram().PackageID));
+                        break;
+                    case "TreeView":
+                    case "MainMenu":
+                        libRoot = GetLibraryRootFromTreeSelection();
+                        break;
+                }
                 if (libRoot == null)
                     throw new Exception("Не обнаружена библиотека ");
 
@@ -502,14 +593,14 @@ namespace EADiagramPublisher
             string flowID = EATVHelper.GetTaggedValue(element, DAConst.DP_NameForFlowIDTag, false);
 
             // от данного элемента лезем вверх по его  свзям SoftwareClassification и склеиваем тэги DP_NameForFlowID
-            List<EA.Element> connectedElements = LinkDesignerHelper.GetConnectedElements(element, LinkType.SoftwareClassification, 1);
+            List<EA.Element> connectedElements = ConnectorHelper.GetConnectedElements(element, LinkType.SoftwareClassification, 1);
             // если у элемента нет таких зависимостей, но есть классификатор - ищем зависимости у классификатора
             if (connectedElements.Count == 0)
             {
                 if (element.ClassifierID != 0)
                 {
                     flowID = EATVHelper.GetTaggedValue(element, DAConst.DP_NameForFlowIDTag, false);
-                    connectedElements = LinkDesignerHelper.GetConnectedElements(EARepository.GetElementByID(element.ClassifierID), LinkType.SoftwareClassification, 1);
+                    connectedElements = ConnectorHelper.GetConnectedElements(EARepository.GetElementByID(element.ClassifierID), LinkType.SoftwareClassification, 1);
                 }
             }
 
@@ -524,7 +615,7 @@ namespace EADiagramPublisher
                         flowID = nextname + "." + flowID;
                 }
 
-                connectedElements = LinkDesignerHelper.GetConnectedElements(connectedElements[0], LinkType.SoftwareClassification, 1);
+                connectedElements = ConnectorHelper.GetConnectedElements(connectedElements[0], LinkType.SoftwareClassification, 1);
             }
 
             // Теперь ищем подбираем номер
@@ -561,12 +652,12 @@ namespace EADiagramPublisher
 
                 if (IsLibrary(curElement))
                 {
-                    return GetRootLibPackage(EARepository.GetPackageByID(curElement.PackageID));
+                    return GetLibraryRootFromPackage(EARepository.GetPackageByID(curElement.PackageID));
                 }
             }
 
             // Если через библиотечные элементы на диаграмме не получчилось, пытаемся найти от пакета диаграммы
-            return GetRootLibPackage(EARepository.GetPackageByID(CurrentDiagram.PackageID));
+            return GetLibraryRootFromPackage(EARepository.GetPackageByID(CurrentDiagram.PackageID));
 
         }
 
@@ -607,7 +698,7 @@ namespace EADiagramPublisher
                 libPackage = EARepository.GetPackageByID(libElement.PackageID);
             }
 
-            return GetRootLibPackage(libPackage);
+            return GetLibraryRootFromPackage(libPackage);
         }
 
 
@@ -619,7 +710,7 @@ namespace EADiagramPublisher
         /// </summary>
         /// <param name="startPackage"></param>
         /// <returns>Корень библиотеки если найден</returns>
-        private static EA.Package GetRootLibPackage(EA.Package startPackage)
+        public static EA.Package GetLibraryRootFromPackage(EA.Package startPackage)
         {
             EA.Package result = null;
 
@@ -676,6 +767,124 @@ namespace EADiagramPublisher
 
             return result;
         }
+
+        /// <summary>
+        /// Функция возвращает размер элемента, соответствующий размеру элемента на библиотечной диаграмме
+        /// </summary>
+        /// <returns></returns>
+        public static ExecResult<Size> GetElementSizeOnLibDiagram(EA.Element element)
+        {
+            ExecResult<Size> result = new ExecResult<Size>() { code = -1 };
+
+            try
+            {
+                // лезем от элемента вверх по дереву пакетов, пока не достигнем верха либо не достигнем пакета без тэга DP_Library после нахождения такого тэга
+                EA.Package curPackage = EARepository.GetPackageByID(element.PackageID);
+                bool foundPackageAfterDPLibrary = false;
+                bool foundDPLibraryPackage = false;
+
+                while (curPackage != null & !(foundPackageAfterDPLibrary))
+                {
+                    // Проходимся по диаграммам пакета
+                    foreach (EA.Diagram curDiagram in curPackage.Diagrams)
+                    {
+                        // ... В в диаграмме - по объектам 
+                        foreach (EA.DiagramObject diagramObject in curDiagram.DiagramObjects)
+                        {
+                            // если объект на диаграмме - наш объект, то срисовываем его размеры как дефолтные
+                            if (diagramObject.ElementID == element.ElementID)
+                            {
+                                Size curSize = ElementDesignerHelper.GetSize(diagramObject);
+                                result.value = curSize;
+                                result.code = 0;
+                                return result;
+                            }
+                        }
+
+                        if (curPackage.ParentID != 0)
+                            curPackage = EARepository.GetPackageByID(curPackage.ParentID);
+                        else
+                            curPackage = null;
+                        if (LibraryHelper.IsLibrary(curPackage.Element))
+                            foundDPLibraryPackage = true;
+                        if (!LibraryHelper.IsLibrary(curPackage.Element) && foundDPLibraryPackage)
+                            foundPackageAfterDPLibrary = true;
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                result.setException(ex);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Функция устанавливает размер элемента по умолчанию, соответствующий размеру элемента на библиотечной диаграмме
+        /// </summary>
+        /// <returns></returns>
+        public static ExecResult<Boolean> SetElementDefaultSize()
+        {
+            ExecResult<Boolean> result = new ExecResult<bool>();
+
+            try
+            {
+                var obj = EARepository.GetContextObject();
+                if (obj == null)
+                {
+                    throw new Exception("Нет текущего объекта");
+                }
+                if (!(obj is EA.Element) || !LibraryHelper.IsLibrary((EA.Element)obj))
+                {
+                    throw new Exception("Выделен не библиотечный элемент");
+                }
+                EA.Element curElement = (EA.Element)obj;
+
+                // Ищем размер на библиотечных диаграммах
+                ExecResult<Size> GetElementSizeOnLibDiagramResult = GetElementSizeOnLibDiagram(curElement);
+                if (GetElementSizeOnLibDiagramResult.code != 0) throw new Exception(GetElementSizeOnLibDiagramResult.message);
+
+                EATVHelper.TaggedValueSet(curElement, DAConst.defaultWidthTag, GetElementSizeOnLibDiagramResult.value.Width.ToString());
+                EATVHelper.TaggedValueSet(curElement, DAConst.defaultHeightTag, GetElementSizeOnLibDiagramResult.value.Height.ToString());
+
+                Logger.Out("Найден элемент диаграммы для установки размеров " + GetElementSizeOnLibDiagramResult.value.Width.ToString() + "x" + GetElementSizeOnLibDiagramResult.value.Height.ToString());
+
+            }
+            catch (Exception ex)
+            {
+                result.setException(ex);
+            }
+
+            return result;
+        }
+
+
+        /// <summary>
+        /// Возвращает список идентификаторов пакетов текущей библиотеки
+        /// </summary>
+        /// <returns></returns>
+        public static int[] GetCurrentLibPackageIDs()
+        {
+            List<int> result = new List<int>();
+
+            string[] args = new string[] { Context.CurrentLibrary.PackageGUID };
+            XDocument sqlResultSet = SQLHelper.RunSQL("PackageHierarchy.sql", args);
+
+            IEnumerable<XElement> rowNodes = sqlResultSet.Root.XPathSelectElements("/EADATA/Dataset_0/Data/Row");
+            foreach (XElement rowNode in rowNodes)
+            {
+                int package_id = int.Parse(rowNode.Descendants("package_id").First().Value);
+                result.Add(package_id);
+            }
+
+            return result.ToArray();
+
+        }
+
+
+
     }
 }
 

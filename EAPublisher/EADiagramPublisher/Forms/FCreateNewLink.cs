@@ -47,7 +47,7 @@ namespace EADiagramPublisher.Forms
                 fCreateNewLink.tbDestination.Tag = secondElement;
 
                 fCreateNewLink.cbFlowID.Items.Clear();
-                fCreateNewLink.cbFlowID.Items.AddRange(LinkDesignerHelper.GetCurrentFlowIDs());
+                fCreateNewLink.cbFlowID.Items.AddRange(ConnectorHelper.GetCurrentFlowIDs());
 
 
                 DialogResult res = fCreateNewLink.ShowDialog();
@@ -65,6 +65,7 @@ namespace EADiagramPublisher.Forms
                     else
                     {
                         result.value.Name = fCreateNewLink.tbFlowName.Text;
+                        result.value.Notes = fCreateNewLink.tbNotes.Text;
                         result.value.LinkType = ((LinkType)fCreateNewLink.clbLinkType.CheckedItems[0]);
                         result.value.FlowID = fCreateNewLink.cbFlowID.Text;
                         result.value.SegmentID = fCreateNewLink.cbSegmentID.Text;
@@ -114,7 +115,7 @@ namespace EADiagramPublisher.Forms
             cbSegmentID.Items.Clear();
 
             if (flowID != "")
-                cbSegmentID.Items.AddRange(LinkDesignerHelper.GetSegmentsForFlowID(flowID));
+                cbSegmentID.Items.AddRange(ConnectorHelper.GetSegmentsForFlowID(flowID));
 
 
         }
@@ -130,11 +131,6 @@ namespace EADiagramPublisher.Forms
 
         }
 
-        private void btnSuggestFromSource_Click(object sender, EventArgs e)
-        {
-            cbFlowID.Text = LibraryHelper.SuggestFlowIDName((EA.Element)tbSource.Tag);
-        }
-
         private void cbFlowID_TextUpdate(object sender, EventArgs e)
         {
             if (tbFlowName.Text == "")
@@ -143,12 +139,13 @@ namespace EADiagramPublisher.Forms
             }
         }
 
-        private void btnSuggestFromDest_Click(object sender, EventArgs e)
+        private void btnOK_Click(object sender, EventArgs e)
         {
-            cbFlowID.Text = LibraryHelper.SuggestFlowIDName((EA.Element)tbDestination.Tag);
+            if (clbLinkType.CheckedItems.Count >0)
+            {
+                DialogResult = DialogResult.OK;
+            }
         }
-
-
     }
 
 }

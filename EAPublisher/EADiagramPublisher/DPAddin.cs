@@ -24,26 +24,27 @@ namespace EADiagramPublisher
         const string menuPutContourContour = "&PutContourContour";
         const string menuPutParentDHierarchyOnDiagram = "&PutParentDHierarchyOnDiagram";
         const string menuPutChildrenDHierarchyOnDiagram = "&PutChildrenDHierarchyOnDiagram";
-        //const string menuPutChildrenDHierarchyOnElement = "&PutChildrenDHierarchyOnElement";
         const string menuPutChildrenDeployHierarchy = "&PutChildrenDeployHierarchy";
-        //const string menuPutNodes = "&PutNodes";
         const string menuSetElementTags = "&SetElementTags";
 
         const string menuDesignLinks = "-&DesignLinks";
         const string menuCreateLink = "&CreateLink";
-        const string menuSetLinkVisibility = "&SetLinkVisibility";
+        const string menuManageLinks = "&ManageLinks";
+        const string menuManageLinkVisibility = "&ManageLinkVisibility";
         const string menuSetConnectorTags = "&SetConnectorTags";
         const string menuSetSimilarLinksTags = "&SetSimilarLinksTags";
-        const string menuLinksSelection = "&LinksSelection";
 
         const string menuUtils = "-&Utils";
         const string menuSetCurrentDiagram = "&SetCurrentDiagram";
         const string menuSetCurrentLibrary = "&SetCurrentLibrary";
         const string menuSetDPLibratyTag = "&SetDPLibratyTag";
-        //const string menuSetDefaultSize = "&SetDefaultSize";
         const string menuReloadConnectorData = "&ReloadConnectorData";
         const string menuDoOnConnectActions = "&DoOnConnectActions";
         const string menuRunSQLQuery = "&RunSQLQuery";
+
+        const string menuReports = "-&Reports";
+        const string menuDiagramElementsReport = "&DiagramElementsReport";
+
 
         const string menuTest = "-&Test";
         const string menuTest1 = "&Test1";
@@ -61,9 +62,11 @@ namespace EADiagramPublisher
         {
             Context.EARepository = repository;
 
-            Context.Designer = new Designer();
+            Context.Designer = new ElementDesigner();
             Context.LinkDesigner = new LinkDesigner();
             logpath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "EADiagramPublisher.log");
+
+            AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolve;
 
             return "";
         }
@@ -89,7 +92,7 @@ namespace EADiagramPublisher
                 case "":
                     return menuDPAddin;
                 case menuDPAddin:
-                    subMenus = new string[] { menuExportDiagram, menuDesign, menuDesignLinks, menuUtils, menuTest };
+                    subMenus = new string[] { menuExportDiagram, menuDesign, menuDesignLinks, menuUtils, menuReports, menuTest };
                     return subMenus;
 
                 case menuDesign:
@@ -101,12 +104,18 @@ namespace EADiagramPublisher
                     return subMenus;
 
                 case menuDesignLinks:
-                    subMenus = new string[] { menuCreateLink, menuSetLinkVisibility, menuSetConnectorTags, menuSetSimilarLinksTags, menuLinksSelection };
+                    subMenus = new string[] { menuCreateLink, menuManageLinks, menuManageLinkVisibility, menuSetConnectorTags, menuSetSimilarLinksTags};
                     return subMenus;
 
                 case menuUtils:
                     subMenus = new string[] { menuSetCurrentDiagram, menuSetCurrentLibrary, menuSetDPLibratyTag, menuReloadConnectorData, menuDoOnConnectActions, menuRunSQLQuery};
                     return subMenus;
+
+                case menuReports:
+                    subMenus = new string[] { menuDiagramElementsReport };
+                    return subMenus;
+
+
                 case menuTest:
                     subMenus = new string[] { menuTest1 , menuTest2, menuTest3 };
                     return subMenus;
@@ -162,10 +171,10 @@ namespace EADiagramPublisher
                     
                     case menuDesignLinks:
                     case menuCreateLink:
-                    case menuSetLinkVisibility:
+                    case menuManageLinks:
+                    case menuManageLinkVisibility:
                     case menuSetConnectorTags:
                     case menuSetSimilarLinksTags:
-                    case menuLinksSelection:
                         isEnabled = true;
                         break;
 
@@ -178,6 +187,12 @@ namespace EADiagramPublisher
                     case menuRunSQLQuery:
                         isEnabled = true;
                         break;
+
+                    case menuReports:
+                    case menuDiagramElementsReport:
+                        isEnabled = true;
+                        break;
+
 
                     case menuTest:
                     case menuTest1:
@@ -252,10 +267,17 @@ namespace EADiagramPublisher
                     OutExecResult(createCommunicationResult);
                     break;
 
-                case menuSetLinkVisibility:
-                    var setLinkVisibilityResult = Context.LinkDesigner.SetConnectorVisibility();
-                    OutExecResult(setLinkVisibilityResult);
+                case menuManageLinks:
+                    var ManageLinksResult = Context.LinkDesigner.ManageLinks();
+                    OutExecResult(ManageLinksResult);
                     break;
+
+
+                case menuManageLinkVisibility:
+                    var ManageLinkVisibilityResult = Context.LinkDesigner.ManageLinkVisibility();
+                    OutExecResult(ManageLinkVisibilityResult);
+                    break;
+
 
                 case menuSetConnectorTags:
                     var setConnectorTagsResult = Context.LinkDesigner.SetConnectorTags(location);
@@ -267,12 +289,6 @@ namespace EADiagramPublisher
                     OutExecResult(setSimilarLinksTags);
                     break;
 
-                case menuLinksSelection:
-                    var linksSelectionResult = Context.LinkDesigner.LinksSelection(location);
-                    OutExecResult(linksSelectionResult);
-                    break;
-
-
                 // ------ UTILS --------------------------------------------------------------
                 case menuSetCurrentDiagram:
                     Context.CurrentDiagram = Context.EARepository.GetCurrentDiagram();
@@ -280,7 +296,7 @@ namespace EADiagramPublisher
                     break;
 
                 case menuSetCurrentLibrary:
-                    var setCurrentLibraryResult = LibraryHelper.SetCurrentLibrary();
+                    var setCurrentLibraryResult = LibraryHelper.SetCurrentLibrary(location);
                     OutExecResult(setCurrentLibraryResult);
                     break;
 
@@ -303,6 +319,14 @@ namespace EADiagramPublisher
                     var fRunSQLQueryResult = FRunSQLQuery.Execute();
                     OutExecResult(fRunSQLQueryResult);
                     break;
+
+                // --------- REPORTS ------------------------------------------------------------
+                case menuDiagramElementsReport:
+                    var fDiagramElementsReportResult = ReportsHelper.DiagramElementsReport(location);
+                    OutExecResult(fDiagramElementsReportResult);
+                    break;
+
+
 
 
                 // ------ EXPORT --------------------------------------------------------------
@@ -402,7 +426,7 @@ namespace EADiagramPublisher
             try
             {
                 Context.CurrentLibrary = Context.EARepository.GetPackageByGuid("{5C806428-D2F2-4bfc-A043-3B84D3E4CACD}"); ; // SELECT * FROM t_package WHERE ea_guid = "{5C806428-D2F2-4bfc-A043-3B84D3E4CACD}"
-                LinkDesignerHelper.LoadConnectorData2();
+                ConnectorHelper.LoadConnectorData2();
             }
             catch (Exception ex)
             {
@@ -479,6 +503,22 @@ namespace EADiagramPublisher
             }
 
             
+        }
+
+        static Assembly AssemblyResolve(object source, ResolveEventArgs e)
+        {
+            string[] fields = e.Name.Split(',');
+            string name = fields[0];
+            string culture = fields[2];
+            if (name.EndsWith(".resources") && !culture.EndsWith("neutral")) return null;
+
+            string projectOutDirectory = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+
+            string folderPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string assemblyPath = Path.Combine(projectOutDirectory, new AssemblyName(e.Name).Name + ".dll");
+            if (!File.Exists(assemblyPath)) return null;
+            Assembly assembly = Assembly.LoadFrom(assemblyPath);
+            return assembly;
         }
 
     }

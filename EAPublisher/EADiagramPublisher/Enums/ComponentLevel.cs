@@ -5,6 +5,7 @@ using System.Text;
 
 namespace EADiagramPublisher.Enums
 {
+    [Serializable]
     public enum ComponentLevel:int
     {
         SystemContour = 1,

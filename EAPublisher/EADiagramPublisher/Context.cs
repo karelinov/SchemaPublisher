@@ -13,7 +13,7 @@ namespace EADiagramPublisher
     /// </summary>
     public class Context
     {
-        public static Designer Designer { get; set; }
+        public static ElementDesigner Designer { get; set; }
         public static LinkDesigner LinkDesigner { get; set; }
 
 
@@ -85,16 +85,18 @@ namespace EADiagramPublisher
             set
             {
                 CurrentLibraryID = value.PackageID;
+
+                // Зависимые от библиотеки списки сбрасываются
+                ConnectorData = null;
+                ElementData = null;
+                SoftwareClassification = null;
+                CurLibPackageIDs = null;
             }
         }
 
 
         /// <summary>
-        /// Список данных библиотечных коннекторов
-        /// Структура:
-        /// - LinkType
-        ///  - FlowID
-        ///   - Список ConnectorData
+        /// Данные коннекторов текущей библиотеки
         /// </summary>
         private static Dictionary<int, ConnectorData> _ConnectorData = null;
         public static Dictionary<int, ConnectorData> ConnectorData
@@ -102,7 +104,13 @@ namespace EADiagramPublisher
             get
             {
                 if (_ConnectorData == null)
-                    _ConnectorData = LinkDesignerHelper.LoadConnectorData2();
+                {
+                    _ConnectorData = ConnectorHelper.LoadConnectorData2();
+                    if (_ElementData != null)
+                    {
+                        SyncElementConnectorData();
+                    }
+                }
 
                 return _ConnectorData;
             }
@@ -113,11 +121,79 @@ namespace EADiagramPublisher
         }
 
         /// <summary>
+        /// Данные элементов текущей библиотеки
+        /// </summary>
+        private static Dictionary<int, ElementData> _ElementData = null;
+        public static Dictionary<int, ElementData> ElementData
+        {
+            get
+            {
+                if (_ElementData == null)
+                {
+                    _ElementData = EAHelper.GetCurLibElementData();
+                    if (_ConnectorData != null)
+                    {
+                        SyncElementConnectorData();
+                    }
+                }
+
+
+                return _ElementData;
+            }
+            set
+            {
+                _ElementData = value;
+            }
+        }
+
+        /// <summary>
+        /// Функция записывает в эанные ElementData идентификаторы коннекторов (на основе обработки ConnectorData)
+        /// </summary>
+        private static void SyncElementConnectorData()
+        {
+            foreach (ElementData elementData in ElementData.Values)
+                elementData._ConnectorDataIDs = null;
+
+            foreach (ConnectorData connectorData  in ConnectorData.Values)
+            {
+                ElementData sourceElementData;
+                if (ElementData.ContainsKey(connectorData.SourceElementID))
+                {
+                    sourceElementData = ElementData[connectorData.SourceElementID];
+                }
+                else // небиблиотечный элемент
+                {
+                    EA.Element element = EARepository.GetElementByID(connectorData.SourceElementID);
+                    sourceElementData = new ElementData(element);
+                }
+                if (sourceElementData._ConnectorDataIDs == null)
+                    sourceElementData._ConnectorDataIDs = new List<int>();
+                sourceElementData._ConnectorDataIDs.Add(connectorData.ConnectorID);
+
+
+                ElementData targetElementData;
+                if(ElementData.ContainsKey(connectorData.TargetElementID)) {
+                    targetElementData = ElementData[connectorData.TargetElementID];
+                }
+                else
+                {
+                    EA.Element element = EARepository.GetElementByID(connectorData.TargetElementID);
+                    targetElementData = new ElementData(element);
+                }
+                if (targetElementData._ConnectorDataIDs == null)
+                    targetElementData._ConnectorDataIDs = new List<int>();
+                targetElementData._ConnectorDataIDs.Add(connectorData.ConnectorID);
+            }
+        }
+
+
+
+        /// <summary>
         /// Функция проверки, что текущая диаграмма установлена
         /// Могут быть установлены параметры, для авто открытия текущей или устанавливающий открытую на экране как текующую
         /// </summary>
+        /// <param name="autoOpenLibDiagram"></param>/// 
         /// <param name="showUI"></param>
-        /// <param name="autoSetCurrentDiagram"></param>
         /// <returns></returns>
         public static bool CheckCurrentDiagram(bool autoOpenLibDiagram = false, bool showUI = true)
         {
@@ -165,6 +241,44 @@ namespace EADiagramPublisher
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Данные классификатора ПО текущей библиотеки
+        /// </summary>
+        private static DPTreeNode<ElementData> _SoftwareClassification = null;
+        public static DPTreeNode<ElementData> SoftwareClassification
+        {
+            get
+            {
+                if (_SoftwareClassification == null)
+                    _SoftwareClassification = SoftwareClassificationHelper.GetSoftwareClassification();
+
+                return _SoftwareClassification;
+            }
+            set
+            {
+                _SoftwareClassification = value;
+            }
+        }
+
+        /// <summary>
+        /// Список ID пакетов текущей библиотеки
+        /// </summary>
+        private static int[] _CurLibPackageIDs = null;
+        public static int[] CurLibPackageIDs
+        {
+            get
+            {
+                if (_CurLibPackageIDs == null)
+                    _CurLibPackageIDs = LibraryHelper.GetCurrentLibPackageIDs();
+
+                return _CurLibPackageIDs;
+            }
+            set
+            {
+                _CurLibPackageIDs = value;
+            }
         }
 
 

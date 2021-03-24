@@ -9,6 +9,9 @@ using EADiagramPublisher.Contracts;
 using EADiagramPublisher.Enums;
 
 using System.Windows.Forms;
+using System.Xml.Linq;
+using EADiagramPublisher.SQL;
+using System.Xml.XPath;
 
 namespace EADiagramPublisher
 
@@ -69,103 +72,6 @@ namespace EADiagramPublisher
 
             return result;
         }
-
-        /// <summary>
-        /// Ищет линк коннектора на текущей диаграмме
-        /// </summary>
-        /// <param name="connector"></param>
-        /// <returns></returns>
-        public static EA.DiagramLink GetConnectorLink(EA.Connector connector)
-        {
-            EA.DiagramLink result = null;
-
-            foreach (EA.DiagramLink diagramLink in Context.CurrentDiagram.DiagramLinks)
-            {
-                if (diagramLink.ConnectorID == connector.ConnectorID)
-                {
-                    result = diagramLink;
-                    break;
-                }
-            }
-
-            return result;
-        }
-        /// <summary>
-        /// Возвращает если есть линк на текущей диаграмме для указанного коннектора
-        /// </summary>
-        /// <param name=""></param>
-        /// <returns></returns>
-        public static EA.DiagramLink GetDLFromConnector(int connectorID)
-        {
-            EA.DiagramLink result = null;
-
-            EA.Collection diagramLinks = Context.CurrentDiagram.DiagramLinks;
-
-            foreach (EA.DiagramLink diagramLink in diagramLinks)
-            {
-                if (diagramLink.ConnectorID == connectorID)
-                {
-                    result = diagramLink;
-                    break;
-                }
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// Функция возвращает размер элемента, соответствующий размеру элемента на библиотечной диаграмме
-        /// </summary>
-        /// <returns></returns>
-        public static ExecResult<Size> GetElementSizeOnLibDiagram(EA.Element element)
-        {
-            ExecResult<Size> result = new ExecResult<Size>() { code = -1 };
-
-            try
-            {
-                // лезем от элемента вверх по дереву пакетов, пока не достигнем верха либо не достигнем пакета без тэга DP_Library после нахождения такого тэга
-                EA.Package curPackage = EARepository.GetPackageByID(element.PackageID);
-                bool foundPackageAfterDPLibrary = false;
-                bool foundDPLibraryPackage = false;
-
-                while (curPackage != null & !(foundPackageAfterDPLibrary))
-                {
-                    // Проходимся по диаграммам пакета
-                    foreach (EA.Diagram curDiagram in curPackage.Diagrams)
-                    {
-                        // ... В в диаграмме - по объектам 
-                        foreach (EA.DiagramObject diagramObject in curDiagram.DiagramObjects)
-                        {
-                            // если объект на диаграмме - наш объект, то срисовываем его размеры как дефолтные
-                            if (diagramObject.ElementID == element.ElementID)
-                            {
-                                Size curSize = DesignerHelper.GetSize(diagramObject);
-                                result.value = curSize;
-                                result.code = 0;
-                                return result;
-                            }
-                        }
-
-                        if (curPackage.ParentID != 0)
-                            curPackage = EARepository.GetPackageByID(curPackage.ParentID);
-                        else
-                            curPackage = null;
-                        if (LibraryHelper.IsLibrary(curPackage.Element))
-                            foundDPLibraryPackage = true;
-                        if (!LibraryHelper.IsLibrary(curPackage.Element) && foundDPLibraryPackage)
-                            foundPackageAfterDPLibrary = true;
-                    }
-                }
-
-            }
-            catch (Exception ex)
-            {
-                result.setException(ex);
-            }
-
-            return result;
-        }
-
 
         /// <summary>
         ///  Возыращает список выделенных в диаграмме коннекторов
@@ -238,50 +144,185 @@ namespace EADiagramPublisher
             return EARepository.SQLQuery(queryText);
         }
 
-        public static void SetDiagramLinkVisibility(EA.DiagramLink diagramLink, bool visibility)
-        {
-            diagramLink.IsHidden = !visibility;
-            diagramLink.Update();
-        }
 
         /// <summary>
-        /// Функция устанавливает размер элемента по умолчанию, соответствующий размеру элемента на библиотечной диаграмме
+        /// Возвращает список элементов ElementData для текущей диаграммы
         /// </summary>
         /// <returns></returns>
-        public static ExecResult<Boolean> SetElementDefaultSize()
+        public static Dictionary<int, ElementData> GetCurDiagramElementData()
         {
-            ExecResult<Boolean> result = new ExecResult<bool>();
+            Dictionary<int, ElementData> result = new Dictionary<int, ElementData>();
 
-            try
+
+            string[] args = new string[] { Context.CurrentDiagram.DiagramGUID };
+            XDocument sqlResultSet = SQLHelper.RunSQL("CurDiagramObjects.sql", args);
+
+            IEnumerable<XElement> rowNodes = sqlResultSet.Root.XPathSelectElements("/EADATA/Dataset_0/Data/Row");
+            foreach (XElement rowNode in rowNodes)
             {
-                var obj = EARepository.GetContextObject();
-                if (obj == null)
+                ElementData elementData;
+
+                int object_id = int.Parse(rowNode.Descendants("object_id").First().Value);
+
+                if (result.ContainsKey(object_id))
                 {
-                    throw new Exception("Нет текущего объекта");
+                    elementData = result[object_id];
                 }
-                if (!(obj is EA.Element) || !LibraryHelper.IsLibrary((EA.Element)obj))
+                else
                 {
-                    throw new Exception("Выделен не библиотечный элемент");
+                    elementData = new ElementData();
+                    elementData._ElementID = object_id;
+                    elementData.Name = rowNode.Descendants("name").First().Value;
+                    elementData.EAType = rowNode.Descendants("object_type").First().Value;
+                    elementData.Note = rowNode.Descendants("note").First().Value;
+                    string sClassifierID = rowNode.Descendants("classifier_id").First().Value;
+                    if (sClassifierID != "")
+                    {
+                        elementData.ClassifierID = int.Parse(rowNode.Descendants("classifier_id").First().Value);
+                        elementData.ClassifierName = rowNode.Descendants("classifier_name").First().Value;
+                        elementData.ClassifierEAType = rowNode.Descendants("classifier_type").First().Value;
+                    }
+
+                    if (elementData.EAType == "Boundary") // тэги для Boundary лежат отдельно, поэтому Boundary инициируем неэкономно и сразу - через COM
+                    {
+                        EA.Element element = EARepository.GetElementByID(elementData._ElementID);
+                        elementData = new ElementData(element);
+
+                    }
+
+                    result.Add(object_id, elementData);
                 }
-                EA.Element curElement = (EA.Element)obj;
 
-                // Ищем размер на библиотечных диаграммах
-                ExecResult<Size> GetElementSizeOnLibDiagramResult = GetElementSizeOnLibDiagram(curElement);
-                if (GetElementSizeOnLibDiagramResult.code != 0) throw new Exception(GetElementSizeOnLibDiagramResult.message);
+                string tagName = rowNode.Descendants("property").First().Value;
+                string tagValue = rowNode.Descendants("value").First().Value;
 
-                EATVHelper.TaggedValueSet(curElement, DAConst.defaultWidthTag, GetElementSizeOnLibDiagramResult.value.Width.ToString());
-                EATVHelper.TaggedValueSet(curElement, DAConst.defaultHeightTag, GetElementSizeOnLibDiagramResult.value.Height.ToString());
+                if (tagName == DAConst.DP_LibraryTag)
+                    elementData.IsLibrary = true;
+                if (tagName == DAConst.DP_ComponentLevelTag)
+                    elementData.ComponentLevel = Enum.Parse(typeof(ComponentLevel), tagValue) as ComponentLevel?;
+                if (tagName == DAConst.DP_NodeGroupsTag)
+                    elementData.NodeGroups = tagValue.Split(',');
 
-                Logger.Out("Найден элемент диаграммы для установки размеров " + GetElementSizeOnLibDiagramResult.value.Width.ToString() + "x" + GetElementSizeOnLibDiagramResult.value.Height.ToString());
 
-            }
-            catch (Exception ex)
-            {
-                result.setException(ex);
             }
 
             return result;
         }
+
+        /// <summary>
+        /// Возвращает список элементов ElementData для текущей библиотеки
+        /// </summary>
+        /// <returns></returns>
+        public static Dictionary<int, ElementData> GetCurLibElementData()
+        {
+            Dictionary<int, ElementData> result = new Dictionary<int, ElementData>();
+
+
+            string[] args = new string[] { String.Join(",", Context.CurLibPackageIDs)};
+            XDocument sqlResultSet = SQLHelper.RunSQL("CurLibObjects.sql", args);
+
+            IEnumerable<XElement> rowNodes = sqlResultSet.Root.XPathSelectElements("/EADATA/Dataset_0/Data/Row");
+            foreach (XElement rowNode in rowNodes)
+            {
+                ElementData elementData;
+
+                int object_id = int.Parse(rowNode.Descendants("object_id").First().Value);
+
+                if (result.ContainsKey(object_id))
+                {
+                    elementData = result[object_id];
+                }
+                else
+                {
+                    elementData = new ElementData();
+                    elementData._ElementID = object_id;
+                    elementData.Name = rowNode.Descendants("name").First().Value;
+                    elementData.EAType = rowNode.Descendants("object_type").First().Value;
+                    elementData.Note = rowNode.Descendants("note").First().Value;
+                    string sClassifierID = rowNode.Descendants("classifier_id").First().Value;
+                    if (sClassifierID != "")
+                    {
+                        elementData.ClassifierID = int.Parse(rowNode.Descendants("classifier_id").First().Value);
+                        elementData.ClassifierName = rowNode.Descendants("classifier_name").First().Value;
+                        elementData.ClassifierEAType = rowNode.Descendants("classifier_type").First().Value;
+                    }
+
+
+                    if (elementData.EAType == "Boundary") // тэги для Boundary лежат отдельно, поэтому Boundary инициируем неэкономно и сразу - через COM
+                    {
+                        EA.Element element = EARepository.GetElementByID(elementData._ElementID);
+                        elementData = new ElementData(element);
+
+                    }
+
+                    result.Add(object_id, elementData);
+                }
+
+                string tagName = rowNode.Descendants("property").First().Value;
+                string tagValue = rowNode.Descendants("value").First().Value;
+
+                if (tagName == DAConst.DP_LibraryTag)
+                    elementData.IsLibrary = true;
+                if (tagName == DAConst.DP_ComponentLevelTag)
+                    elementData.ComponentLevel = Enum.Parse(typeof(ComponentLevel), tagValue) as ComponentLevel?;
+                if (tagName == DAConst.DP_NodeGroupsTag)
+                    elementData.NodeGroups = tagValue.Split(',');
+            }
+
+            return result;
+        }
+
+
+
+        /// <summary>
+        /// Возвращает список ID коннекторов для элементов текущей диаграммы
+        /// </summary>
+        /// <returns></returns>
+        public static Dictionary<int,bool> GetCurDiagramConnectorsID()
+        {
+            Dictionary<int, bool> result = new Dictionary<int, bool>();
+
+            string[] args = new string[] { Context.CurrentDiagram.DiagramGUID };
+            XDocument sqlResultSet = SQLHelper.RunSQL("CurDiagramConnectorsID.sql", args);
+
+            IEnumerable<XElement> rowNodes = sqlResultSet.Root.XPathSelectElements("/EADATA/Dataset_0/Data/Row");
+            foreach (XElement rowNode in rowNodes)
+            {
+                int connector_id = int.Parse(rowNode.Descendants("connector_id").First().Value);
+                bool hidden = bool.Parse(rowNode.Descendants("hidden").First().Value);
+                result.Add(connector_id, hidden);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Возвращает список коннекторов для элементов текущей диаграммы
+        /// </summary>
+        /// <returns></returns>
+        public static List<ConnectorData> GetCurDiagramConnectors()
+        {
+            List<ConnectorData> result = new List<ConnectorData>();
+
+            string[] args = new string[] { Context.CurrentDiagram.DiagramGUID };
+            XDocument sqlResultSet = SQLHelper.RunSQL("CurDiagramConnectorsID.sql", args);
+
+            IEnumerable<XElement> rowNodes = sqlResultSet.Root.XPathSelectElements("/EADATA/Dataset_0/Data/Row");
+            foreach (XElement rowNode in rowNodes)
+            {
+                int connector_id = int.Parse(rowNode.Descendants("connector_id").First().Value);
+                bool hidden = bool.Parse(rowNode.Descendants("hidden").First().Value);
+
+                if (!hidden)
+                {
+                    ConnectorData connectorData = Context.ConnectorData[connector_id];
+                    result.Add(connectorData);
+                }
+            }
+
+            return result;
+        }
+
     }
 }
 

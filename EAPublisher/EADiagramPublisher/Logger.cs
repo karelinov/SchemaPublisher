@@ -42,7 +42,7 @@ namespace EADiagramPublisher
         public static void Out(string outStr, Object[] objectsToOUT = null, string tabname = "System", bool addCallername = true)
         {
             string result = DateTime.Now.ToString("HH:mm:sss.fff ");
-            string resultLevel = new StringBuilder(DesignerHelper.CallLevel).Insert(0, " ", DesignerHelper.CallLevel).ToString();
+            string resultLevel = new StringBuilder(ElementDesignerHelper.CallLevel).Insert(0, " ", ElementDesignerHelper.CallLevel).ToString();
 
             if (writeout || writelog)
             {

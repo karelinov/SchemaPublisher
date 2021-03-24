@@ -16,14 +16,14 @@ namespace EADiagramPublisher.Archive
         public static void MoveContainedHierarchy(EA.DiagramObject diagramObject, Point vector)
         {
             // Сначала получаем и подывигаем детей
-            List<EA.DiagramObject> containedDAList = EADAHelper.GetContainedForDA(diagramObject);
+            List<EA.DiagramObject> containedDAList = EADOHelper.GetContainedForDA(diagramObject);
             foreach (var curContainedDA in containedDAList)
             {
                 MoveContainedHierarchy(curContainedDA, vector);
             }
 
             // потом сам объект
-            EADAHelper.ApplyVectorToDA(diagramObject, vector);
+            EADOHelper.ApplyVectorToDA(diagramObject, vector);
         }
 
         /// <summary>
